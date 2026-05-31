@@ -6,6 +6,7 @@ import sys
 import time
 import traceback
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
 from threading import Event as ThreadEvent, Thread
 from textwrap import dedent
@@ -174,6 +175,7 @@ def start_messaging(config: KeepUpWithConfig, store: EventStore) -> None:
             settings=config.messaging().model_dump(),
             subscription=subscription,
             daemon=True,
+            baseline_first_poll=False,
         )
 
 
@@ -214,6 +216,7 @@ def reconcile_data(
             settings=settings,
             subscription=subscription,
             stop_event=stop_event,
+            baseline_first_poll=subscription.default_interval_seconds is not None,
         )
         running[key] = RunningSubscription(
             key=key,
@@ -232,10 +235,19 @@ def start_subscription(
     subscription: Subscription,
     stop_event: ThreadEvent | None = None,
     daemon: bool = False,
+    baseline_first_poll: bool = False,
 ) -> Thread:
     thread = Thread(
         target=run_subscription,
-        args=(config, store, integration, settings, subscription, stop_event),
+        args=(
+            config,
+            store,
+            integration,
+            settings,
+            subscription,
+            stop_event,
+            baseline_first_poll,
+        ),
         daemon=daemon,
     )
     thread.start()
@@ -249,24 +261,38 @@ def run_subscription(
     settings: dict[str, Any],
     subscription: Subscription,
     stop_event: ThreadEvent | None = None,
+    baseline_first_poll: bool = False,
 ) -> None:
-    context = SubscriptionContext(
-        config=config,
-        store=store,
-        integration=integration,
-        settings=settings,
-        stop_event=stop_event,
-    )
     consecutive_failures = 0
     last_error_at: dict[str, float] = {}
-    while not context.should_stop():
+    first_run = True
+    effective_stop_event = stop_event or ThreadEvent()
+    while not effective_stop_event.is_set():
+        context = SubscriptionContext(
+            config=config,
+            record_event=partial(
+                store.record,
+                pending=not (baseline_first_poll and first_run),
+            ),
+            integration=integration,
+            settings=settings,
+            stop_event=effective_stop_event,
+        )
         try:
             subscription.run(context)
             consecutive_failures = 0
+            first_run = False
         except Exception as error:
             consecutive_failures += 1
             traceback.print_exception(error, file=sys.stderr)
-            emit_error(context, subscription.name, error, consecutive_failures, last_error_at)
+            emit_error(
+                store,
+                context,
+                subscription.name,
+                error,
+                consecutive_failures,
+                last_error_at,
+            )
             context.wait(5)
             continue
         sleep_seconds = 5.0
@@ -439,6 +465,7 @@ def file_fingerprint(path: Path) -> tuple[int, int]:
 
 
 def emit_error(
+    store: EventStore,
     context: SubscriptionContext,
     subscription: str,
     error: Exception,
@@ -451,7 +478,7 @@ def emit_error(
     if previous is not None and now - previous < ERROR_EVENT_SECONDS:
         return
     last_error_at[error_type] = now
-    context.store.emit(
+    store.record(
         integration="keep_up_with",
         kind="subscription_error",
         external_id=f"{subscription}:{error_type}",

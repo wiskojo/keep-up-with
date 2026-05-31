@@ -9,7 +9,9 @@ from typing import Any, Protocol
 from dotenv import set_key
 
 from keep_up_with.core.config import KeepUpWithConfig, KeepUpWithPaths
-from keep_up_with.core.events import Event, EventStore
+from keep_up_with.core.events import Event
+
+EventRecorder = Callable[..., Event | None]
 
 
 @dataclass(frozen=True)
@@ -298,7 +300,7 @@ class SubscriptionContext(IntegrationContext):
         self,
         *,
         config: KeepUpWithConfig,
-        store: EventStore,
+        record_event: EventRecorder,
         integration: str,
         settings: dict[str, Any],
         stop_event: ThreadEvent | None = None,
@@ -308,7 +310,7 @@ class SubscriptionContext(IntegrationContext):
             integration=integration,
             settings=settings,
         )
-        self.store = store
+        self._record_event = record_event
         self._stop_event = stop_event or ThreadEvent()
 
     def should_stop(self) -> bool:
@@ -327,7 +329,7 @@ class SubscriptionContext(IntegrationContext):
         data: dict[str, Any] | None = None,
         high_priority: bool = False,
     ) -> Event | None:
-        return self.store.emit(
+        return self._record_event(
             integration=self.integration,
             kind=kind,
             external_id=external_id,

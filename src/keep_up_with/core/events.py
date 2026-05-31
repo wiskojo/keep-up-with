@@ -35,7 +35,7 @@ class EventStore:
     def __init__(self, config: KeepUpWithConfig) -> None:
         self.db_path = config.paths.events_db
 
-    def emit(
+    def record(
         self,
         *,
         integration: str,
@@ -45,6 +45,7 @@ class EventStore:
         refs: dict[str, Any] | None = None,
         data: dict[str, Any] | None = None,
         high_priority: bool = False,
+        pending: bool = True,
     ) -> Event | None:
         event = Event(
             id=event_id(integration, kind, external_id),
@@ -76,10 +77,11 @@ class EventStore:
             )
             if cursor.rowcount == 0:
                 return None
-            db.execute(
-                "insert or ignore into inbox (event_id, created_at) values (?, ?)",
-                (event.id, event.created_at),
-            )
+            if pending:
+                db.execute(
+                    "insert or ignore into inbox (event_id, created_at) values (?, ?)",
+                    (event.id, event.created_at),
+                )
         return event
 
     def list_events(self, limit: int | None = None) -> list[Event]:
