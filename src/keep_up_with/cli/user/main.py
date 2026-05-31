@@ -3,6 +3,7 @@ from __future__ import annotations
 import typer
 
 from keep_up_with.cli.user import ui
+from keep_up_with.cli.user.reset import reset_runtime
 from keep_up_with.cli.user.setup import run_setup
 from keep_up_with.cli.user.start import start_services, stop_services
 from keep_up_with.cli.user.status import run_status
@@ -56,6 +57,24 @@ def start() -> None:
 @app.command(help="Stop Keep Up With.")
 def stop() -> None:
     print_results(stop_services(get_config()))
+
+
+@app.command(help="Reset runtime state while keeping setup.")
+def reset(
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation."),
+) -> None:
+    try:
+        config = get_config()
+        did_reset = reset_runtime(config, yes=yes)
+    except RuntimeError as error:
+        ui.error(f"Error: {error}")
+        raise typer.Exit(1) from error
+    if not did_reset:
+        return
+    ui.success("Runtime state reset.")
+    ui.info("config and env were preserved.")
+    ui.info("workspace was recreated.")
+    ui.info("next `kuw start` will create a new Codex thread.")
 
 
 @app.command(help="Show runtime and connector health.")
