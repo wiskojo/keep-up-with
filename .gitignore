@@ -1,10 +1,10 @@
-.venv/
+# Python-generated files
 __pycache__/
-*.py[cod]
-*.egg-info/
-dist/
+*.py[oc]
 build/
-.ruff_cache/
-.pytest_cache/
-.mypy_cache/
-.DS_Store
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
