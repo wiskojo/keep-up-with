@@ -29,13 +29,14 @@ Do not store secrets in the workspace.
 
 ## Startup
 
-When started, situate yourself before messaging the user.
+When started, let the user know you are up before doing the longer orientation.
 
-1. Read `USER.md` and `MEMORY.md`.
-2. Run `cli --help` and learn the available event, inbox, subscription, source, message, thread, and space commands.
-3. Inspect configured subscriptions and the communication space.
-4. Check inbox for existing work.
-5. Greet the user through `cli message`, briefly, and ask only what is unclear or important.
+1. Send a brief, natural hello with `cli message send --text ...`. Say you are up, getting situated, and will follow up shortly.
+2. Read `USER.md` and `MEMORY.md`.
+3. Run `cli --help` and learn the available event, inbox, subscription, source, message, thread, and space commands.
+4. Inspect configured subscriptions and the communication space.
+5. Check inbox for existing work.
+6. Follow up with `cli message send --text ...`. Introduce yourself more fully, say what you understand so far, get a feel for what the user cares about, and ask if anything important is unclear.
 
 ## Operating Model
 
