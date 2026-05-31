@@ -1,0 +1,127 @@
+[reddit]
+subreddits = [
+  "codex",
+  "ClaudeAI",
+  "ClaudeCode",
+  "LocalLLaMA",
+  "vibecoding",
+  "MachineLearning",
+  "singularity",
+]
+
+[youtube]
+channels = [
+  "https://www.youtube.com/@aiDotEngineer",
+  "https://www.youtube.com/@t3dotgg",
+  "https://www.youtube.com/@Fireship",
+  "UCNJ1Ymd5yFuUPtn21xtRbbw",
+  "https://www.youtube.com/@AndrejKarpathy",
+  "https://www.youtube.com/@ThePrimeagen",
+  "https://www.youtube.com/@LangChain",
+  "https://www.youtube.com/@anthropic-ai",
+  "https://www.youtube.com/@claude",
+  "https://www.youtube.com/@OpenAI",
+  "https://www.youtube.com/@googledevelopers",
+  "https://www.youtube.com/@GoogleDeepMind",
+  "https://www.youtube.com/@DwarkeshPatel",
+]
+
+[x]
+accounts = [
+  "@omarsar0",
+  "@dair_ai",
+  "@arankomatsuzaki",
+  "@trending_repos",
+  "@OpenAIDevs",
+  "@AnthropicAI",
+  "@GoogleDeepMind",
+  "@AIatMeta",
+  "@huggingface",
+  "@latentspacepod",
+  "@TheRundownAI",
+  "@simonw",
+  "@karpathy",
+]
+
+[web]
+feeds = [
+  "https://openai.com/news/rss.xml",
+  "https://developers.openai.com/rss.xml",
+  "https://blog.google/innovation-and-ai/technology/ai/rss/",
+  "https://research.google/blog/rss/",
+  "https://www.langchain.com/blog/rss.xml",
+]
+pages = [
+  "https://www.anthropic.com/engineering",
+  "https://deepmind.google/discover/blog/",
+]
+
+[[space.sections]]
+key = "ai"
+name = "AI"
+
+[[space.channels]]
+key = "ai.frontier"
+name = "⚡・frontier"
+section = "ai"
+description = "Major capability shifts from leading AI labs. Use for flagship GPT, Claude, Gemini, DeepMind, Meta, and similar announcements when the main news is that the frontier moved."
+
+[[space.channels]]
+key = "ai.open-weights"
+name = "🧬・open-weights"
+section = "ai"
+description = "Open-weight and local model ecosystem news. Use for Llama, Gemma, Qwen, DeepSeek, Mistral, fine-tunes, quantizations, distillation, local inference, and notable Hugging Face releases."
+
+[[space.channels]]
+key = "ai.products"
+name = "🧑‍💻・products"
+section = "ai"
+description = "Packaged AI products people use through an app, subscription, workspace, or enterprise surface. Use for Claude Code, ChatGPT features, Cursor, Perplexity, Gemini app, Codex in ChatGPT, and other user-facing launches."
+
+[[space.channels]]
+key = "ai.tools"
+name = "🧰・tools"
+section = "ai"
+description = "Things builders can directly install, clone, call, or integrate. Use for SDKs, CLIs, APIs, MCP servers, browser extensions, GitHub repos, libraries, demos, and developer utilities."
+
+[[space.channels]]
+key = "ai.infra"
+name = "🏗️・infra"
+section = "ai"
+description = "The platform layer for running AI systems. Use for model serving, sandboxes, observability, orchestration, tracing, vector databases, eval harness infrastructure, deployment, scaling, Kubernetes, and production architecture."
+
+[[space.channels]]
+key = "ai.tips"
+name = "💡・tips"
+section = "ai"
+description = "Practical ways to use AI better. Use for prompting tricks, Claude Code setups, AGENTS.md patterns, coding-agent habits, workflow recipes, how I use this tool, and small repeatable techniques."
+
+[[space.channels]]
+key = "ai.research"
+name = "🔬・research"
+section = "ai"
+description = "New technical ideas, papers, methods, experiments, and scientific results. Use for training methods, inference techniques, architectures, interpretability, AI-for-science results, and serious technical writeups."
+
+[[space.channels]]
+key = "ai.evals"
+name = "📊・evals"
+section = "ai"
+description = "Measurement, benchmarks, leaderboards, comparisons, and claim-checking. Use when the main point is whether a model, product, agent, or method actually works."
+
+[[space.channels]]
+key = "ai.security"
+name = "🛡️・security"
+section = "ai"
+description = "Attacks, abuse, vulnerabilities, and safety failures. Use for prompt injection, jailbreaks, cyber capabilities, sandbox escapes, data exfiltration, model misuse, and agent security."
+
+[[space.channels]]
+key = "ai.business"
+name = "💼・business"
+section = "ai"
+description = "Commercial AI ecosystem movement. Use for funding, pricing, acquisitions, partnerships, enterprise adoption, revenue, company strategy, chips, and market structure."
+
+[[space.channels]]
+key = "ai.policy"
+name = "🏛️・policy"
+section = "ai"
+description = "Law, regulation, government, and geopolitics. Use for copyright lawsuits, AI regulation, export controls, government procurement, safety institutes, election rules, and compliance."

@@ -1,0 +1,310 @@
+from __future__ import annotations
+
+import html
+import re
+import shutil
+import subprocess
+from pathlib import Path
+from typing import Any
+from urllib.parse import urlparse
+
+import httpx
+
+CHANNEL_CACHE: dict[str, str] = {}
+
+
+def channel_videos(api_key: str, channel: str) -> list[dict[str, Any]]:
+    channel_id = resolve_channel_id(api_key, channel)
+    channel_data = youtube_get(
+        api_key,
+        "channels",
+        {"part": "contentDetails,snippet", "id": channel_id, "maxResults": 1},
+    )
+    items = channel_data.get("items") or []
+    if not items:
+        return []
+    uploads = (
+        items[0]
+        .get("contentDetails", {})
+        .get("relatedPlaylists", {})
+        .get("uploads")
+    )
+    if not isinstance(uploads, str):
+        return []
+
+    response = youtube_get(
+        api_key,
+        "playlistItems",
+        {"part": "snippet,contentDetails", "playlistId": uploads, "maxResults": 10},
+    )
+    videos: list[dict[str, Any]] = []
+    for item in response.get("items") or []:
+        snippet = item.get("snippet") or {}
+        content = item.get("contentDetails") or {}
+        video_id = content.get("videoId")
+        if not isinstance(video_id, str):
+            continue
+        videos.append(
+            {
+                "video_id": video_id,
+                "title": snippet.get("title") or "",
+                "channel_id": snippet.get("channelId") or channel_id,
+                "channel_title": snippet.get("channelTitle") or "",
+                "published_at": content.get("videoPublishedAt")
+                or snippet.get("publishedAt")
+                or "",
+                "url": f"https://www.youtube.com/watch?v={video_id}",
+                "thumbnail": thumbnail(snippet),
+            }
+        )
+    return videos
+
+
+def resolve_channel_id(api_key: str, channel: str) -> str:
+    cached = CHANNEL_CACHE.get(channel)
+    if cached:
+        return cached
+
+    value = channel.strip()
+    if value.startswith("UC"):
+        CHANNEL_CACHE[channel] = value
+        return value
+
+    path = urlparse(value).path.strip("/")
+    parts = path.split("/") if path else [value]
+    handle = next((part for part in parts if part.startswith("@")), value)
+    response = youtube_get(
+        api_key,
+        "channels",
+        {"part": "id", "forHandle": handle, "maxResults": 1},
+    )
+    items = response.get("items") or []
+    if not items or not isinstance(items[0].get("id"), str):
+        raise ValueError(f"could not resolve YouTube channel: {channel}")
+    CHANNEL_CACHE[channel] = items[0]["id"]
+    return items[0]["id"]
+
+
+def youtube_get(api_key: str, resource: str, params: dict[str, Any]) -> dict[str, Any]:
+    response = httpx.get(
+        f"https://www.googleapis.com/youtube/v3/{resource}",
+        params={**params, "key": api_key},
+        timeout=30,
+    )
+    response.raise_for_status()
+    data = response.json()
+    return data if isinstance(data, dict) else {}
+
+
+def video(url: str) -> dict[str, Any]:
+    info = extract(url)
+    return {
+        "id": info.get("id") or "",
+        "title": info.get("title") or "",
+        "channel": info.get("channel") or info.get("uploader") or "",
+        "channel_id": info.get("channel_id") or "",
+        "duration": info.get("duration"),
+        "upload_date": info.get("upload_date") or "",
+        "description": info.get("description") or "",
+        "webpage_url": info.get("webpage_url") or url,
+        "thumbnail": info.get("thumbnail") or "",
+        "tags": info.get("tags") or [],
+        "chapters": info.get("chapters") or [],
+        "subtitles": sorted((info.get("subtitles") or {}).keys()),
+        "automatic_captions": sorted((info.get("automatic_captions") or {}).keys()),
+    }
+
+
+def transcript(url: str, *, language: str = "en") -> dict[str, Any]:
+    info = extract(url)
+    tracks = info.get("subtitles") or {}
+    automatic = info.get("automatic_captions") or {}
+    source = "subtitles"
+    candidates = tracks.get(language)
+    if not candidates:
+        source = "automatic_captions"
+        candidates = automatic.get(language)
+    if not candidates:
+        return {
+            "id": info.get("id") or "",
+            "language": language,
+            "source": "",
+            "segments": [],
+            "text": "",
+            "available": {
+                "subtitles": sorted(tracks.keys()),
+                "automatic_captions": sorted(automatic.keys()),
+            },
+        }
+
+    track = prefer_transcript_track(candidates)
+    response = httpx.get(track["url"], timeout=30)
+    response.raise_for_status()
+    segments = parse_vtt(response.text)
+    return {
+        "id": info.get("id") or "",
+        "title": info.get("title") or "",
+        "language": language,
+        "source": source,
+        "segments": segments,
+        "text": " ".join(segment["text"] for segment in segments),
+    }
+
+
+def frames(url: str, *, timestamps: list[str], output_dir: Path) -> list[dict[str, Any]]:
+    timestamps = normalize_timestamps(timestamps)
+    if not timestamps:
+        raise ValueError("at least one timestamp is required")
+    if shutil.which("ffmpeg") is None:
+        raise ValueError("ffmpeg is required to extract frames")
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    info = extract(url)
+    video_url = media_url(info)
+    outputs = []
+    for index, timestamp in enumerate(timestamps, start=1):
+        target = output_dir / f"{info.get('id') or 'youtube'}-{index}.jpg"
+        command = [
+            "ffmpeg",
+            "-y",
+            "-ss",
+            timestamp,
+            "-i",
+            video_url,
+            "-frames:v",
+            "1",
+            str(target),
+        ]
+        try:
+            subprocess.run(
+                command,
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+        except subprocess.CalledProcessError as error:
+            lines = (error.stderr or "").strip().splitlines()
+            detail = lines[-1] if lines else "unknown ffmpeg error"
+            raise ValueError(f"ffmpeg failed at timestamp {timestamp}: {detail}") from error
+        outputs.append({"timestamp": timestamp, "path": str(target)})
+    return outputs
+
+
+def extract(url: str) -> dict[str, Any]:
+    try:
+        from yt_dlp import YoutubeDL
+    except ImportError as error:
+        raise ValueError("yt-dlp is required") from error
+
+    options = {
+        "quiet": True,
+        "no_warnings": True,
+        "skip_download": True,
+        "writesubtitles": False,
+        "writeautomaticsub": False,
+    }
+    with YoutubeDL(options) as ydl:
+        info = ydl.extract_info(url, download=False)
+    if not isinstance(info, dict):
+        raise ValueError("yt-dlp did not return video metadata")
+    return info
+
+
+def thumbnail(snippet: dict[str, Any]) -> str:
+    thumbnails = snippet.get("thumbnails") or {}
+    for key in ("maxres", "standard", "high", "medium", "default"):
+        url = (thumbnails.get(key) or {}).get("url")
+        if isinstance(url, str):
+            return url
+    return ""
+
+
+def prefer_transcript_track(tracks: list[dict[str, Any]]) -> dict[str, Any]:
+    for ext in ("vtt", "srv3", "ttml"):
+        for track in tracks:
+            if track.get("ext") == ext and isinstance(track.get("url"), str):
+                return track
+    for track in tracks:
+        if isinstance(track.get("url"), str):
+            return track
+    raise ValueError("no usable transcript track")
+
+
+def parse_vtt(text: str) -> list[dict[str, str]]:
+    segments: list[dict[str, str]] = []
+    lines = [line.strip() for line in text.splitlines()]
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        if "-->" not in line:
+            index += 1
+            continue
+        start, end = [part.strip().split(" ", 1)[0] for part in line.split("-->", 1)]
+        index += 1
+        content: list[str] = []
+        while index < len(lines) and lines[index]:
+            if not lines[index].startswith(("NOTE", "STYLE")):
+                content.append(lines[index])
+            index += 1
+        if content:
+            value = clean_caption_text(" ".join(content))
+            if value and (not segments or segments[-1]["text"] != value):
+                segments.append({"start": start, "end": end, "text": value})
+    return dedupe_caption_segments(segments)
+
+
+def clean_caption_text(value: str) -> str:
+    return " ".join(html.unescape(re.sub(r"<[^>]+>", "", value)).split())
+
+
+def normalize_timestamps(timestamps: list[str]) -> list[str]:
+    values: list[str] = []
+    for timestamp in timestamps:
+        for part in str(timestamp).split(","):
+            value = part.strip()
+            if value:
+                values.append(value)
+    return values
+
+
+def dedupe_caption_segments(segments: list[dict[str, str]]) -> list[dict[str, str]]:
+    deduped: list[dict[str, str]] = []
+    for segment in segments:
+        text = segment["text"]
+        if not deduped:
+            deduped.append(segment)
+            continue
+        previous = deduped[-1]
+        previous_text = previous["text"]
+        if text in previous_text:
+            previous["end"] = segment["end"]
+            continue
+        if previous_text in text:
+            previous["text"] = text
+            previous["end"] = segment["end"]
+            continue
+        overlap = suffix_prefix_overlap(previous_text, text)
+        if overlap:
+            previous["text"] = previous_text + text[overlap:]
+            previous["end"] = segment["end"]
+            continue
+        deduped.append(segment)
+    return deduped
+
+
+def suffix_prefix_overlap(left: str, right: str) -> int:
+    for size in range(min(len(left), len(right)), 7, -1):
+        if left[-size:] == right[:size]:
+            return size
+    return 0
+
+
+def media_url(info: dict[str, Any]) -> str:
+    formats = info.get("formats")
+    if not isinstance(formats, list):
+        raise ValueError("yt-dlp returned no media formats")
+    for item in reversed(formats):
+        if isinstance(item, dict) and item.get("vcodec") != "none" and isinstance(item.get("url"), str):
+            return item["url"]
+    raise ValueError("yt-dlp returned no video format URL")

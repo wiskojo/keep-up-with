@@ -1,0 +1,77 @@
+from __future__ import annotations
+
+import typer
+
+from keep_up_with.cli.user import ui
+from keep_up_with.cli.user.setup import run_setup
+from keep_up_with.cli.user.start import start_services, stop_services
+from keep_up_with.cli.user.status import run_status
+from keep_up_with.core.config import get_config, get_paths
+
+app = typer.Typer(
+    add_completion=False,
+    invoke_without_command=True,
+    help="Local runtime for Keep Up With.",
+)
+
+
+@app.callback(invoke_without_command=True)
+def main(ctx: typer.Context) -> None:
+    if ctx.invoked_subcommand is None:
+        typer.echo(ctx.get_help())
+        raise typer.Exit()
+
+
+@app.command(help="Configure Keep Up With for this machine.")
+def setup() -> None:
+    paths = get_paths()
+    try:
+        run_setup(paths)
+    except KeyboardInterrupt as error:
+        ui.error("Setup cancelled.")
+        raise typer.Exit(130) from error
+    except (FileNotFoundError, RuntimeError) as error:
+        ui.error(f"Error: {error}")
+        raise typer.Exit(1) from error
+    ui.summary(
+        [
+            ("home", str(paths.home)),
+            ("workspace", str(paths.workspace)),
+            ("config", str(paths.config)),
+            ("env", str(paths.env)),
+        ]
+    )
+
+
+@app.command(help="Start Keep Up With.")
+def start() -> None:
+    try:
+        results = start_services(get_config())
+    except RuntimeError as error:
+        ui.error(f"Error: {error}")
+        raise typer.Exit(1) from error
+    print_results(results)
+
+
+@app.command(help="Stop Keep Up With.")
+def stop() -> None:
+    print_results(stop_services(get_config()))
+
+
+@app.command(help="Show runtime and connector health.")
+def status() -> None:
+    try:
+        run_status(get_config())
+    except RuntimeError as error:
+        ui.error(f"Error: {error}")
+        raise typer.Exit(1) from error
+
+
+def print_results(results) -> None:
+    labels = {
+        "gateway": "gateway",
+    }
+    for result in results:
+        pid = f" pid={result.pid}" if result.pid is not None else ""
+        log = f" log={result.log}" if result.log else ""
+        ui.info(f"{labels.get(result.name, result.name)}: {result.action}{pid}{log}")
