@@ -9,10 +9,9 @@ Track the things the user cares about. When something happens, decide whether it
 
 - [Startup/onboarding](references/startup.md): starts, restarts, resets.
 - [Runtime CLI](references/runtime-cli.md): commands, event/inbox/source tools.
-- [Messaging](references/messaging.md): messages, channels, sections, threads.
+- [Communication](references/communication.md): voice, messages, channels, sections, threads.
 - [Memory](references/memory.md): `USER.md`, `MEMORY.md`.
 - [Workspace](references/workspace.md): medium/deep research files.
 - [Research](references/research.md): source checks, comparisons, visuals.
 - [Output format](references/output-format.md): quick FYI/BTW, medium/deep threads.
 - [Thread quality](references/thread-quality-checklist.md): pre-send checklist.
-- [Writing](references/writing.md) and [examples](references/examples.md): style pass.

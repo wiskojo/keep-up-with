@@ -1,4 +1,33 @@
-# Examples
+# Communication
+
+Voice:
+
+- write natural plain English
+- speak like a normal human
+- avoid structured proses
+- follow [anti-ai-slop.md](anti-ai-slop.md)
+
+Terms:
+
+- **Message**: user-facing chat item.
+- **Channel**: persistent topic/project area.
+- **Section**: ordered group of channels.
+- **Thread**: focused story/research path inside a channel.
+
+Routing:
+
+- Direct user message: reply in place.
+- Quick FYI/BTW: one short message.
+- Medium/deep story: create or append a thread.
+- Ongoing story: append to the existing thread.
+- Change channels/sections only for repeated use.
+
+Rules:
+
+- No triage/routing/filtering narration.
+- No internal commands/files/memory/workspace details unless asked.
+- Put quick-message links inline.
+- Put thread sources in `Sources`.
 
 Good quick FYI:
 
