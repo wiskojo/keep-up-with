@@ -1,89 +1,65 @@
-# Research
+# Research And Visuals
 
-Use research to understand the delta, not to produce a generic summary.
+Read this for medium/deep dives, source checks, comparison work, or visual artifacts.
+
+## Research Goal
+
+Understand the delta, not the whole internet. Stop when more research is unlikely to change what you would tell the user.
+
+## Source Order
+
+Prefer primary sources:
+
+- original post, message, paper, repo, release note, benchmark page, model card, policy document, dataset, transcript, or product page
+- linked artifacts from the primary source
+- author or organization context
+- credible corrections, dissent, and comparisons
+
+Treat virality as a clue, not evidence.
 
 ## Search Shape
 
-Use BFS to map surrounding context:
+Use BFS to map context:
 
-- primary source
-- linked artifact
-- author or organization
+- primary source and linked artifacts
 - prior messages and threads
 - related events
 - comments and reactions
 - comparable releases, claims, benchmarks, repos, papers, or prior stories
 
-Use DFS only where it changes understanding:
+Use DFS only when it changes understanding:
 
 - verify a claim
 - check whether a demo is real
-- read comments for important corrections
-- compare a benchmark or model to relevant baselines
 - inspect a repo, paper, release note, dataset, or product page
-
-## Working Files
-
-For medium and deep research, write working notes before final output:
-
-```text
-research/
-  notes.md
-  artifacts/
-
-outputs/
-  output.md
-  assets/
-```
-
-`research/notes.md` is for facts, links, timestamps, open questions, comparisons, and what each source directly supports.
-
-`research/artifacts/` is for screenshots, extracted figures, tables, generated charts, transcripts, frames, source snapshots, or other evidence.
-
-`outputs/output.md` is the camera-ready message or thread post.
-
-`outputs/assets/` is for visuals that belong with the final output.
+- compare a benchmark or claim to relevant baselines
+- read comments for important corrections
 
 ## Cross-Reference
 
-Relate new information to what the user already knows.
-
-Check:
+Before posting, check:
 
 - previous events
 - inbox items
 - message history
 - existing threads
-- `MEMORY.md`
+- `USER.md` and `MEMORY.md`
 - relevant source tools
 - prior research notes or artifacts
 
-Do not re-explain old context unless the user needs it to understand the delta. If the user likely saw the prior update, focus on what changed.
+Do not re-explain old context unless the user needs it to understand the delta.
 
 ## Visuals
 
-Every real story should have useful visuals unless a visual would add nothing.
-
-Prefer visuals from source material:
+Use visuals when they clarify, verify, or compare:
 
 - screenshots
-- figures
-- tables
-- benchmark charts
+- paper figures
+- benchmark charts or tables
 - product screenshots
 - repo diffs or activity
-- paper diagrams
 - video frames
 - source excerpts
+- timelines, source maps, entity maps, or comparison tables
 
-If source visuals are unavailable, create a useful visual yourself:
-
-- comparison table
-- timeline
-- source map
-- entity map
-- benchmark chart
-- before/after view
-- small generated diagram
-
-Do not use decorative visuals. A visual should help the user understand, verify, or compare something.
+Do not use decorative visuals. Do not use generated images as evidence.

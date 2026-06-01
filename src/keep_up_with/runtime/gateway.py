@@ -157,11 +157,7 @@ def initial_turn_message(config: KeepUpWithConfig) -> str:
 
         You were just started.
 
-        1. First, send the user a brief, natural hello with `cli message send --text ...`. Say you are up, getting situated, and will follow up shortly.
-        2. Situate yourself. Understand who you are, what your purpose is, what kind of agent you are, and how you should relate to the user and the world. Read your durable context in `{config.paths.workspace}`.
-        3. Understand what you have access to. Learn how `cli` works. Run `cli --help`, make sure you can use it, and learn the events, inbox, tools, subscriptions, messaging, thread, and space commands.
-        4. Understand what the user wants to keep up with. They have already gone through setup, so inspect the enabled subscriptions and message space before asking broad setup questions.
-        5. Follow up with `cli message send --text ...`. Introduce yourself more fully, say what you understand so far, get a feel for what they care about, and ask if anything important is unclear.
+        Follow the startup/onboarding flow in the keep-up-with skill.
         """
     ).strip()
 

@@ -2,46 +2,45 @@
 
 These are references for tone and shape, not templates to follow mechanically.
 
-## Good Quick Message
+## Good Quick FYI
 
-> A new model release landed from an open-weight lab. The useful bit is that the repo includes inference code and eval scripts, not just a PDF. I’m checking the benchmark claims against comparable open models before making a thread.
+> DeepMind posted a new Genie 3 demo with interactive world generation rather than just video prediction. The primary thing to check is whether they published technical details or only examples. Source: https://example.com
 
-Why it works: short, factual, no fake verdict, says what matters.
+Why it works: short, factual, one link, no internal process narration.
 
-## Good Thread Update
+## Good BTW
 
-> The release now has three things worth separating:
+> BTW, the repo for that benchmark changed its scoring script this morning, so older leaderboard comparisons may not line up cleanly anymore. I linked the commit in the thread. https://example.com
+
+Why it works: small update, clear reason for sending, one concrete link.
+
+## Good Thread Skeleton
+
+> Background:
+> The company is a small eval startup, so the claim needs more context than if it came from a major lab. The post went up today; the reason to look now is that several model launch threads are citing it as evidence.
 >
-> First, the model card claims a coding jump, but the published evals are mostly saturated benchmarks. I pulled the comparable scores from the last two strong open models so the numbers are easier to read.
+> What happened / what is it:
+> They published a benchmark for long-context code editing and scored three current models. The public page includes task descriptions and aggregate scores, but not the full task set.
 >
-> Second, the repo has runnable inference code but no training config. That makes it useful to try, not enough to understand how they got the result.
+> What's changed / new:
+> This is different from the usual SWE-bench style claims because it measures multi-file edits with a longer prompt history. It is not directly comparable to the prior coding scores in the existing thread.
 >
-> Third, most of the discussion is about deployment size and tokenizer behavior. I linked the two comments that actually add details instead of reposting the launch.
+> Highlights:
+> - The main claim depends on private tasks, so the reported ranking cannot be independently reproduced yet.
+> - The scoring rubric rewards passing tests and minimizing unrelated edits, which is closer to agentic coding than single-shot benchmark answers.
+>
+> Sources:
+> - https://example.com - benchmark page and headline scores.
+> - https://example.com/repo - scoring rubric and task format.
 
-Why it works: it reports, compares, and filters without pretending to know more than the sources support.
+Why it works: enough context to interpret the claim, clear delta, sources at the bottom.
 
-## Bad Preambles
+## Avoid
 
-Avoid:
+> New detail: this is worth watching because it could be important.
 
-> New detail:
+Problem: vague, judgment-heavy, no source, no fact pattern.
 
-> The interesting bit is not...
+> I triaged a bunch of posts and this one was the highest signal.
 
-> I’d treat this as promising but screenshot-driven...
-
-> This is worth watching.
-
-These waste space or narrate internal judgment. State the facts instead.
-
-## Bad Benchmark Note
-
-Avoid:
-
-> The model gets 63 on AIME and 72 on LiveCodeBench.
-
-Better:
-
-> The headline scores are 63 on AIME and 72 on LiveCodeBench. Those are hard to interpret alone because both benchmarks are crowded now. I’m comparing against current frontier and open-weight baselines before treating this as a real jump.
-
-Why it works: the raw numbers get context.
+Problem: exposes filtering instead of reporting what happened.
