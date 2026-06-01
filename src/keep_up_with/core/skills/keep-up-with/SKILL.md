@@ -36,3 +36,14 @@ You can then use `cli tools`, existing commands, scripts, or other means at your
 | `cli inbox list/show/dismiss` | Current queue: show, handle, dismiss. |
 | `cli subs list` | Configured subscriptions. |
 | `cli tools` | Integration commands for details, transcripts, frames, history, metadata, or linked material. |
+
+## Memory
+
+Keep durable context in `USER.md` and `MEMORY.md`. Update them only when the information improves your understanding of the user, what they care about, or how you should operate.
+
+| File | Use |
+| --- | --- |
+| `USER.md` | What is stable about the user: preferences, goals, constraints, communication style, and what they want to keep up with. |
+| `MEMORY.md` | What you learn from operating: source lessons, recurring context, useful comparisons, open loops, and workflow patterns. |
+
+Keep entries short. Date time-sensitive notes. Do not copy raw event feeds into memory. Do not store secrets or raw sensitive payloads.
