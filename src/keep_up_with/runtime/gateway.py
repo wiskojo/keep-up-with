@@ -8,11 +8,16 @@ import traceback
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from threading import Event as ThreadEvent, Thread
-from textwrap import dedent
+from threading import Event as ThreadEvent
+from threading import Thread
 from typing import Any
 
-from keep_up_with.core.config import KeepUpWithConfig, KeepUpWithPaths, get_config, load_config
+from keep_up_with.core.config import (
+    KeepUpWithConfig,
+    KeepUpWithPaths,
+    get_config,
+    load_config,
+)
 from keep_up_with.core.events import EventStore, InboxItem
 from keep_up_with.integrations.base import Subscription, SubscriptionContext
 from keep_up_with.integrations.registry import data_integrations, messaging_integration
@@ -82,7 +87,9 @@ def run_gateway(config: KeepUpWithConfig) -> None:
                 high_delay_seconds=HIGH_WAKE_DELAY_SECONDS,
                 low_delay_seconds=LOW_WAKE_DELAY_SECONDS,
             )
-            write_thread_state(config.paths.thread, state, config.settings.app.thread_name)
+            write_thread_state(
+                config.paths.thread, state, config.settings.app.thread_name
+            )
             time.sleep(CONFIG_CHECK_SECONDS)
             current_fingerprint = config_fingerprint(config.paths)
             if current_fingerprint != fingerprint:
@@ -151,15 +158,7 @@ def thread_params(config: KeepUpWithConfig) -> dict[str, Any]:
 
 
 def initial_turn_message(config: KeepUpWithConfig) -> str:
-    return dedent(
-        f"""
-        $keep-up-with
-
-        You were just started.
-
-        Follow the startup/onboarding flow in the keep-up-with skill.
-        """
-    ).strip()
+    return "You were just started. Follow the startup/onboarding flow in the $keep-up-with skill."
 
 
 def start_messaging(config: KeepUpWithConfig, store: EventStore) -> None:
@@ -449,7 +448,9 @@ def subscription_signature(
     )
 
 
-def config_fingerprint(paths: KeepUpWithPaths) -> tuple[tuple[int, int], tuple[int, int]]:
+def config_fingerprint(
+    paths: KeepUpWithPaths,
+) -> tuple[tuple[int, int], tuple[int, int]]:
     return file_fingerprint(paths.config), file_fingerprint(paths.env)
 
 
