@@ -41,13 +41,51 @@ def posts(ctx: SubscriptionContext) -> None:
                 ctx.emit(
                     kind="headline",
                     external_id=item_id,
-                    summary=f"{actor}: {item.get('title') or 'New post'}",
+                    summary=post_summary(actor, item),
                     refs={
                         "post_id": item.get("id", ""),
                         "url": item.get("permalink") or item.get("url") or "",
                     },
                     data=item,
                 )
+
+
+def post_summary(actor: str, item: dict[str, Any]) -> str:
+    title = item.get("title") or "New post"
+    metrics = post_metrics(item)
+    suffix = f" ({metrics})" if metrics else ""
+    return f"{actor}: {title}{suffix}"
+
+
+def post_metrics(item: dict[str, Any]) -> str:
+    parts: list[str] = []
+    score = metric_value(item.get("score"))
+    comments = metric_value(item.get("num_comments"))
+    if score is not None:
+        parts.append(plural(score, "upvote"))
+    if comments is not None:
+        parts.append(plural(comments, "comment"))
+    return ", ".join(parts)
+
+
+def metric_value(value: Any) -> int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    if isinstance(value, str):
+        try:
+            return int(value.replace(",", "").strip())
+        except ValueError:
+            return None
+    return None
+
+
+def plural(value: int, noun: str) -> str:
+    suffix = "" if value == 1 else "s"
+    return f"{value:,} {noun}{suffix}"
 
 
 def _within_window(value: Any, hours: int) -> bool:
