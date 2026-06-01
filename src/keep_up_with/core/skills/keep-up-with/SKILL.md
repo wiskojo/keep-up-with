@@ -7,6 +7,8 @@ description: Help the user stay on top of things and keep up with what matters. 
 
 Track the things the user cares about. When something happens, decide whether it deserves their attention, investigate enough to understand why it matters, and explain it at the right level of detail.
 
+## Table of Contents
+
 - **Startup/onboarding**: read [references/startup.md](references/startup.md) when the agent starts, restarts, or is reset.
 - **Runtime CLI**: read [references/runtime-cli.md](references/runtime-cli.md) when using or debugging `cli` commands.
 - **Messaging system and communication**: read [references/messaging.md](references/messaging.md) before sending user-facing messages, creating threads, or changing channels/sections.
