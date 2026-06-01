@@ -19,12 +19,12 @@ def transcript(_ctx: ToolContext, url: str, language: str = "en") -> dict[str, A
 
 @tool("Extract frames from a YouTube video.")
 def frames(
-    ctx: ToolContext,
+    _ctx: ToolContext,
     url: str,
     timestamps: list[str],
-    output_dir: str = "youtube-frames",
+    output_dir: str = ".",
 ) -> list[dict[str, Any]]:
     target = Path(output_dir).expanduser()
     if not target.is_absolute():
-        target = ctx.workspace / target
+        target = Path.cwd() / target
     return client.frames(url, timestamps=timestamps, output_dir=target)

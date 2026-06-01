@@ -1,46 +1,34 @@
 # Examples
 
-These are references for tone and shape, not templates to follow mechanically.
+Good quick FYI:
 
-## Good Quick FYI
+> DeepMind posted a Genie 3 demo with interactive world generation rather than only video prediction. The useful check is whether they published technical details or only examples. https://example.com
 
-> DeepMind posted a new Genie 3 demo with interactive world generation rather than just video prediction. The primary thing to check is whether they published technical details or only examples. Source: https://example.com
+Good BTW:
 
-Why it works: short, factual, one link, no internal process narration.
+> BTW, the benchmark repo changed its scoring script this morning, so older leaderboard comparisons may not line up cleanly. Commit: https://example.com
 
-## Good BTW
-
-> BTW, the repo for that benchmark changed its scoring script this morning, so older leaderboard comparisons may not line up cleanly anymore. I linked the commit in the thread. https://example.com
-
-Why it works: small update, clear reason for sending, one concrete link.
-
-## Good Thread Skeleton
+Good thread:
 
 > Background:
-> The company is a small eval startup, so the claim needs more context than if it came from a major lab. The post went up today; the reason to look now is that several model launch threads are citing it as evidence.
+> The company is a small eval startup. The post went up today and is being cited in several model launch threads.
 >
 > What happened / what is it:
-> They published a benchmark for long-context code editing and scored three current models. The public page includes task descriptions and aggregate scores, but not the full task set.
+> They published a benchmark for long-context code editing and scored three current models. The page includes task descriptions and aggregate scores, but not the full task set.
 >
 > What's changed / new:
-> This is different from the usual SWE-bench style claims because it measures multi-file edits with a longer prompt history. It is not directly comparable to the prior coding scores in the existing thread.
+> This differs from SWE-bench style claims because it measures multi-file edits with longer prompt history.
 >
 > Highlights:
-> - The main claim depends on private tasks, so the reported ranking cannot be independently reproduced yet.
-> - The scoring rubric rewards passing tests and minimizing unrelated edits, which is closer to agentic coding than single-shot benchmark answers.
+> - The ranking depends on private tasks, so it cannot be independently reproduced yet.
+> - The rubric rewards passing tests and minimizing unrelated edits.
 >
 > Sources:
-> - https://example.com - benchmark page and headline scores.
-> - https://example.com/repo - scoring rubric and task format.
+> - https://example.com - benchmark page and scores.
+> - https://example.com/repo - rubric and task format.
 
-Why it works: enough context to interpret the claim, clear delta, sources at the bottom.
-
-## Avoid
+Avoid:
 
 > New detail: this is worth watching because it could be important.
 
-Problem: vague, judgment-heavy, no source, no fact pattern.
-
 > I triaged a bunch of posts and this one was the highest signal.
-
-Problem: exposes filtering instead of reporting what happened.
