@@ -1,6 +1,6 @@
 # Publish Checklist
 
-Fill this before publishing medium/deep work. For every checked item, add concrete evidence: source, artifact, message id, subagent result, or reason.
+The judge subagent fills this before medium/deep work is published. For every checked item, add concrete evidence: source, artifact, message id, subagent result, or reason.
 
 ## 1. Filter
 
@@ -48,12 +48,24 @@ Fill this before publishing medium/deep work. For every checked item, add concre
 - [ ] Sources are separated into the final post.
   - Evidence:
 
-## 7. Edit
+## 7. Judge
 
+- [ ] Judge subagent reviewed the work.
+  - Evidence:
+- [ ] Judge filled this checklist with evidence.
+  - Evidence:
+- [ ] Blocking feedback resolved, or any remaining issue has an explicit reason.
+  - Evidence:
 - [ ] Language follows `anti-ai-slop.md` and sounds like normal chat.
   - Evidence:
 - [ ] User-facing text does not expose routing, filtering, notes, or workspace paths unless asked.
   - Evidence:
+
+## Judge Feedback
+
+- Blocking fixes:
+- Quality notes:
+- Final call:
 
 ## 8. Publish
 

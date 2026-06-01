@@ -43,7 +43,7 @@ Use local time for `YYYY-MM-DD-HHMM`. Keep the slug short, lowercase, and hyphen
 
 Goal: understand the delta. Stop when more work is unlikely to change what you would say.
 
-For medium/deep work, delegate at least one independent research or checking branch to a subagent when subagents are available and the work can run in parallel. Keep non-overlapping work moving while the subagent runs. If you do not delegate, record the reason in `research/checklist.md`.
+For medium/deep work, dispatch coherent groups of work to subagents when subagents are available. A subagent should own one story/thread or one research line end to end. If new events arrive for that same story or line, send the update back to that subagent when possible. Keep non-overlapping work moving while subagents run. If you do not delegate, record the reason in `research/checklist.md`.
 
 Start broad, then go deep only where it matters:
 
@@ -122,11 +122,22 @@ Omit empty or artificial sections except `Sources`. One good story beats several
 
 If new events arrive for an existing thread, append only the delta. Do not repeat the full background unless the user needs it to understand the update.
 
-## 7. Checklist And Edit
+## 7. Judge
 
-For medium/deep work, complete `research/checklist.md` before publishing. A checkbox without concrete evidence underneath is not complete.
+For medium/deep work, start a separate judge subagent before publishing. The judge checks the work against the quality bar, fills `research/checklist.md`, and gives feedback.
 
-Revise `output/output.md` until it is ready to send.
+Give the judge:
+
+- the original event or user request
+- `research/notes.md`
+- relevant files in `research/artifacts/`
+- `output/output.md`
+- `research/checklist.md`
+- this workflow and `anti-ai-slop.md`
+
+The judge must not rubber-stamp the draft. It should leave boxes unchecked when evidence is missing, the work skipped a step, the thread is hard to read, visuals are weak/missing, claims are unsupported, or the tone misses the bar. A checkbox without concrete evidence underneath is not complete.
+
+Revise `output/output.md` and the supporting work until the judge's blocking feedback is resolved.
 
 ## 8. Publish
 
