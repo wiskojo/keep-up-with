@@ -395,8 +395,12 @@ class DiscordMessagingClient:
                 type=discord.ChannelType.public_thread,
                 reason="Keep Up With thread",
             )
-            if text or files:
-                await thread.send(content=text or None, files=files or None)
+            user_id = str(self.context.settings()["user_id"])
+            await thread.send(
+                content=_with_user_mention(text, user_id),
+                files=files or None,
+                allowed_mentions=_user_allowed_mentions(user_id),
+            )
             return ThreadRef(
                 id=str(thread.id),
                 name=thread.name,
@@ -665,6 +669,24 @@ def _message_data(message: discord.Message) -> dict[str, Any]:
         "attachments": [_attachment_data(item) for item in message.attachments],
         "created_at": message.created_at.isoformat(),
     }
+
+
+def _with_user_mention(text: str, user_id: str) -> str:
+    mention = f"<@{user_id}>"
+    if mention in text or f"<@!{user_id}>" in text:
+        return text
+    if not text.strip():
+        return mention
+    return f"{text.rstrip()}\n\n{mention}"
+
+
+def _user_allowed_mentions(user_id: str) -> discord.AllowedMentions:
+    return discord.AllowedMentions(
+        users=[discord.Object(id=int(user_id))],
+        roles=False,
+        everyone=False,
+        replied_user=False,
+    )
 
 
 def _attachment_data(attachment: discord.Attachment) -> dict[str, Any]:

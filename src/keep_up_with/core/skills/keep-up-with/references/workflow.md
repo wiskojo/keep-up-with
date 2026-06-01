@@ -133,5 +133,5 @@ Revise `output/output.md` until it is ready to send.
 Share the finished output through `cli`.
 
 - Quick update: `cli message send`.
-- New medium/deep story: `cli thread create`, with an `@` mention for the user.
-- Update to an existing story: `cli thread append`, with an `@` mention for the user.
+- New medium/deep story: `cli thread create`.
+- Update to an existing story: `cli thread append`.
