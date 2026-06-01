@@ -8,6 +8,7 @@ import traceback
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
+from textwrap import dedent
 from threading import Event as ThreadEvent
 from threading import Thread
 from typing import Any
@@ -158,7 +159,17 @@ def thread_params(config: KeepUpWithConfig) -> dict[str, Any]:
 
 
 def initial_turn_message(config: KeepUpWithConfig) -> str:
-    return "You were just started. Follow the startup/onboarding flow in the $keep-up-with skill."
+    return dedent(
+        f"""$keep-up-with
+
+        You were just started.
+
+        1. First, greet the user to let them know you're up. Say you're getting situated and will follow up shortly.
+        2. Situate yourself. Understand who you are, what your purpose is, what kind of agent you are, and how you should relate to the user and the world. Read your durable context in `{config.paths.workspace}`.
+        3. Understand what you have access to. Learn how `cli` works. Run `cli --help`, make sure you can use it, and learn the events, inbox, tools, subscriptions, messaging, thread, and space commands.
+        4. Understand what the user wants to keep up with. They have already gone through setup, so inspect the enabled subscriptions and message space before asking broad setup questions.
+        5. Follow up by introducing yourself more fully, saying what you understand so far, getting a feel for what they care about, and asking any questions you have."""
+    ).strip()
 
 
 def start_messaging(config: KeepUpWithConfig, store: EventStore) -> None:
