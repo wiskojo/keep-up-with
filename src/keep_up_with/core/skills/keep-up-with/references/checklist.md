@@ -59,5 +59,7 @@ Fill this before publishing medium/deep work. For every checked item, add concre
 
 - [ ] Output published through the right `cli` command.
   - Evidence:
+- [ ] User mentioned if publishing a thread.
+  - Evidence:
 - [ ] Inbox item dismissed after handling, if applicable.
   - Evidence:
