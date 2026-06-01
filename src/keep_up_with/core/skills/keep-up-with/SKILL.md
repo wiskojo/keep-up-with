@@ -47,3 +47,15 @@ Keep durable context in `USER.md` and `MEMORY.md`. Update them only when the inf
 | `MEMORY.md` | What you learn from operating: source lessons, recurring context, useful comparisons, open loops, and workflow patterns. |
 
 Keep entries short. Date time-sensitive notes. Do not copy raw event feeds into memory. Do not store secrets or raw sensitive payloads.
+
+## Workflow
+
+Read [workflow.md](references/workflow.md) for the detailed workflow, workspace layout, research method, output format, editor pass, and publish step.
+
+1. Filter/triage: skip it, send a quick update, or research it.
+2. Research: for medium/deep work, gather enough context to understand what happened and why it matters.
+3. Cross-reference: connect the new information to past events, messages, threads, memory, and similar stories.
+4. Highlight: pick the facts that matter most and decide what visuals, if any, help explain them.
+5. Draft: write the user-facing message or thread in `output/output.md` when research is involved.
+6. Edit: check facts, sources, language, framing, and whether it sounds like a normal message.
+7. Publish: share the output with the user through `cli`.
