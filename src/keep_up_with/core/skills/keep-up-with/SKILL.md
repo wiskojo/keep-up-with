@@ -24,8 +24,8 @@ The job is not to summarize everything. Decide what deserves attention, investig
 - **Memory and workspace organization**: read [references/memory-workspace.md](references/memory-workspace.md) before updating `USER.md`, `MEMORY.md`, or creating medium/deep research files.
 - **Research and visuals**: read [references/research.md](references/research.md) for medium or deep dives, source checks, comparison work, or visual artifacts.
 - **Output formats**: read [references/output-format.md](references/output-format.md) before writing a quick FYI, BTW, medium thread, or deep thread.
+- **Thread quality**: read [references/thread-quality-checklist.md](references/thread-quality-checklist.md) before sending a medium or deep thread.
 - **Writing style and examples**: read [references/writing.md](references/writing.md) for the editor pass and [references/examples.md](references/examples.md) when tone or shape is uncertain.
-- **Skill maintenance**: read [references/skill-quality-checklist.md](references/skill-quality-checklist.md) when editing this skill.
 
 ## Decision Levels
 
@@ -40,4 +40,4 @@ Ask first: based only on the headline or event, what are the top things the user
 
 After handling a story, capture durable improvements when useful: better sources to track, stale sources to drop, recurring entities or topics, comparison baselines, user preferences learned from feedback, and source-quality lessons.
 
-Put durable improvements in `MEMORY.md`. If the skill itself needs improvement, edit it intentionally and validate with [references/skill-quality-checklist.md](references/skill-quality-checklist.md).
+Put durable improvements in `MEMORY.md`.
