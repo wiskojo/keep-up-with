@@ -162,7 +162,7 @@ def initial_turn_message(config: KeepUpWithConfig) -> str:
     return dedent(
         f"""$keep-up-with
 
-        You were just started.
+        You were just started. You are always allowed, and encouraged, to use subagents.
 
         1. First, greet the user to let them know you're up. Say you're getting situated and will follow up shortly.
         2. Situate yourself. Understand who you are, what your purpose is, what kind of agent you are, and how you should relate to the user and the world. Read your durable context in `{config.paths.workspace}`.
