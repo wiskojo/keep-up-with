@@ -7,6 +7,11 @@ from keep_up_with.cli.user import ui
 from keep_up_with.cli.user.setup import write_default_workspace
 from keep_up_with.cli.user.start import stop_services
 from keep_up_with.core.config import KeepUpWithConfig
+from keep_up_with.runtime.codex import JsonRpcClient
+from keep_up_with.runtime.codex_threads import (
+    archive_workspace_threads,
+    initialize_app_server,
+)
 
 
 def reset_runtime(config: KeepUpWithConfig, *, yes: bool = False) -> bool:
@@ -18,6 +23,7 @@ def reset_runtime(config: KeepUpWithConfig, *, yes: bool = False) -> bool:
         return False
 
     stop_services(config)
+    archive_codex_threads(config)
     reset_events(config.paths.events_db)
     shutil.rmtree(config.paths.run, ignore_errors=True)
     shutil.rmtree(config.paths.logs, ignore_errors=True)
@@ -27,6 +33,20 @@ def reset_runtime(config: KeepUpWithConfig, *, yes: bool = False) -> bool:
     config.paths.workspace.mkdir(parents=True, exist_ok=True)
     write_default_workspace(config.paths)
     return True
+
+
+def archive_codex_threads(config: KeepUpWithConfig) -> None:
+    client = JsonRpcClient(config.settings.app.codex_socket)
+    try:
+        client.connect()
+        initialize_app_server(client)
+        archive_workspace_threads(config, client)
+    except OSError as error:
+        ui.warning(f"Could not reach Codex app-server to archive old threads: {error}")
+    except RuntimeError as error:
+        ui.warning(f"Could not archive old Codex threads: {error}")
+    finally:
+        client.close()
 
 
 def reset_events(path: Path) -> None:
