@@ -14,6 +14,8 @@ from keep_up_with.integrations.base import (
     ThreadRef,
 )
 
+DISCORD_MESSAGE_LIMIT = 2000
+
 
 class DiscordMessagingClient:
     def __init__(self, context: MessagingContext) -> None:
@@ -357,18 +359,22 @@ class DiscordMessagingClient:
         del force
         if not text and not attachments:
             raise ValueError("text or attachment is required")
+        _validate_message_text(text)
         client = discord.Client(intents=discord.Intents.none())
         files = [_file(path) for path in attachments or []]
         try:
             await client.login(self.context.env("DISCORD_BOT_TOKEN"))
             target = await self._message_target(client, channel=channel, thread_id=thread_id)
             reference = await _fetch_message(target, reply_to) if reply_to else None
-            message = await target.send(
-                content=text or None,
-                files=files or None,
-                reference=reference,
-                mention_author=False,
-            )
+            try:
+                message = await target.send(
+                    content=text or None,
+                    files=files or None,
+                    reference=reference,
+                    mention_author=False,
+                )
+            except discord.HTTPException as error:
+                raise ValueError(_discord_error(error)) from error
             return _message_ref(message)
         finally:
             for file in files:
@@ -385,6 +391,9 @@ class DiscordMessagingClient:
     ) -> ThreadRef:
         if not title.strip():
             raise ValueError("title is required")
+        user_id = str(self.context.settings()["user_id"])
+        content = _with_user_mention(text, user_id)
+        _validate_message_text(content)
         client = discord.Client(intents=discord.Intents.none())
         files = [_file(path) for path in attachments or []]
         try:
@@ -395,12 +404,14 @@ class DiscordMessagingClient:
                 type=discord.ChannelType.public_thread,
                 reason="Keep Up With thread",
             )
-            user_id = str(self.context.settings()["user_id"])
-            await thread.send(
-                content=_with_user_mention(text, user_id),
-                files=files or None,
-                allowed_mentions=_user_allowed_mentions(user_id),
-            )
+            try:
+                await thread.send(
+                    content=content,
+                    files=files or None,
+                    allowed_mentions=_user_allowed_mentions(user_id),
+                )
+            except discord.HTTPException as error:
+                raise ValueError(_discord_error(error)) from error
             return ThreadRef(
                 id=str(thread.id),
                 name=thread.name,
@@ -457,7 +468,10 @@ class DiscordMessagingClient:
         client = discord.Client(intents=_message_intents())
         try:
             await client.login(self.context.env("DISCORD_BOT_TOKEN"))
-            channel = await client.fetch_channel(int(thread_id))
+            try:
+                channel = await client.fetch_channel(int(thread_id))
+            except discord.NotFound as error:
+                raise ValueError(f"unknown Discord thread: {thread_id}") from error
             if not isinstance(channel, discord.Thread):
                 raise ValueError(f"not a Discord thread: {thread_id}")
             messages = []
@@ -480,7 +494,10 @@ class DiscordMessagingClient:
         thread_id: str | None,
     ) -> discord.abc.Messageable:
         if thread_id:
-            target = await client.fetch_channel(int(thread_id))
+            try:
+                target = await client.fetch_channel(int(thread_id))
+            except discord.NotFound as error:
+                raise ValueError(f"unknown Discord thread: {thread_id}") from error
             if not isinstance(target, discord.abc.Messageable):
                 raise ValueError(f"thread is not messageable: {thread_id}")
             return target
@@ -495,7 +512,10 @@ class DiscordMessagingClient:
         channel: str,
     ) -> discord.TextChannel:
         if channel.isdigit():
-            target = await client.fetch_channel(int(channel))
+            try:
+                target = await client.fetch_channel(int(channel))
+            except discord.NotFound as error:
+                raise ValueError(f"unknown Discord channel: {channel}") from error
             if isinstance(target, discord.TextChannel):
                 return target
             raise ValueError(f"not a Discord text channel: {channel}")
@@ -701,6 +721,25 @@ def _attachment_data(attachment: discord.Attachment) -> dict[str, Any]:
         "width": attachment.width,
         "height": attachment.height,
     }
+
+
+def _validate_message_text(text: str) -> None:
+    if len(text) > DISCORD_MESSAGE_LIMIT:
+        raise ValueError(
+            "message text is "
+            f"{len(text)} characters; Discord allows {DISCORD_MESSAGE_LIMIT}. "
+            "Split it into shorter messages or thread posts before sending."
+        )
+
+
+def _discord_error(error: discord.HTTPException) -> str:
+    detail = getattr(error, "text", "") or str(error)
+    if "2000" in detail or "Must be 2000 or fewer" in detail:
+        return (
+            f"message text exceeded Discord's {DISCORD_MESSAGE_LIMIT}-character "
+            "limit; split it into shorter messages or thread posts before sending"
+        )
+    return f"Discord send failed: {detail}"
 
 
 def _file(path: str) -> discord.File:
