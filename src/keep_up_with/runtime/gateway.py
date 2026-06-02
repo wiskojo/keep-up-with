@@ -23,10 +23,6 @@ from keep_up_with.core.events import EventStore, InboxItem
 from keep_up_with.integrations.base import Subscription, SubscriptionContext
 from keep_up_with.integrations.registry import data_integrations, messaging_integration
 from keep_up_with.runtime.codex import JsonRpcClient
-from keep_up_with.runtime.codex_threads import (
-    archive_workspace_threads,
-    initialize_app_server,
-)
 
 ERROR_EVENT_SECONDS = 6 * 60 * 60
 CONFIG_CHECK_SECONDS = 3.0
@@ -74,7 +70,7 @@ def run_gateway(config: KeepUpWithConfig) -> None:
     client = JsonRpcClient(config.settings.app.codex_socket)
     client.connect()
     try:
-        initialize_app_server(client)
+        initialize(client)
         state.thread_id, created = ensure_thread(config, client, state.thread_id)
         write_thread_state(config.paths.thread, state, config.settings.app.thread_name)
         if created:
@@ -110,6 +106,20 @@ def run_gateway(config: KeepUpWithConfig) -> None:
         stop_all(running)
 
 
+def initialize(client: JsonRpcClient) -> None:
+    client.request(
+        "initialize",
+        {
+            "clientInfo": {
+                "name": "keep-up-with",
+                "title": "keep-up-with",
+                "version": "0.1.0",
+            },
+            "capabilities": {"experimentalApi": True},
+        },
+    )
+
+
 def ensure_thread(
     config: KeepUpWithConfig,
     client: JsonRpcClient,
@@ -133,6 +143,44 @@ def ensure_thread(
     current_thread_id = str(result["thread"]["id"])
     archive_workspace_threads(config, client, keep_thread_id=current_thread_id)
     return current_thread_id, True
+
+
+def archive_workspace_threads(
+    config: KeepUpWithConfig,
+    client: JsonRpcClient,
+    *,
+    keep_thread_id: str | None = None,
+) -> None:
+    for thread in workspace_threads(config, client):
+        thread_id = str(thread.get("id") or "")
+        if not thread_id or thread_id == keep_thread_id:
+            continue
+        client.request("thread/archive", {"threadId": thread_id})
+
+
+def workspace_threads(
+    config: KeepUpWithConfig,
+    client: JsonRpcClient,
+) -> list[dict[str, Any]]:
+    threads: list[dict[str, Any]] = []
+    cursor: str | None = None
+    while True:
+        params: dict[str, Any] = {
+            "archived": False,
+            "cwd": str(config.paths.workspace),
+            "limit": 100,
+            "sourceKinds": [],
+        }
+        if cursor:
+            params["cursor"] = cursor
+        result = client.request("thread/list", params)
+        threads.extend(
+            thread for thread in result.get("data", []) if isinstance(thread, dict)
+        )
+        cursor_value = result.get("nextCursor")
+        cursor = str(cursor_value) if cursor_value else None
+        if cursor is None:
+            return threads
 
 
 def thread_params(config: KeepUpWithConfig) -> dict[str, Any]:

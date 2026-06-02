@@ -8,9 +8,9 @@ from keep_up_with.cli.user.setup import write_default_workspace
 from keep_up_with.cli.user.start import stop_services
 from keep_up_with.core.config import KeepUpWithConfig
 from keep_up_with.runtime.codex import JsonRpcClient
-from keep_up_with.runtime.codex_threads import (
+from keep_up_with.runtime.gateway import (
     archive_workspace_threads,
-    initialize_app_server,
+    initialize,
 )
 
 
@@ -39,7 +39,7 @@ def archive_codex_threads(config: KeepUpWithConfig) -> None:
     client = JsonRpcClient(config.settings.app.codex_socket)
     try:
         client.connect()
-        initialize_app_server(client)
+        initialize(client)
         archive_workspace_threads(config, client)
     except OSError as error:
         ui.warning(f"Could not reach Codex app-server to archive old threads: {error}")
