@@ -23,6 +23,10 @@ from keep_up_with.core.events import EventStore, InboxItem
 from keep_up_with.integrations.base import Subscription, SubscriptionContext
 from keep_up_with.integrations.registry import data_integrations, messaging_integration
 from keep_up_with.runtime.codex import JsonRpcClient
+from keep_up_with.runtime.codex_threads import (
+    archive_workspace_threads,
+    initialize_app_server,
+)
 
 ERROR_EVENT_SECONDS = 6 * 60 * 60
 CONFIG_CHECK_SECONDS = 3.0
@@ -70,7 +74,7 @@ def run_gateway(config: KeepUpWithConfig) -> None:
     client = JsonRpcClient(config.settings.app.codex_socket)
     client.connect()
     try:
-        initialize(client)
+        initialize_app_server(client)
         state.thread_id, created = ensure_thread(config, client, state.thread_id)
         write_thread_state(config.paths.thread, state, config.settings.app.thread_name)
         if created:
@@ -106,20 +110,6 @@ def run_gateway(config: KeepUpWithConfig) -> None:
         stop_all(running)
 
 
-def initialize(client: JsonRpcClient) -> None:
-    client.request(
-        "initialize",
-        {
-            "clientInfo": {
-                "name": "keep-up-with",
-                "title": "keep-up-with",
-                "version": "0.1.0",
-            },
-            "capabilities": {"experimentalApi": True},
-        },
-    )
-
-
 def ensure_thread(
     config: KeepUpWithConfig,
     client: JsonRpcClient,
@@ -129,15 +119,20 @@ def ensure_thread(
     if thread_id:
         try:
             result = client.request("thread/resume", {"threadId": thread_id, **params})
-            return str(result["thread"]["id"]), False
+            current_thread_id = str(result["thread"]["id"])
+            archive_workspace_threads(config, client, keep_thread_id=current_thread_id)
+            return current_thread_id, False
         except RuntimeError as error:
             print(
                 f"gateway could not resume thread {thread_id}: {error}",
                 file=sys.stderr,
                 flush=True,
             )
+    archive_workspace_threads(config, client)
     result = client.request("thread/start", params)
-    return str(result["thread"]["id"]), True
+    current_thread_id = str(result["thread"]["id"])
+    archive_workspace_threads(config, client, keep_thread_id=current_thread_id)
+    return current_thread_id, True
 
 
 def thread_params(config: KeepUpWithConfig) -> dict[str, Any]:
@@ -149,6 +144,7 @@ def thread_params(config: KeepUpWithConfig) -> dict[str, Any]:
         "config": {
             "sandbox_workspace_write": {
                 "network_access": True,
+                "writable_roots": [str(config.paths.home)],
                 "exclude_tmpdir_env_var": False,
                 "exclude_slash_tmp": False,
             },
@@ -325,10 +321,6 @@ def drain(client: JsonRpcClient, state: CodexState) -> None:
             turn = params.get("turn", {})
             if turn.get("id") == state.active_turn_id:
                 state.active_turn_id = None
-        elif method == "thread/status/changed":
-            status = params.get("status", {})
-            if isinstance(status, dict) and status.get("type") == "idle":
-                state.active_turn_id = None
         elif method == "error":
             print(f"gateway app-server error: {params}", file=sys.stderr, flush=True)
 
@@ -346,6 +338,8 @@ def wake_on_inbox(
     if not items:
         state.high_queued_at = None
         state.low_queued_at = None
+        return
+    if state.active_turn_id is not None:
         return
 
     high_items = [item for item in items if item.event.high_priority]
