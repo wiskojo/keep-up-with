@@ -84,18 +84,39 @@ class EventStore:
                 )
         return event
 
-    def list_events(self, limit: int | None = None) -> list[Event]:
-        sql = """
+    def list_events(
+        self,
+        *,
+        limit: int = 100,
+        since: str | None = None,
+        until: str | None = None,
+    ) -> list[Event]:
+        fields = """
             select id, integration, kind, summary, refs, data, high_priority, created_at
             from events
+        """
+        clauses: list[str] = []
+        params: list[Any] = []
+        if since:
+            clauses.append("created_at >= ?")
+            params.append(since)
+        if until:
+            clauses.append("created_at <= ?")
+            params.append(until)
+        where = f" where {' and '.join(clauses)}" if clauses else ""
+        sql = f"""
+            select *
+            from (
+              {fields}
+              {where}
+              order by created_at desc
+              limit ?
+            )
             order by created_at asc
         """
-        params: tuple[Any, ...] = ()
-        if limit is not None:
-            sql += " limit ?"
-            params = (limit,)
+        params.append(limit)
         with self._connect() as db:
-            rows = db.execute(sql, params).fetchall()
+            rows = db.execute(sql, tuple(params)).fetchall()
         return [_event_from_row(row) for row in rows]
 
     def get_event(self, event_id_or_prefix: str) -> Event | None:
@@ -118,7 +139,6 @@ class EventStore:
         self,
         *,
         only_unnotified: bool = False,
-        limit: int | None = None,
     ) -> list[InboxItem]:
         sql = """
             select
@@ -135,15 +155,11 @@ class EventStore:
             from inbox
             join events on events.id = inbox.event_id
         """
-        params: list[Any] = []
         if only_unnotified:
             sql += " where inbox.notified_at is null"
         sql += " order by inbox.created_at asc"
-        if limit is not None:
-            sql += " limit ?"
-            params.append(limit)
         with self._connect() as db:
-            rows = db.execute(sql, tuple(params)).fetchall()
+            rows = db.execute(sql).fetchall()
         return [_inbox_from_row(row) for row in rows]
 
     def mark_notified(self, event_ids: list[str]) -> None:
