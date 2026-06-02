@@ -64,6 +64,28 @@ delve / delves / delving, tapestry, landscape (figurative), testament (e.g. "a t
 - "Importantly,"
 - "Indeed,"
 
+## Banned Framing Habits
+
+- "The useful part is..."
+- "The useful bit is..."
+- "The strong part is..."
+- "The part I would watch..."
+- "The part I'd watch..."
+- "The practical takeaway is..."
+- "Clean read:"
+- "The fair read is..."
+- "Treat as..."
+- "I would treat this as..."
+- "I would not treat this as..."
+- "I would not treat it as..."
+- "I'd treat this as..."
+- "I wouldn't treat this as..."
+- "I wouldn't treat it as..."
+- "This is not X, it is Y"
+- "Not X, more Y"
+- Hook-colon openers that turn normal chat into a label: sentence.
+- Em dash or semicolon chains that make a simple point sound engineered.
+
 ## Model-Specific First-Word Tells (avoid starting responses with these)
 
 ChatGPT tends to start with: "as," "yes," "sure," "here," "in," "to," "creating," "certainly," "title," "the"
