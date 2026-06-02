@@ -5,7 +5,7 @@ from typing import Annotated
 
 import typer
 
-from keep_up_with.cli.agent.output import echo_json, echo_jsonl
+from keep_up_with.cli.agent.output import echo_json, echo_jsonl, fail
 from keep_up_with.core.config import get_config
 from keep_up_with.integrations.registry import messaging_client
 
@@ -43,16 +43,19 @@ def send_command(
     ] = False,
 ) -> None:
     client = messaging_client(get_config())
-    result = asyncio.run(
-        client.send_message(
-            text=text,
-            channel=channel,
-            thread_id=thread_id,
-            reply_to=reply_to,
-            attachments=attachment or [],
-            force=force,
+    try:
+        result = asyncio.run(
+            client.send_message(
+                text=text,
+                channel=channel,
+                thread_id=thread_id,
+                reply_to=reply_to,
+                attachments=attachment or [],
+                force=force,
+            )
         )
-    )
+    except ValueError as error:
+        fail(str(error))
     echo_json(result)
 
 
@@ -74,8 +77,8 @@ def list_command(
     ] = None,
 ) -> None:
     client = messaging_client(get_config())
-    echo_jsonl(
-        asyncio.run(
+    try:
+        messages = asyncio.run(
             client.list_messages(
                 channel=channel,
                 thread_id=thread_id,
@@ -84,7 +87,9 @@ def list_command(
                 author=author,
             )
         )
-    )
+    except ValueError as error:
+        fail(str(error))
+    echo_jsonl(messages)
 
 
 @app.command("channels", help="List available messaging channels.")
