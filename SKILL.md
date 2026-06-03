@@ -6,9 +6,7 @@
 
 ### Surrounding Research
 
-- Do BFS around the event: adjacent links, prior art, related ideas, competing work, similar launches, comments, benchmarks, older claims, critiques, and useful comparables.
-- **DFS and BFS must do actual research. Do not write vague category labels like “prompt optimization” or “agent workflows” without naming concrete comparables and explaining the relationship.**
-- **If there is an obvious close comparable, research it. Missing the closest comparison is a research failure.**
+- Do BFS around the event: check adjacent links, prior art, related ideas, competing work, similar launches, comments, benchmarks, older claims, critiques, and close comparables; name concrete relationships and research any obvious closest comparison.
 
 ### Source Tracking
 
@@ -16,88 +14,61 @@
 
 ### Evidence Capture
 
-- Capture depth: what happened, what was released or claimed, how it works, what numbers are being claimed, what changed, what artifacts exist, and what is still missing or uncertain.
-- Capture breadth: what came before, what this resembles, what it differs from, what supports it, what challenges it, and what gives it context.
+- Capture depth and breadth: for depth, explain what happened, what was released or claimed, how it works, what numbers are claimed, what changed, what artifacts exist, and what is uncertain; for breadth, explain what came before, what it resembles, what differs, what supports or challenges it, and what gives it context.
 
 ## Step 2: Cross Reference
 
 ### Surfaces To Check
 
-- Use `cli` to check what we have already sent to the user that could be related.
-- Look at prior messages, threads, channels, prior events, dismissed inbox items, and existing story/workspace folders.
-- Look at durable context when it helps: `USER.md`, `MEMORY.md`, prior notes, artifacts, recurring topics, and workflow lessons.
-- **Cross-reference is specifically about prior user-facing surfaces, not generic BFS research.**
+- Use `cli` and durable context to check prior user-facing surfaces that could be related: messages, threads, channels, prior events, dismissed inbox items, story/workspace folders, `USER.md`, `MEMORY.md`, prior notes, artifacts, recurring topics, and workflow lessons; this is not generic BFS research.
 
 ### What To Determine
 
-- Identify what the user has already been told, what they likely remember, what has already been handled, and what should not be repeated.
-- Mark the relationship: new story, update, delta, continuation, correction, contradiction, repeated discourse, duplicate, or no real change.
+- Cross-reference to contextualize the story around the user’s expected understanding: infer what they likely already know and should not be re-explained, what they likely do not know and needs more detail, what they would care about, and whether this is a new story, update, delta, continuation, correction, contradiction, repeated discourse, duplicate, or no real change.
 
 ### How It Changes The Work
 
-- **Use it to avoid duplicate threads, repeated background, mixed topics, and re-teaching context the user already has.**
-- **If a thread already exists, plan an update that only explains the delta unless the user needs the full background again.**
-- **When prior communication affects the framing, record the message/thread/source so the decision is traceable.**
+- Use cross-reference to avoid duplicate threads, repeated background, mixed topics, and re-teaching context; if a thread already exists, plan an update that only explains the delta unless the user needs the full background again, and record the prior message/thread/source that shaped the decision.
 
 ## Step 3: Identify Highlight
 
 ### Extract And Question
 
-- Extract the top points from the research and cross-reference work.
-- Before picking highlights, ask what this specific user would ask after reading a shallow summary.
-- Write those likely questions down, then make the highlights answer them.
-- Ask what the user would need to know to decide whether this is real, useful, overclaimed, repeated, actionable, or worth following.
-- **Highlights are answers to anticipated user questions, not just extracted facts.**
-- **Ask the obvious skeptical questions before drafting: What is this exactly? Can it be used? What does it require? What is the closest prior art? What breaks the claim? What does the key mechanism actually do?**
+- Extract highlights by first writing the specific questions this user would ask after a shallow summary, then make the highlights answer those questions instead of merely listing facts: What is this exactly? Can it be used? What does it require? What is the closest prior art? What changed? What breaks the claim? What does the key mechanism do? Is it real, useful, new, overclaimed, repeated, actionable, or worth following?
 
 ### Substance And Mechanism
 
-- Focus on what changed, what is new, what is corrected, what is confirmed, what is still unproven, and why it matters now.
-- **For technical claims, identify the load-bearing mechanism. If that part fails, what happens? If a validation gate, evaluator, benchmark, dataset, verifier, or ablation carries the argument, explain it.**
-- **If a phrase like “scored rollouts,” “validation gate,” or “optimizer edits” carries the substance, explain the substance instead of hiding behind the phrase.**
+- Explain what actually changed, what is new, what is corrected, what is confirmed, what is still unproven, and the actual mechanism the claim depends on, especially any evaluator, benchmark, dataset, verifier, ablation, or technical phrase carrying the substance.
 
 ### Comparison And Cutting
 
-- Use comparisons and contrasts to things the user likely understands: similar to X, different because Y; same category as X, except with a new mechanism.
-- Cut details that are true but do not help the user understand the story.
-- **Do not spend the opening or highlights on background the user already has. Use that space for the specific detail that makes the event different.**
+- Use comparisons the user is likely to understand to explain what is similar, what is different, and why it matters. Spend fewer words on familiar background and more on the new details that reduce the user’s time to understanding.
 
 ### Visuals
 
-- Decide what visuals are needed to make the thread readable and concrete.
-- **Visuals are part of the highlight selection, not decoration. Use them to verify, compare, simplify, or break up dense material.**
-- **Prefer source visuals for evidence. Use custom visuals for synthesis, comparison, timelines, or simplified result summaries.**
+- Choose visuals based on what each highlight needs to convey. Source visuals are often best because the authors designed them to explain their own point, but use custom visuals when they better verify, compare, simplify, synthesize, or make the point readable.
 
 ### Framing
 
-- **Do not turn highlights into personal takes. Phrase them as answers supported by research and cross-reference.**
-- Highlights tell a story, it's ranked from most to least important and progressively as people read they understand more of the story. If they stop reading at any point they still have a good understanding as there is diminisng returns in reading the highlgihts.
+- Frame highlights as source-supported answers in a ranked story, from most to least important, so the user gets the main understanding early and each later highlight adds less essential detail.
 
 ## Step 4: Write Draft
 
 ### Structure Plan
 
-- Sketch the thread structure before writing the final thread.
-- For each post, say what it will do (what is its purpose), what details it will include, what it will omit, and why it belongs in that position.
-- For each post, plan the visual: what it is, where it comes from, why it is the right visual, and why alternatives are weaker.
-- **A draft is the reasoning for the structure, not the final prose. It should explain why this order, why these posts, why these visuals, and why these omissions.**
+- Draft the reasoning for the thread before writing final prose. For each post, explain its purpose, why it belongs in that position, what details it includes, what it omits, how it moves the story forward, what visual it uses, where the visual comes from, why that visual is right, and why weaker alternatives were rejected.
 
 ### Post Roles
 
-- Opening post should give the skimmer version: what happened, what changed, why it is different from the closest baseline or comparable, and the main visual.
-- Later posts should expand the parts that need detail: mechanism, comparison, results, caveats, user-relevant context, quotes, or examples.
-- **Post 1 should not be short by default. It should carry the essence for skimmers, then later posts can expand the pieces that need more detail.**
+- Treat post 1 like an abstract for the thread. By default, include enough background to place the event, what happened or what it is in plain English, what changed or is new compared with relevant baselines, and the main visual; adjust or omit parts when the story calls for it. Use later posts for mechanism, comparison, results, caveats, user-relevant context, quotes, or examples.
 
 ### Sources
 
-- Sources should be last.
-- Split sources into main sources and supplementary sources when both are used.
+- Put sources last and split them into main sources and supplementary sources when both shaped the output.
 
 ### Style And Framing
 
-- **Do not waste words naming people, companies, repos, or papers unless that identity changes the user’s read of the story. Use the words to explain the event, mechanism, evidence, or consequence.**
-- **Do not write a wall of text. Plan for spacing, emphasis, visuals, quotes, and post breaks before drafting.**
-- **Do not frame posts around your own opinion. Frame them around source-backed claims, comparisons, deltas, open questions, and caveats.**
+- Spend words on event substance instead of unnecessary names, avoid wall-of-text posts with spacing, emphasis, visuals, quotes, and post breaks, and frame the thread around source-backed claims, comparisons, deltas, open questions, and caveats rather than personal opinion.
 
 ## Step 5: Output
 
@@ -107,8 +78,7 @@
 
 ### Substance
 
-- **Spend the most words on the new mechanism, delta, evidence, contradiction, or comparison.**
-- **If a technical label compresses the useful part, unpack it. Explain what the thing actually does.**
+- Spend the output on the new mechanism, delta, evidence, contradiction, or comparison, and unpack compressed technical labels into what the thing actually does.
 
 ### Supplementary Material
 
@@ -116,7 +86,4 @@
 
 ### Judgment And Synthesis
 
-- **Do not lead with your own judgment or opinion. Most updates should report what the sources say, reconcile competing perspectives, and explain what is supported, disputed, missing, or uncertain.**
-- **Avoid claims like “the most concrete,” “the strongest,” “the best,” or “the practical read” unless the sources clearly support that framing and you can cite why.**
-- **When a judgment is useful, ground it in evidence: who said it, what data supports it, what comparison it depends on, and what would change the conclusion.**
-- **Default to synthesis, not opinion. The job is to help the user understand the event from source evidence and cross-reference, not to sound decisive.**
+- Default to source-grounded synthesis over opinion. Report what sources say, reconcile competing perspectives, explain what is supported, disputed, missing, or uncertain, and do not lead with your own judgment. Avoid claims like “the most concrete,” “the strongest,” “the best,” or “the practical read” unless the sources clearly support that framing. When a judgment is useful, ground it in who said it, what data supports it, what comparison it depends on, and what would change the conclusion.
