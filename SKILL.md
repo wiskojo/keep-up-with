@@ -1,4 +1,4 @@
-## Research
+## Step 1: Research
 
 ### Direct Event Research
 
@@ -19,7 +19,7 @@
 - Capture depth: what happened, what was released or claimed, how it works, what numbers are being claimed, what changed, what artifacts exist, and what is still missing or uncertain.
 - Capture breadth: what came before, what this resembles, what it differs from, what supports it, what challenges it, and what gives it context.
 
-## Cross Reference
+## Step 2: Cross Reference
 
 ### Surfaces To Check
 
@@ -39,7 +39,7 @@
 - **If a thread already exists, plan an update that only explains the delta unless the user needs the full background again.**
 - **When prior communication affects the framing, record the message/thread/source so the decision is traceable.**
 
-## Highlight
+## Step 3: Identify Highlight
 
 ### Extract And Question
 
@@ -73,7 +73,7 @@
 - **Do not turn highlights into personal takes. Phrase them as answers supported by research and cross-reference.**
 - Highlights tell a story, it's ranked from most to least important and progressively as people read they understand more of the story. If they stop reading at any point they still have a good understanding as there is diminisng returns in reading the highlgihts.
 
-## Draft
+## Step 4: Write Draft
 
 ### Structure Plan
 
@@ -99,7 +99,7 @@
 - **Do not write a wall of text. Plan for spacing, emphasis, visuals, quotes, and post breaks before drafting.**
 - **Do not frame posts around your own opinion. Frame them around source-backed claims, comparisons, deltas, open questions, and caveats.**
 
-## Output
+## Step 5: Output
 
 ### User Context
 
