@@ -24,11 +24,9 @@
 - **Plan the thread:** Draft the reasoning for the thread before writing final prose. For each post, explain its purpose, why it belongs in that position, what details it includes, what it omits, how it moves the story forward, what visual it uses, where the visual comes from, why that visual is right, and why weaker alternatives were rejected.
 - **Write post 1 as an abstract:** Treat post 1 like an abstract for the thread. By default, include enough background to place the event, what happened or what it is in plain English, what changed or is new compared with relevant baselines, and the main visual; adjust or omit parts when the story calls for it. Use later posts for mechanism, comparison, results, caveats, user-relevant context, quotes, or examples.
 - **End with sources:** Put sources last and split them into main sources and supplementary sources when both shaped the output.
-- **Keep the thread readable:** Spend words on event substance instead of unnecessary names, avoid wall-of-text posts with spacing, emphasis, visuals, quotes, and post breaks, and frame the thread around source-backed claims, comparisons, deltas, open questions, and caveats rather than personal opinion.
+- **Keep the thread readable:** Spend words on event substance instead of unnecessary names, and avoid wall-of-text posts with spacing, emphasis, visuals, quotes, and post breaks.
 
 ## Step 5: Output
 
-- **Use the user’s context:** Infer what the user likely already knows from the request, durable context, prior messages, prior threads, and related source/browser history when available. Do not spend words teaching basics they already know.
-- **Explain the new substance:** Spend the output on the new mechanism, delta, evidence, contradiction, or comparison, and unpack compressed technical labels into what the thing actually does.
 - **Label supplementary material:** When using supplementary commentary, label it as supplementary and quote the exact relevant part if the wording matters.
 - **Synthesize instead of opining:** Default to source-grounded synthesis over opinion. Report what sources say, reconcile competing perspectives, explain what is supported, disputed, missing, or uncertain, and do not lead with your own judgment. Avoid claims like “the most concrete,” “the strongest,” “the best,” or “the practical read” unless the sources clearly support that framing. When a judgment is useful, ground it in who said it, what data supports it, what comparison it depends on, and what would change the conclusion.
