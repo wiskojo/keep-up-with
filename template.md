@@ -1,7 +1,5 @@
 # Working Notes
 
-Copy this into the event workspace, usually as `research/notes.md` or `research.md`. Keep the headings and replace the text inside each block with your working notes. Do not restate `SKILL.md`.
-
 ## Step 1: Research
 
 ### DFS

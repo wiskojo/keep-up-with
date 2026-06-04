@@ -1,3 +1,19 @@
+## Step 0: Setup
+
+- **Create the workspace:** Work in a per-event workspace with this structure:
+
+```text
+research/
+    notes.md
+    artifacts/
+outputs/
+    output.md
+    assets/
+```
+
+- **Use the notes template:** Initialize `research/notes.md` from `template.md`. Keep the headings and replace the text inside each block as you work. `notes.md` is the running record of what you checked, learned, decided, and why.
+- **Keep raw work separate from final work:** Put raw files gathered during research in `research/artifacts/`. Put the camera-ready thread in `outputs/output.md` and put the final visual assets in `outputs/assets/`.
+
 ## Step 1: Research
 
 - **Research the source (DFS):** Read the event itself first: original post, linked source, paper, repo, model card, release notes, benchmark page, dataset, demo, transcript, author thread, official page, or primary artifact.
