@@ -1,53 +1,69 @@
 # Working Notes
 
-Copy this into the event workspace before research, usually as `research/notes.md` or `research.md`. Fill it as you work through `SKILL.md`. Use the prompts as reminders, not a form. These notes should be extremely detailed, and thorouhgly explain your though process and understanding the material. Both your output and process will be judged, so showing your work here is important.
+Copy this into the event workspace, usually as `research/notes.md` or `research.md`. Keep the headings and replace the text inside each block with your working notes. Do not restate `SKILL.md`.
 
 ## Step 1: Research
 
 ### DFS
 
-Read the event itself first: original post, linked source, paper, repo, model card, release notes, benchmark page, dataset, demo, transcript, author thread, official page, or primary artifact.
+Read the event itself first.
 
-Write what you found, what each source supports, and what is still missing or uncertain.
+<!-- BEGIN:dfs -->
+Sources checked, what each one says, and how each one changes your understanding of the event.
+<!-- END:dfs -->
 
 ### BFS
 
-Look around the event: adjacent links, prior art, related ideas, competing work, similar launches, comments, benchmarks, older claims, critiques, and close comparables.
+Look around the event for context.
 
-Name the concrete relationships. If there is an obvious closest comparison, write it down and explain what changes when you compare against it.
+<!-- BEGIN:bfs -->
+Sources checked, concrete relationships found, and comparisons or reactions that change how the event should be framed.
+<!-- END:bfs -->
 
 ## Step 2: Cross-reference
 
 ### Calibration
 
-Use `cli` and durable context to check related messages, threads, channels, prior events, dismissed inbox items, story/workspace folders, `USER.md`, `MEMORY.md`, prior notes, artifacts, recurring topics, and workflow lessons.
+Use prior user-facing work to calibrate the explanation.
 
-Write what the user likely already knows, what does not need another explanation, what probably needs more detail, and what they would care about here.
+<!-- BEGIN:calibration -->
+Prior surfaces checked, what each one shows, and how they change what the user likely knows, cares about, or needs explained.
+<!-- END:calibration -->
 
 ### Linkage
 
-Write whether this is a new story, update, delta, continuation, correction, contradiction, repeated discourse, duplicate, or no real change.
+Decide how prior work should affect the output.
 
-If prior work changes the output, note what thread/message/source to continue, reference, avoid repeating, or use for framing.
+<!-- BEGIN:linkage -->
+Prior threads, messages, or sources to continue, reference, link, quote, avoid repeating, or fold into the thread.
+<!-- END:linkage -->
 
 ## Step 3: Identify Highlights
 
-Write the questions this user would ask after a shallow summary. Then answer them.
+Choose what the user should understand first.
 
-Cover the mechanism or load-bearing claim, the familiar comparison, the visual choice for each highlight, and the order the highlights should appear in.
+<!-- BEGIN:highlights -->
+The user's likely questions.
+
+How the thread will answer them.
+
+The familiar context or comparison that makes the new information easier to understand.
+
+The visual for each highlight, where it comes from, and why it helps.
+
+The highlights to share, their order, and the visual that goes with each post.
+<!-- END:highlights -->
 
 ## Step 4: Draft The Thread
 
 Sketch the thread before writing final prose.
 
-For each post, write its purpose, why it goes there, what it includes, what it leaves out, how it moves the story forward, and what visual belongs with it.
+<!-- BEGIN:draft -->
+The purpose of each post.
 
-For post 1, treat it like an abstract: background, what happened or what it is, what changed compared with the relevant baseline, and the main visual. Adjust when the story needs a different shape.
+What goes in the first post and why that is enough for someone skimming.
 
-Plan the sources post last. Split main sources from supplementary sources when both shaped the output.
+How the sources post will be structured.
 
-## Step 5: Final Output
-
-Write the final draft path, usually `output/output.md`.
-
-Before sending, check that claims are sourced or marked uncertain, supplementary commentary is labeled, sources are last, and any judgment is grounded in evidence and comparison.
+How the thread stays readable: what gets less space, what gets more space, where visuals or quotes break up the text, and what you are intentionally leaving out.
+<!-- END:draft -->
