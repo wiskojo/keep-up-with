@@ -1,4 +1,4 @@
-## Step 0: Setup
+## Setup
 
 - **Create the workspace:** Work in a per-event workspace with this structure:
 
@@ -13,6 +13,7 @@ outputs/
 
 - **Use the notes template:** Initialize `research/notes.md` from `template.md`. Keep the headings and replace the text inside each block as you work. `notes.md` is the running record of what you checked, learned, decided, and why.
 - **Keep raw work separate from final work:** Put raw files gathered during research in `research/artifacts/`. Put the camera-ready thread in `outputs/output.md` and put the final visual assets in `outputs/assets/`.
+- **Check available tools:** You have access to the `cli` command for this work. Run `cli tools --help` during setup.
 
 ## Step 1: Research
 
