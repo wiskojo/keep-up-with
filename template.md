@@ -22,7 +22,7 @@ TODO: Prior threads, messages, or sources to continue, reference, link, quote, a
 
 ## Step 3: Identify Highlights
 
-TODO: The user's likely questions. How the thread will answer them. The familiar context or comparison that makes the new information easier to understand. The visual for each highlight, where it comes from, and why it helps. The highlights to share, their order, and the visual that goes with each post.
+TODO: The user's likely questions. How the thread will answer them. The familiar context or comparison that makes the new information easier to understand. The source or online visuals available for each highlight, which one you chose, and why a custom visual is needed if you create one. The highlights to share, their order, and the visual that goes with each post.
 
 ## Step 4: Draft The Thread
 
