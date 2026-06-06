@@ -68,48 +68,14 @@ Use full-page screenshots only to locate material or when element screenshots ar
 
 ## Screenshot Crops
 
-For screenshot-only inputs, prefer normalized crop boxes over raw pixels:
-
-```json
-{ "x": 0.189, "y": 0.339, "w": 0.671, "h": 0.444 }
-```
-
-Convert to pixels at runtime:
-
-```text
-x_px = round(image_width * x)
-y_px = round(image_height * y)
-w_px = round(image_width * w)
-h_px = round(image_height * h)
-```
-
-This makes the crop reusable when the same page is captured at a different resolution. It still breaks if the layout changes, so use DOM element screenshots for live webpages when available.
-
-## Cropping Tools
-
-Prefer tools that use the natural rectangle order: left, top, width, height.
-
-ImageMagick:
+For screenshot-only inputs, use a crop helper when the same page may be captured at different resolutions:
 
 ```sh
-magick identify -format "%w %h\n" input.png
-magick input.png -crop 1470x1080+415+825 +repage output.png
-magick input.png -fuzz 3% -trim +repage output.png
+node scripts/crop-image.mjs \
+  --in research/artifacts/source-screenshot.png \
+  --out outputs/assets/post-2.png \
+  --box 0.189,0.339,0.671,0.444
 ```
-
-libvips:
-
-```sh
-vips crop input.png output.png 415 825 1470 1080
-```
-
-macOS `sips` fallback:
-
-```sh
-sips -c 1080 1470 --cropOffset 825 415 input.png --out output.png
-```
-
-`sips` works, but it is easier to make mistakes because it takes height/width and y/x ordering. Use it only when better crop tools are unavailable.
 
 ## Custom Visuals
 
@@ -120,9 +86,22 @@ Use a custom visual when:
 - multiple source facts need to be combined into one compact table, chart, timeline, or map
 - a source crop would include too much irrelevant page furniture
 
-When making a custom visual:
+Leverage the skills in $build-web-data-visualization to build effective visuals. Create one small renderer in the event workspace, usually `outputs/assets/render.html`, and use the shared render helper for export:
 
-- base it on saved source data or clearly attributed facts
-- keep the design simple enough to read in a thread
-- do not invent precision or imply evidence that the source does not support
-- save the source data and the rendered output
+- Put the structured data in the renderer or a nearby JSON file.
+- Use SVG marks, direct labels, and explicit scales.
+- Add `title`, `desc`, or surrounding text so the visual is accessible and inspectable.
+- Render each visual to PNG at the target size, usually `1280x720`.
+- Inspect each PNG at full size and thumbnail size before using it.
+- Save the renderer, source data, and final PNGs.
+
+Render with:
+
+```sh
+node scripts/render-visuals.mjs \
+  --html outputs/assets/render.html \
+  --out-dir outputs/assets \
+  --visuals post-1,post-2,post-3
+```
+
+Vanilla SVG is fine for simple static bar charts. Install D3 only when the D3-specific skill lens above applies, using `npm install d3` or `pnpm add d3` in the event workspace.
