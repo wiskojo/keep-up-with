@@ -43,7 +43,6 @@ outputs/
 - **Put sources last:** End with sources. Split main sources from supplementary sources when both shaped the output.
 - **Keep it readable:** Spend words on the event, mechanism, evidence, and consequence instead of unnecessary names. Avoid wall-of-text posts; use spacing, emphasis, visuals, quotes, and post breaks. Don’t give every post a hook or headline. Get to the point, and frame the thread around sourced claims, comparisons, deltas, open questions, and caveats, not personal takes.
 
-## Step 5: Final Output
+### Final Output Expectations
 
-- **Label extra commentary:** When supplementary commentary shapes the output, label it as supplementary and quote the exact relevant part if the wording matters.
-- **Synthesize, don’t opine:** Report what sources say, reconcile competing views, and say what’s supported, disputed, missing, or uncertain. Don’t lead with your own judgment. Avoid claims like “the most concrete,” “the strongest,” “the best,” or “the practical read” unless the sources clearly support that framing. When a judgment helps, ground it in who said it, what data supports it, what comparison it depends on, and what would change the conclusion.
+Report what sources say, reconcile competing views, and say what’s supported, disputed, missing, or uncertain. Don’t lead with your own judgment. Avoid claims like “the most concrete,” “the strongest,” “the best,” or “the practical read” unless the sources clearly support that framing. When a judgment helps, ground it in who said it, what data supports it, what comparison it depends on, and what would change the conclusion. Report outside perspectives when they matter, especially from people with weight in the field or reactions that are getting attention.
