@@ -18,7 +18,7 @@ outputs/
 ## Step 1: Research
 
 - **Research the source (DFS):** Read the event itself first: original post, linked source, paper, repo, model card, release notes, benchmark page, dataset, demo, transcript, author thread, official page, or primary artifact.
-- **Research the context (BFS):** Check adjacent links, prior art, related ideas, competing work, similar launches, comments, benchmarks, older claims, critiques, reactions, and close comparables. Name the relationship. If there’s an obvious closest comparison, research it. Check places where the event is being discussed, such as Reddit, Hacker News, X posts or quote posts, GitHub issues, comments, Discord logs, or forum threads. Use reactions when they add support, critique, confusion, reproducibility notes, or a useful outside comparison.
+- **Research the context (BFS):** Check adjacent links, prior art, related ideas, competing work, similar launches, comments, benchmarks, older claims, critiques, reactions, and close comparables. Name the relationship. If there’s an obvious closest comparison, research it. Check places where the event is being shared and discussed, such as Reddit, X, Youtube, Huggingface, etc. Use reactions when they add support, critique, confusion, reproducibility notes, or a useful outside comparison.
 - **Understand depth from breadth:** Depth means what happened, what got released or claimed, how it works, what numbers are claimed, what changed, what artifacts exist, and what’s still uncertain. Breadth means what came before, what it resembles, what’s different, what supports or challenges it, and what context changes the interpretation.
 
 ## Step 2: Cross-reference
