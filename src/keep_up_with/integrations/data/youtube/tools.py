@@ -19,6 +19,38 @@ def video(_ctx: ToolContext, url: str) -> dict[str, Any]:
     return client.video(url)
 
 
+@tool("Search YouTube.")
+def search(
+    _ctx: ToolContext,
+    query: str,
+    limit: int = 10,
+    order: str = "relevance",
+    result_type: str = "video",
+    channel: str = "",
+    published_after: str = "",
+    published_before: str = "",
+) -> list[dict[str, Any]]:
+    return client.search(
+        _ctx.env("YOUTUBE_API_KEY"),
+        query,
+        limit=limit,
+        order=order,
+        result_type=result_type,
+        channel=channel,
+        published_after=published_after,
+        published_before=published_before,
+    )
+
+
+@tool("Fetch YouTube channel metadata and recent videos.")
+def channel(_ctx: ToolContext, channel: str, limit: int = 10) -> dict[str, Any]:
+    return client.channel(
+        _ctx.env("YOUTUBE_API_KEY"),
+        channel,
+        limit=limit,
+    )
+
+
 @tool("Fetch a YouTube transcript.")
 def transcript(_ctx: ToolContext, url: str, language: str = "en") -> dict[str, Any]:
     return client.transcript(url, language=language)
