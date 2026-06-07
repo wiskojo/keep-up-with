@@ -2,11 +2,11 @@
 
 ## Principle
 
-Use source visuals first. Authors, maintainers, and early reactions often already made the best chart, demo frame, screenshot, clip, table, or diagram for the point they are making.
+Pick the visual that best explains the highlight.
 
-Make your own visual only when the source material does not fit the highlight, is stale, is too noisy to read, or when a custom comparison, timeline, crop, table, or summary genuinely makes the point clearer.
+Source visuals are useful when they show the artifact, claim, result, product, or evidence directly. Custom visuals are useful when they compress, compare, sequence, or translate the research better than a raw screenshot.
 
-Do not use visuals as decoration. Do not use generated images as evidence.
+Do not use visuals as decoration. Custom or generated visuals can explain or synthesize; they are not evidence unless the underlying source or data is cited.
 
 ## Inventory
 
@@ -20,7 +20,7 @@ Before drafting the thread, check for visuals in:
 
 Save useful raw parents in `research/artifacts/` as soon as you find them. Put only camera-ready assets in `outputs/assets/`.
 
-Record the visual inventory in `research/notes.md`: what existed, what you used, what you rejected, and why.
+Record the visual inventory in `research/notes.md`: what existed, what you used or built, and what each visual is meant to convey.
 
 ## Extraction Order
 
@@ -31,7 +31,7 @@ Prefer the least lossy source path available:
 3. For videos or demos, capture the exact frame or short clip that carries the point, with the timestamp in notes.
 4. For flat screenshots, crop from the screenshot with normalized coordinates or an auto-detected crop box.
 5. Use manual pixel offsets only as a fallback, and write the crop box down so it can be reproduced.
-6. Create a custom visual only after the source-visual options fail or a synthesis visual is clearly better.
+6. Build a custom visual when it is the clearest way to explain, compare, or summarize the highlight.
 
 ## Webpage Crops
 
@@ -91,14 +91,16 @@ cli tools youtube gif "VIDEO_URL" 00:01:23 4 outputs/assets/post-2.gif
 
 ## Custom Visuals
 
-Use a custom visual when:
+Use a custom visual when it helps the user understand the point, for example:
 
-- the best source visual is stale, misleading, cropped badly, unreadable, or unavailable
 - the thread needs a comparison that no source made
 - multiple source facts need to be combined into one compact table, chart, timeline, or map
+- a mechanism, process, or tradeoff needs to be simplified
+- the useful part is spread across several source materials
+- the source visual is stale, misleading, cropped badly, unreadable, or unavailable
 - a source crop would include too much irrelevant page furniture
 
-Use the skills in $build-web-data-visualization and follow the baseline plus source-style pass in [design.md](design.md). For examples of the expected artifact shape and visual range, study [render.html](render.html). Treat the example as a finished synthetic reference, not a fill-in template.
+Use the skills in $build-web-data-visualization and follow the baseline plus source-style pass in [design.md](design.md). For examples of the expected artifact shape and visual range, study [render.html](render.html).
 
 Implementation defaults:
 

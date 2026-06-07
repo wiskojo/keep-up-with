@@ -8,6 +8,12 @@ The baseline should make visuals clear, consistent, and fast to produce. It shou
 
 Source visuals still come first. Use this guide when a custom visual is justified.
 
+## Reference Backbone
+
+Before building custom visuals, read [`render.html`](render.html) and use it as the backbone for the asset set. The examples define the expected shape: a `1280x720` editorial frame, source label, short kicker, large title, brief subhead, one main proof area, direct labels, restrained cards, and a bottom source note.
+
+The final visuals do not need to copy the examples, but they should look like they belong to the same family. Start from that shell and adapt it to the event's source material. Diverge only when the source asset, crop, diagram, or spatial problem genuinely needs another structure.
+
 ## Design Read
 
 Before building a custom visual, write a one-line design read in `research/notes.md`:
@@ -95,6 +101,7 @@ The visual should feel related to the source without pretending to be official c
 
 Run these before shipping:
 
+- If this sits beside the examples in `render.html`, does it feel like the same visual system?
 - Does this look like the event, or just a generic chart?
 - Did you pick the palette from the source, not from habit?
 - Is there only one main accent unless the data needs more?
@@ -144,12 +151,13 @@ If a benchmark or measurement has caveats, show them in the visual structure or 
 
 For each custom visual:
 
-1. Record why the custom visual beats the best source visual.
+1. Record why the custom visual beats the best source visual, what it explains, and what sources or data it uses.
 2. Record the design read.
-3. Record the source palette/motif/type cues you used.
-4. Build one small renderer in the event workspace, usually `outputs/assets/render.html`.
-5. Save the renderer, source data, and final PNGs.
-6. Render at the target size, usually `1280x720`.
-7. Inspect full-size and thumbnail-size PNGs.
+3. Use `references/render.html` as the backbone for the renderer shape and visual range.
+4. Record the source palette/motif/type cues you used.
+5. Build one small renderer in the event workspace, usually `outputs/assets/render.html`.
+6. Save the renderer, source data, and final PNGs.
+7. Render at the target size, usually `1280x720`.
+8. Inspect full-size and thumbnail-size PNGs.
 
 If a custom visual is only decorative, cut it.
