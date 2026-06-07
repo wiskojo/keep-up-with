@@ -4,7 +4,7 @@
 
 Pick the visual that best explains the highlight.
 
-Source visuals are useful when they show the artifact, claim, result, product, or evidence directly. Custom visuals are useful when they compress, compare, sequence, or translate the research better than a raw screenshot.
+Source visuals are useful when they show the artifact, claim, result, product, or evidence directly. They should usually become the main material inside a rendered thread asset, not be pasted into the final thread raw. Custom components are useful when they compress, compare, sequence, label, or translate the research around that source material.
 
 Do not use visuals as decoration. Custom or generated visuals can explain or synthesize; they are not evidence unless the underlying source or data is cited.
 
@@ -18,7 +18,7 @@ Before drafting the thread, check for visuals in:
 - social posts, quote posts, Reddit comments, forum threads, YouTube videos, and newsletters
 - videos, GIFs, demo recordings, slide decks, screenshots, tables, and chart images embedded in the page
 
-Save useful raw parents in `research/artifacts/` as soon as you find them. Put only camera-ready assets in `outputs/assets/`.
+Save useful raw parents in `research/artifacts/` as soon as you find them. Put only camera-ready assets in `outputs/assets/`. The camera-ready asset should come from the event renderer, usually `outputs/assets/render.html`, even when it contains a source screenshot, chart, GIF, video frame, or clip.
 
 Record the visual inventory in `research/notes.md`: what existed, what you used or built, and what each visual is meant to convey.
 
@@ -31,7 +31,7 @@ Prefer the least lossy source path available:
 3. For videos or demos, capture the exact frame or short clip that carries the point, with the timestamp in notes.
 4. For flat screenshots, crop from the screenshot with normalized coordinates or an auto-detected crop box.
 5. Use manual pixel offsets only as a fallback, and write the crop box down so it can be reproduced.
-6. Build a custom visual when it is the clearest way to explain, compare, or summarize the highlight.
+6. Place the chosen source material or custom components into the event renderer so the final asset uses the shared thread frame.
 
 ## Webpage Crops
 
@@ -89,9 +89,17 @@ cli tools youtube clip "VIDEO_URL" 00:01:23 6 outputs/assets/post-2-crop.mp4 --c
 cli tools youtube gif "VIDEO_URL" 00:01:23 4 outputs/assets/post-2.gif
 ```
 
-## Custom Visuals
+## Rendered Visuals
 
-Use a custom visual when it helps the user understand the point, for example:
+Every visual post should have a rendered asset. The content inside that asset may be original source material, fully custom components, or a mix of both.
+
+Use original material when it directly carries the point:
+
+- source screenshots, charts, product surfaces, repo views, tables, or diagrams
+- video frames, GIFs, clips, or demo recordings
+- paper figures, leaderboard crops, screenshots of comments, or issue excerpts
+
+Add custom components when they help the user understand the point, for example:
 
 - the thread needs a comparison that no source made
 - multiple source facts need to be combined into one compact table, chart, timeline, or map
@@ -100,14 +108,19 @@ Use a custom visual when it helps the user understand the point, for example:
 - the source visual is stale, misleading, cropped badly, unreadable, or unavailable
 - a source crop would include too much irrelevant page furniture
 
-Use the skills in $build-web-data-visualization and follow the baseline plus source-style pass in [design.md](design.md). For examples of the expected artifact shape and visual range, study [render.html](render.html).
+Use Lucide icons inside the renderer for small symbols and scan cues. If the asset needs a new raster graphic that source material does not provide, use [$imagegen](/Users/wis/.codex/skills/.system/imagegen/SKILL.md), save the generated bitmap as raw material, and compose it inside `render.html`.
+
+Use the skills in $build-web-data-visualization and follow the baseline plus source-style pass in [design.md](design.md). Use [render.html](render.html) as the backbone for the final visual shape and range.
 
 Implementation defaults:
 
+- Always build or update `outputs/assets/render.html` for the visual set.
 - Put the structured data in the renderer or a nearby JSON file.
+- Put source screenshots, crops, GIFs, video frames, or clips inside the renderer frame rather than dropping raw media straight into `output.md`.
+- Use Lucide for small icons where it improves scanning; keep simple diagrams, icons, and charts code-native rather than image-generated.
 - Use SVG marks, direct labels, and explicit scales.
 - Add `title`, `desc`, or surrounding text so the visual is accessible and inspectable.
-- Render each visual to PNG at the target size, usually `1280x720`.
+- Render still visuals to PNG at the target size, usually `1280x720`; export GIF/video assets from the same framed composition when motion carries the point.
 - Inspect each PNG at full size and thumbnail size before using it.
 - Save the renderer, source data, and final PNGs.
 

@@ -6,20 +6,20 @@ Use this file as the baseline for custom thread visuals.
 
 The baseline should make visuals clear, consistent, and fast to produce. It should not force every event into one fixed look. Palette, type feel, surface treatment, motif, and small styling details should come from the event and its source material.
 
-Source visuals still come first. Use this guide when a custom visual is justified.
+Source visuals still come first as raw material. The camera-ready asset still goes through this visual system.
 
 ## Reference Backbone
 
-Before building custom visuals, read [`render.html`](render.html) and use it as the backbone for the asset set. The examples define the expected shape: a `1280x720` editorial frame, source label, short kicker, large title, brief subhead, one main proof area, direct labels, restrained cards, and a bottom source note.
+Before building final visuals, read [`render.html`](render.html) and use it as the backbone for the asset set. Every visual post should have a renderer in `outputs/assets/render.html`, even when the main material is a source screenshot, chart, product image, video frame, GIF, or clip. Original material belongs inside the frame: cropped into the proof area, paired with labels, blended with a small chart, or used as the main evidence object.
 
-The final visuals do not need to copy the examples, but they should look like they belong to the same family. Start from that shell and adapt it to the event's source material. Diverge only when the source asset, crop, diagram, or spatial problem genuinely needs another structure.
+The final visuals do not need to copy the examples, but they should look like they belong to the same family. Start from that shell and adapt it to the event's source material. Diverge only when the source asset, crop, diagram, or spatial problem genuinely needs another structure, and still keep the asset set visually tied to the same frame system.
 
 ## Design Read
 
-Before building a custom visual, write a one-line design read in `research/notes.md`:
+Before building a custom visual, write a one-line design direction in `research/notes.md`:
 
 ```text
-Reading this as: <event/source type> for <audience>, using <source cues>, with <density/style>.
+Design direction: <event/source type> for <audience>, using <source cues>, with <density/style>.
 ```
 
 Check:
@@ -97,6 +97,14 @@ Do not invent official marks, mascots, product UI, badges, or logos. If the sour
 
 The visual should feel related to the source without pretending to be official collateral.
 
+## Icons And Generated Graphics
+
+Treat each rendered asset like a slide. Use Lucide icons for small symbols inside the frame: status dots with meaning, source-type labels, repo/file/product cues, arrows, warnings, checks, and tool actions. Keep them line-based, quiet, and aligned with the typography. Do not draw one-off icons when a Lucide icon already fits.
+
+If a slide needs a raster graphic that source material cannot provide, use $imagegen for photos, illustrations, textures, mockups, cutouts, or other bitmap pieces. Treat the generated image as source material inside `render.html`: crop it, label it, pair it with data, or blend it with custom components in the shared frame.
+
+Prefer source assets, Lucide, and code-native SVG/HTML for data, icons, diagrams, and simple shapes. Do not use generated images as evidence, and do not use them for text-heavy charts or anything that needs exact labels.
+
 ## Taste Checks
 
 Run these before shipping:
@@ -149,15 +157,15 @@ If a benchmark or measurement has caveats, show them in the visual structure or 
 
 ## Custom Visual Workflow
 
-For each custom visual:
+For each visual asset:
 
-1. Record why the custom visual beats the best source visual, what it explains, and what sources or data it uses.
-2. Record the design read.
+1. Record what source material or custom data the visual uses, and what it explains.
+2. Record the design direction.
 3. Use `references/render.html` as the backbone for the renderer shape and visual range.
 4. Record the source palette/motif/type cues you used.
-5. Build one small renderer in the event workspace, usually `outputs/assets/render.html`.
-6. Save the renderer, source data, and final PNGs.
-7. Render at the target size, usually `1280x720`.
-8. Inspect full-size and thumbnail-size PNGs.
+5. Build one renderer in the event workspace at `outputs/assets/render.html`; put source crops, screenshots, GIFs, video frames/clips, and custom components inside that renderer.
+6. Save the renderer, source data, raw media parents, and final assets.
+7. Render still assets at the target size, usually `1280x720`; export motion assets from the same framed composition when the post needs GIF or video.
+8. Inspect full-size and thumbnail-size outputs.
 
-If a custom visual is only decorative, cut it.
+If a visual is only decorative, cut it.
