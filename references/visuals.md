@@ -86,7 +86,7 @@ Use a custom visual when:
 - multiple source facts need to be combined into one compact table, chart, timeline, or map
 - a source crop would include too much irrelevant page furniture
 
-Leverage the skills in $build-web-data-visualization to build effective visuals. Create one small renderer in the event workspace, usually `outputs/assets/render.html`, and use the shared render helper for export:
+Use the skills in $build-web-data-visualization and follow the baseline plus source-style pass in [design.md](design.md). Create one small renderer in the event workspace, usually `outputs/assets/render.html`, and use the shared render helper for export:
 
 - Put the structured data in the renderer or a nearby JSON file.
 - Use SVG marks, direct labels, and explicit scales.
