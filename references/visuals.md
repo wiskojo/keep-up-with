@@ -77,6 +77,18 @@ node scripts/crop-image.mjs \
   --box 0.189,0.339,0.671,0.444
 ```
 
+## Video Frames And Clips
+
+When dealing with videos, you can extract useful frames, videos, or gifs with:
+
+```sh
+cli tools youtube frames "VIDEO_URL" 00:01:23 00:02:10 --output-dir research/artifacts/video
+cli tools youtube download "VIDEO_URL" --output-dir research/artifacts/video
+cli tools youtube clip "VIDEO_URL" 00:01:23 6 outputs/assets/post-2-clip.mp4
+cli tools youtube clip "VIDEO_URL" 00:01:23 6 outputs/assets/post-2-crop.mp4 --crop 960:540:160:90
+cli tools youtube gif "VIDEO_URL" 00:01:23 4 outputs/assets/post-2.gif
+```
+
 ## Custom Visuals
 
 Use a custom visual when:

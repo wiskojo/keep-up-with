@@ -4,6 +4,7 @@ import html
 import re
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -191,6 +192,145 @@ def frames(url: str, *, timestamps: list[str], output_dir: Path) -> list[dict[st
     return outputs
 
 
+def download(url: str, *, output_dir: Path) -> dict[str, Any]:
+    try:
+        from yt_dlp import YoutubeDL
+    except ImportError as error:
+        raise ValueError("yt-dlp is required") from error
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    options = {
+        "format": "bv*[height<=1080]+ba/b[height<=1080]",
+        "merge_output_format": "mp4",
+        "outtmpl": str(output_dir / "%(id)s.%(ext)s"),
+        "quiet": True,
+        "no_warnings": True,
+    }
+    with YoutubeDL(options) as ydl:
+        info = ydl.extract_info(url, download=True)
+        if not isinstance(info, dict):
+            raise ValueError("yt-dlp did not return video metadata")
+        prepared = Path(ydl.prepare_filename(info))
+
+    path = prepared.with_suffix(".mp4")
+    if not path.exists() and prepared.exists():
+        path = prepared
+    return {
+        "id": info.get("id") or "",
+        "title": info.get("title") or "",
+        "path": str(path),
+    }
+
+
+def clip(
+    url: str,
+    *,
+    start: str,
+    duration: float,
+    output: Path,
+    crop: str = "",
+    scale: str = "1280:-2",
+    audio: bool = False,
+) -> dict[str, Any]:
+    if shutil.which("ffmpeg") is None:
+        raise ValueError("ffmpeg is required to extract clips")
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    info = extract(url)
+    filters = video_filters(crop=crop, scale=scale)
+    command = [
+        "ffmpeg",
+        "-y",
+        "-ss",
+        start,
+        "-t",
+        str(duration),
+        "-i",
+        media_url(info),
+        "-vf",
+        filters,
+    ]
+    if not audio:
+        command.append("-an")
+    command.append(str(output))
+    run_ffmpeg(command, f"ffmpeg failed for clip at {start}")
+    return {
+        "id": info.get("id") or "",
+        "title": info.get("title") or "",
+        "start": start,
+        "duration": duration,
+        "crop": crop,
+        "scale": scale,
+        "path": str(output),
+    }
+
+
+def gif(
+    url: str,
+    *,
+    start: str,
+    duration: float,
+    output: Path,
+    crop: str = "",
+    width: int = 640,
+    fps: int = 12,
+) -> dict[str, Any]:
+    if shutil.which("ffmpeg") is None:
+        raise ValueError("ffmpeg is required to export gifs")
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    info = extract(url)
+    source = media_url(info)
+    scale = f"{width}:-1"
+    filters = video_filters(crop=crop, scale=scale, fps=fps)
+    with tempfile.TemporaryDirectory() as directory:
+        palette = Path(directory) / "palette.png"
+        run_ffmpeg(
+            [
+                "ffmpeg",
+                "-y",
+                "-ss",
+                start,
+                "-t",
+                str(duration),
+                "-i",
+                source,
+                "-vf",
+                f"{filters},palettegen",
+                str(palette),
+            ],
+            f"ffmpeg failed to create gif palette at {start}",
+        )
+        run_ffmpeg(
+            [
+                "ffmpeg",
+                "-y",
+                "-ss",
+                start,
+                "-t",
+                str(duration),
+                "-i",
+                source,
+                "-i",
+                str(palette),
+                "-lavfi",
+                f"{filters}[x];[x][1:v]paletteuse",
+                str(output),
+            ],
+            f"ffmpeg failed to export gif at {start}",
+        )
+    return {
+        "id": info.get("id") or "",
+        "title": info.get("title") or "",
+        "start": start,
+        "duration": duration,
+        "crop": crop,
+        "width": width,
+        "fps": fps,
+        "path": str(output),
+    }
+
+
 def extract(url: str) -> dict[str, Any]:
     try:
         from yt_dlp import YoutubeDL
@@ -308,3 +448,29 @@ def media_url(info: dict[str, Any]) -> str:
         if isinstance(item, dict) and item.get("vcodec") != "none" and isinstance(item.get("url"), str):
             return item["url"]
     raise ValueError("yt-dlp returned no video format URL")
+
+
+def video_filters(*, crop: str = "", scale: str = "", fps: int | None = None) -> str:
+    filters = []
+    if crop:
+        filters.append(f"crop={crop}")
+    if fps is not None:
+        filters.append(f"fps={fps}")
+    if scale:
+        filters.append(f"scale={scale}")
+    return ",".join(filters) if filters else "null"
+
+
+def run_ffmpeg(command: list[str], message: str) -> None:
+    try:
+        subprocess.run(
+            command,
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except subprocess.CalledProcessError as error:
+        lines = (error.stderr or "").strip().splitlines()
+        detail = lines[-1] if lines else "unknown ffmpeg error"
+        raise ValueError(f"{message}: {detail}") from error
