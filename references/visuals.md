@@ -110,11 +110,13 @@ Add custom components when they help the user understand the point, for example:
 
 Use Lucide icons inside the renderer for small symbols and scan cues. If the asset needs a new raster graphic that source material does not provide, use [$imagegen](/Users/wis/.codex/skills/.system/imagegen/SKILL.md), save the generated bitmap as raw material, and compose it inside `render.html`.
 
-Use the skills in $build-web-data-visualization and follow the baseline plus source-style pass in [design.md](design.md). Use [render.html](render.html) as the backbone for the final visual shape and range.
+Use the skills in $build-web-data-visualization and follow the baseline plus source-style pass in [design.md](design.md). Use [render.html](render.html), [visual-kit.css](visual-kit.css), and [visual-kit.js](visual-kit.js) as the backbone for the final visual shape and range.
 
 Implementation defaults:
 
 - Always build or update `outputs/assets/render.html` for the visual set.
+- Copy `visual-kit.css` and `visual-kit.js` into `outputs/assets/` and keep story-specific work in `render.html` or nearby data.
+- Use `?visual=post-N` as the selection contract for every rendered post.
 - Put the structured data in the renderer or a nearby JSON file.
 - Put source screenshots, crops, GIFs, video frames, or clips inside the renderer frame rather than dropping raw media straight into `output.md`.
 - Use Lucide for small icons where it improves scanning; keep simple diagrams, icons, and charts code-native rather than image-generated.

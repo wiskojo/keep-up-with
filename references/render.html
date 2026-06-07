@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Custom Visual Examples</title>
+  <link rel="stylesheet" href="visual-kit.css">
+  <script src="visual-kit.js"></script>
   <style>
     :root {
       --surface: #fbfaf7;
@@ -334,8 +336,7 @@
     };
 
     const app = document.getElementById("app");
-    const params = new URLSearchParams(window.location.search);
-    const visualId = params.get("visual") || "leaderboard";
+    const visualId = window.KUWVisual?.getVisualId("leaderboard") || "leaderboard";
     const visual = examples[visualId] || examples.leaderboard;
 
     function shell(data, inner) {

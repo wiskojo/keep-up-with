@@ -10,7 +10,9 @@ Source visuals still come first as raw material. The camera-ready asset still go
 
 ## Reference Backbone
 
-Before building final visuals, read [`render.html`](render.html) and use it as the backbone for the asset set. Every visual post should have a renderer in `outputs/assets/render.html`, even when the main material is a source screenshot, chart, product image, video frame, GIF, or clip. Original material belongs inside the frame: cropped into the proof area, paired with labels, blended with a small chart, or used as the main evidence object.
+Before building final visuals, read [`render.html`](render.html) and use it as the backbone for the asset set. Copy [`visual-kit.css`](visual-kit.css) and [`visual-kit.js`](visual-kit.js) beside the event renderer and keep them unchanged unless the event genuinely needs a different visual system.
+
+Every visual post should have one story renderer in `outputs/assets/render.html`, even when the main material is a source screenshot, chart, product image, video frame, GIF, or clip. Select posts with `?visual=post-N`. Original material belongs inside the frame: cropped into the proof area, paired with labels, blended with a small chart, or used as the main evidence object.
 
 The final visuals do not need to copy the examples, but they should look like they belong to the same family. Start from that shell and adapt it to the event's source material. Diverge only when the source asset, crop, diagram, or spatial problem genuinely needs another structure, and still keep the asset set visually tied to the same frame system.
 
@@ -161,7 +163,7 @@ For each visual asset:
 
 1. Record what source material or custom data the visual uses, and what it explains.
 2. Record the design direction.
-3. Use `references/render.html` as the backbone for the renderer shape and visual range.
+3. Use `references/render.html`, `references/visual-kit.css`, and `references/visual-kit.js` as the backbone for the renderer shape and visual range.
 4. Record the source palette/motif/type cues you used.
 5. Build one renderer in the event workspace at `outputs/assets/render.html`; put source crops, screenshots, GIFs, video frames/clips, and custom components inside that renderer.
 6. Save the renderer, source data, raw media parents, and final assets.
