@@ -33,6 +33,7 @@ class DataIntegration:
     description: str = ""
     subscriptions: Sequence[Subscription] = ()
     tools: Sequence["Tool"] = ()
+    tools_require_enabled: bool = True
     required_env: Sequence[str] = ()
     parameters: Sequence[IntegrationParameter] = ()
     default_settings: dict[str, Any] = field(default_factory=dict)

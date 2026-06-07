@@ -53,15 +53,17 @@ Default tokens:
 
 ```css
 --surface: #fbfaf7;
---card: #ffffff;
---ink: #111111;
---muted: #6f6b63;
---line: #ded8cf;
---accent: #2563eb;
---accent-soft: #eef4ff;
---warning: #f59e0b;
---danger: #e11d48;
---success: #16a34a;
+--card: #fffdf8;
+--ink: #181713;
+--muted: #706a5e;
+--line: #ded6c8;
+--neutral-strong: #8b8274;
+--neutral-soft: #d8d1c5;
+--accent: #3157a4;
+--accent-soft: #e8eef9;
+--success: #2f7d5c;
+--warning: #c87913;
+--danger: #b83b5b;
 ```
 
 Treat these as fallback tokens. Replace `--accent` with the source accent. Adjust neutrals only when the source clearly leans warm, cold, dark, editorial, terminal-like, academic, or consumer.
@@ -72,7 +74,7 @@ Use this visual grammar by default:
 - rules: 1px lines, usually low contrast
 - cards: only for contained evidence objects, 6-10px radius, no heavy shadow
 - type: strong title, small precise labels, tabular numbers
-- color: mostly neutral, one source accent, no rainbow unless the data requires categories
+- color: tinted neutrals, one source accent, and semantic warning/success/error colors only when those meanings are present
 - motion/texture: none for static thread assets unless the source itself depends on it
 
 ## Source Styling

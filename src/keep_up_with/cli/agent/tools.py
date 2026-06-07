@@ -28,7 +28,10 @@ def main(ctx: typer.Context) -> None:
 def tool_command(integration: DataIntegration, tool: Tool) -> Callable[..., None]:
     def command(*args: Any, **kwargs: Any) -> None:
         config = get_config()
-        if not config.integration_enabled(integration.name):
+        if (
+            integration.tools_require_enabled
+            and not config.integration_enabled(integration.name)
+        ):
             typer.echo(f"{integration.name} is not enabled.", err=True)
             raise typer.Exit(1)
         missing = missing_env(config, integration)
