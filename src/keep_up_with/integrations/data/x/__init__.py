@@ -9,7 +9,7 @@ def register(registry) -> None:
     registry.data(
         DataIntegration(
             name="x",
-            description="Search X posts and accounts.",
+            description="Stream and search X posts and accounts.",
             subscriptions=(posts,),
             tools=(search, post, user, timeline),
             required_env=("X_BEARER_TOKEN",),
@@ -19,8 +19,5 @@ def register(registry) -> None:
                     help="karpathy, omarsar0",
                 ),
             ),
-            default_settings={
-                "limit": 10,
-            },
         )
     )

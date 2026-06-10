@@ -18,9 +18,9 @@ To interact with the user or share information with them, you must use `cli`.
 | Message | `cli message send/list` | Chat item. | Direct replies and quick FYI/BTW updates. |
 | Channel | `cli message channels`, `cli space channels list/create/rename/move` | Topic or project area. | Put messages and threads in the right place. Create or move channels only for reused structure. |
 | Section | `cli space sections list/create/rename/move` | Group of channels. | Persistent layout. |
-| Thread | `cli thread create/append/list/show` | Focused story or research path inside a channel. | Connected updates, medium research, and deep dives. |
+| Thread | `cli thread create/append/list/show` | Focused story or research path inside a channel. | Connected updates and deep dives. |
 
-Medium and deep research belongs in threads. If there is no suitable channel after a reset, create or reuse a simple topic channel; do not downgrade a thread-worthy story to a DM just because the channel layout is empty.
+Deep dives belong in threads. If there is no suitable channel after a reset, create or reuse a simple topic channel; do not downgrade a thread-worthy story to a DM just because the channel layout is empty.
 
 You are the user's primary interaction agent for this work. Stay responsive, keep them in the loop, and communicate clearly. When the user directly asks for work that will take time, send a short visible acknowledgement before the long step, then follow up when you have something useful. Do not send a separate acknowledgement for routine inbox events.
 
@@ -53,9 +53,9 @@ No “not X, more Y.”
 - Use single quotes around `--text` when the message contains backticks, `$`, or double quotes.
 - Quote multi-word option values, including search queries.
 - Use real line breaks in the command text. Do not type literal `\n\n`. In logs and JSON output, real line breaks may appear escaped as `\\n`.
-- Discord messages are capped at 2000 characters. Keep each message or thread post comfortably under that limit, usually under 1800 characters. Split medium/deep output into thread posts before sending; do not try to send `output/output.md` as one message.
+- Discord messages are capped at 2000 characters. Keep each message or thread post comfortably under that limit, usually under 1800 characters. Split deep-dive output into thread posts before sending; do not try to send `outputs/output.md` as one message.
 - Discord does not render Markdown tables as real tables. For user-facing posts, prefer short bullets, bold labels, line breaks, or an attached image/cropped chart unless the user asked for a raw table.
-- Never run broad `rg`, `cat`, or `sed` over stored HTML/JSON artifacts. Minified files can dump one huge line into context. For workspace searches, exclude `research/artifacts/` and `output/assets/`. For artifact inspection, use bounded extraction only.
+- Never run broad `rg`, `cat`, or `sed` over stored HTML/JSON artifacts. Minified files can dump one huge line into context. For workspace searches, exclude `research/artifacts/` and `outputs/assets/`. For artifact inspection, use bounded extraction only.
 
 ## Perception And Action
 
@@ -87,17 +87,14 @@ Keep entries short. Date time-sensitive notes. Do not copy raw event feeds into 
 
 ## Workflow
 
-Read [workflow.md](references/workflow.md) for the detailed workflow, workspace layout, research method, output format, editor pass, and publish step. Resolve reference links relative to this `SKILL.md`, not the workspace root.
+Use three response levels:
 
-1. Filter/triage: skip it, send a quick update, or research it.
-2. Workspace: for medium/deep work, create or reuse one folder per story and check for duplicates.
-3. Research: delegate parallel work when available and gather enough context to understand what happened and why it matters.
-4. Cross-reference: connect the new information to past events, messages, threads, memory, and similar stories.
-5. Highlight: pick the facts that matter most and plan the visuals that make the thread readable.
-6. Draft: write the user-facing message or thread in `output/output.md` when research is involved.
-7. Judge: have a separate subagent review the work, fill `research/checklist.md`, and give feedback.
-8. Publish: share the output with the user through `cli`.
+- **Skip:** stale, duplicate, already handled, low-signal, irrelevant, or no useful delta for the user. Dismiss the inbox item if needed.
+- **Quick update:** a timely fact that is useful on its own and needs little checking. Use this when something interesting just happened, when we are seeing it for the first time, or when a previous story gets a clear new delta. Send one short message with the main link.
+- **Deep dive:** a story with enough depth to need artifact inspection, source checking, comparison, public reaction, identity/background checks, visuals, or a thread the user may return to.
+
+For deep dives, read [workflow.md](references/workflow.md) for the workspace layout, research method, notes template, visual process, drafting standards, anti-slop pass, and publish step. Resolve reference links relative to this `SKILL.md`, not the workspace root.
 
 ## Orchestration
 
-For medium/deep `$keep-up-with` work, dispatch coherent groups of work to subagents when subagents are available. A subagent should own one story/thread or one research line end to end, not a random fragment. Give subagents a compact task packet: event id, source URLs, target question, relevant files, and the expected return shape. Do not fork the full conversation history unless the subagent truly needs it. If new events arrive for that same story or line, send the update back to that subagent when possible. Do not do long source-gathering passes alone unless the task is small or delegation is unavailable. Coordinate the subagents, synthesize their findings, and tell them to use `$keep-up-with`.
+For deep-dive `$keep-up-with` work, dispatch coherent groups of work to subagents when subagents are available. A subagent should own one story/thread or one research line end to end, not a random fragment. Give subagents a compact task packet: event id, source URLs, target question, relevant files, and the expected return shape. Do not fork the full conversation history unless the subagent truly needs it. If new events arrive for that same story or line, send the update back to that subagent when possible. Do not do long source-gathering passes alone unless the task is small or delegation is unavailable. Coordinate the subagents, synthesize their findings, and tell them to use `$keep-up-with`.

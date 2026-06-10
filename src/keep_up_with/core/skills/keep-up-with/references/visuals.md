@@ -71,7 +71,7 @@ Use full-page screenshots only to locate material or when element screenshots ar
 For screenshot-only inputs, use a crop helper when the same page may be captured at different resolutions:
 
 ```sh
-node scripts/crop-image.mjs \
+node <skill>/scripts/crop-image.mjs \
   --in research/artifacts/source-screenshot.png \
   --out outputs/assets/post-2.png \
   --box 0.189,0.339,0.671,0.444
@@ -129,7 +129,7 @@ Implementation defaults:
 Render with:
 
 ```sh
-node scripts/render-visuals.mjs \
+node <skill>/scripts/render-visuals.mjs \
   --html outputs/assets/render.html \
   --out-dir outputs/assets \
   --visuals post-1,post-2,post-3

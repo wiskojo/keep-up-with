@@ -1,148 +1,58 @@
-# Workflow
+## Goal
 
-Use this for anything beyond a quick reply. Quick FYI/BTW messages usually do not need a workspace folder.
+Your job is to turn something the user would have bookmarked and maybe never read into the research they would have done if they had the time: read the main source, inspect the actual artifact, check the surrounding discussion, relate it to what they already know, and compress the useful parts into a thread.
 
-## 1. Filter
+The user should be able to see how the original source, repo or docs, outside reactions, comments, prior work, and prior user-facing context each change the read. Attribute outside perspectives clearly, especially when they come from people the user knows, people with weight in the field, or reactions getting attention.
 
-Ask: what are the top things the user would want to know based on the event?
+Prior messages, threads, durable context, browser or source history when available, and recurring user interests are part of the research surface. Use them to infer what the user already understands, what they would have checked themselves, what they don’t need re-explained, and what needs more detail now.
 
-Choose the lightest useful response:
+## Setup
 
-| Level | Use |
-| --- | --- |
-| Do nothing | Stale, repeated, irrelevant, already handled, or not useful. |
-| Notify only | A quick FYI/BTW: one short message, usually with one link. |
-| Medium research | Needs checking, context, comparison, or a thread update. |
-| Deep research | Big story, major launch, paper, benchmark, controversy, policy move, or something likely to keep developing. |
-
-## 2. Workspace
-
-For medium/deep work, create one folder per story:
+- **Create the workspace:** Work in a per-event workspace with this structure:
 
 ```text
-threads/
-  YYYY-MM-DD-HHMM-slug/
-    research/
-      checklist.md
-      notes.md
-      artifacts/
-    output/
-      output.md
-      assets/
+research/
+    notes.md
+    artifacts/
+outputs/
+    output.md
+    assets/
 ```
 
-Use local time for `YYYY-MM-DD-HHMM`. Keep the slug short, lowercase, and hyphenated. Reuse the same folder for the same story.
+- **Use the notes template:** Initialize `research/notes.md` from `template.md` in the skill root. Keep the headings and replace the text inside each block as you work. `notes.md` is the running record of what you checked, learned, decided, and why.
+- **Keep raw work separate from final work:** Put raw files gathered during research in `research/artifacts/`. If you find potentially useful figures, diagrams, screenshots, charts, videos, frames, tables, or source images, save them there as you go. Put the camera-ready thread in `outputs/output.md` and put the final visual assets in `outputs/assets/`.
+- **Check available tools:** You have access to the `cli` command for this work. Run `cli tools --help` during setup.
 
-`research/` is for internal legwork: notes, facts, timelines, comparisons, questions, source notes, screenshots, figures, transcripts, frames, tables, and excerpts.
+## Step 1: Research
 
-`output/` is for the user-facing draft and assets that may be sent.
+- **Research the source (DFS):** Read the event itself first: original post, linked source, paper, repo, model card, release notes, benchmark page, dataset, demo, transcript, author thread, official page, or primary artifact.
+- **Research the context (BFS):** Check adjacent links, prior art, related ideas, competing work, similar launches, comments, benchmarks, older claims, critiques, reactions, and close comparables. Name the relationship. If there’s an obvious closest comparison, research it. Check places where the event is being shared and discussed, such as Reddit, X, Youtube, Huggingface, etc. Use reactions when they add support, critique, confusion, reproducibility notes, or a useful outside comparison.
+- **Understand depth from breadth:** Depth means what happened, what got released or claimed, how it works, what numbers are claimed, what changed, what artifacts exist, and what’s still uncertain. Breadth means what came before, what it resembles, what’s different, what supports or challenges it, and what context changes the interpretation.
+- **Gauge the attention:** Check how much activity the event is getting relative to when it appeared and where that activity is happening. Look for discussion volume, tone, and content across the obvious relevant surfaces, not only the source platform: Reddit, X, GitHub, YouTube, forums, Discord, blogs/newsletters, package/download activity, stars, forks, comments, reposts, or other domain-specific signals. Exact numbers are fine point-in-time. These updates are meant to be timely and represent the current state. We can always append to the thread later if there are important updates.
+- **Weigh reactions:** Judge reactions by both who is saying it and what they show. A major lab, known expert, maintainer, or person the user follows can make a reaction worth reporting, but brand is not proof. Unknown or anonymous sources can still matter when they bring concrete experiments, logs, code, screenshots, careful firsthand analysis, or strong aggregate signal. Treat low-quality individual comments as low value; report them only as aggregate sentiment when the pattern matters.
+- **Identify people who matter:** When a named person affects the story, check who they are before drafting: X profile, linked personal site, LinkedIn, GitHub, papers, talks, affiliation, relevant work, and public signals. Capture why their role or background matters here. Do not assume a name explains itself.
 
-`research/checklist.md` is required. Create it from [checklist.md](checklist.md) when you create the workspace, then fill it in as you work. Do not mark an item done unless its evidence line names the source, artifact, message id, subagent result, or reason.
+## Step 2: Cross-reference
 
-## 3. Research
+- **Check prior user-facing work:** Use `cli` and durable context to check related messages, threads, channels, prior events, dismissed inbox items, story/workspace folders, `USER.md`, `MEMORY.md`, prior notes, artifacts, recurring topics, and workflow lessons.
+- **Calibrate it to the user:** Use that history to infer what the user likely knows, what doesn’t need another explanation, what needs more detail, what they would care about, and whether this is a new story, update, delta, continuation, correction, contradiction, repeated discourse, duplicate, or no real change.
+- **Ground the context:** Give just enough background for the user to understand the new thing. For any comparison, speaker, author, person, project, company, event, or idea used as context, decide how much to explain based on what the user likely knows, how recent or visible the reference is, and whether the detail changes their understanding. Name people and entities when the identity matters. Include only the descriptor the user needs. If the identity is not useful, describe the source, role, or evidence instead.
+- **Make contextual updates:** Avoid duplicate threads, repeated background, mixed topics, and re-teaching old context. If a thread already exists, update only the delta unless the user needs the full background again. Record the prior message, thread, or source that shaped the call.
 
-Goal: understand the delta. Stop when more work is unlikely to change what you would say.
+## Step 3: Identify Highlights
 
-For medium/deep work, dispatch coherent groups of work to subagents when subagents are available. A subagent should own one story/thread or one research line end to end. If new events arrive for that same story or line, send the update back to that subagent when possible. Keep non-overlapping work moving while subagents run. If you do not delegate, record the reason in `research/checklist.md`.
+- **Answer the user’s likely questions:** Before choosing highlights, write the questions this user would ask if they were to hear about this event, then answer those questions instead of listing facts. What is this exactly? How does it work? What’s the closest prior art? How is this different from X? What does the key mechanism do? What can actually be used now? What is missing? Is it useful, new, overclaimed, repeated, actionable, or worth following?
+- **Explain the mechanism:** Say what actually changed, what’s new, what got corrected, what got confirmed, what’s still unproven, and what the claim depends on, especially any evaluator, benchmark, dataset, verifier, ablation, or technical phrase carrying the substance.
+- **Compare against familiar context:** Use comparisons the user is likely to understand to explain what’s similar, what’s different, and why it matters. Spend fewer words on familiar background and more on the new details that get them to understanding faster.
+- **Surface public discussion:** If there is real public discourse around the event, say where people are talking and what they are saying: the launch post on X, practitioner debate on Reddit/forums, YouTube or newsletter explainers, confusion, or pushback. If there is not much discourse around the event, do not mention it. If the discussion has several useful threads, split them into separate highlights instead of compressing them into one reactions post. Use short representative quotes when they carry the tone, claim, critique, or evidence better than a paraphrase; format them as blockquotes with `>`. Use metrics to show scale, but spend the words on the claims, disagreements, evidence, and open questions.
+- **Choose the right visual:** Inventory visuals from the source, linked artifacts, docs, demos, videos, social posts, repos, and discussion threads. Use source visuals when they carry the point directly. Build a custom visual when a comparison, crop, timeline, table, diagram, or summary would make the highlight clearer than a raw source image. Every non-source post in a thread needs a visual. Custom visuals should follow [visuals.md](visuals.md) and use [design.md](design.md) before rendering.
+- **Order by usefulness:** Arrange highlights as answers backed by sources, from most useful to least. The user should get the main story early; each later highlight adds less essential detail.
 
-Start broad, then go deep only where it matters:
+## Step 4: Draft The Thread
 
-- BFS: source, links, prior events, messages, threads, comments, comparable stories.
-- DFS: verify a claim, inspect an artifact, compare a baseline, or find a correction.
-
-Prefer primary sources: original posts, papers, model cards, repos, release notes, benchmark pages, datasets, author threads, talks, and official pages. Treat virality as a clue, not evidence.
-
-Write the working state into `research/notes.md`. Save raw material in `research/artifacts/`.
-
-## 4. Cross-reference
-
-Relate the new information to what already exists:
-
-- prior events and inbox items
-- message history
-- existing threads
-- `USER.md` and `MEMORY.md`
-- previous notes and artifacts
-- similar launches, papers, repos, claims, or benchmarks
-
-Mark what changed: new, continued, correction, contradiction, repeated discourse, or no real delta.
-
-## 5. Highlights And Visuals
-
-Pick the facts the user would care about most. Cut the rest.
-
-Plan visuals before drafting a medium/deep thread. The usual shape is text, visual, text, visual, then sources. No visual is the exception, not the default.
-
-Visuals can be screenshots, official figures, charts, compact tables, quoted excerpts, timelines, maps, comparison grids, frames, or source captures. Use them to clarify, verify, compare, or break up dense information. Do not use decorative visuals. Do not use generated images as evidence.
-
-Put draft visuals or generated assets in `output/assets/`.
-
-## 6. Draft
-
-For a quick FYI/BTW:
-
-- write a few plain sentences
-- include the main link inline
-- say what happened and what changed
-- no headings, source dump, or thread structure
-
-For a medium/deep thread, draft the full thread in `output/output.md`.
-
-Organize the thread for scanning, not as a wall of text:
-
-1. Opening post: background, what happened, what changed, and the main visual or visuals.
-2. Highlight posts: one useful point per post, interleaved with visuals, tables, excerpts, or other assets.
-3. Sources post: links and what each source supports.
-
-Opening post:
-
-- Background: who is involved, what the user needs to know about them, and when it happened.
-- What happened / what it is: plain English, 2-4 short sentences.
-- What's changed / new: the delta from prior story state, baseline, or comparable. Omit if there is no real delta.
-- Main visual: use a screenshot, chart, figure, excerpt, timeline, map, or other visual that clarifies the story.
-
-Highlight posts:
-
-- Use the facts that matter most.
-- Keep each post focused.
-- Use short paragraphs, line breaks, bullets, tables, and sparing bold text so the thread is easy to scan.
-- Add visuals, tables, or excerpts where they clarify, compare, verify, or keep dense material readable.
-- For first-hand user experiences, quote the relevant text:
-  ```markdown
-  > <quote>
-  ```
-
-Sources post:
-
-- Put sources at the end of the thread.
-- Link each source and say what it supports.
-- Keep sources out of the main channel unless it is a quick update.
-
-Omit empty or artificial sections except `Sources`. One good story beats several shallow notes.
-
-If new events arrive for an existing thread, append only the delta. Do not repeat the full background unless the user needs it to understand the update.
-
-## 7. Judge
-
-For medium/deep work, start a separate judge subagent before publishing. The judge checks the work against the quality bar, fills `research/checklist.md`, and gives feedback.
-
-Give the judge:
-
-- the original event or user request
-- `research/notes.md`
-- relevant files in `research/artifacts/`
-- `output/output.md`
-- `research/checklist.md`
-- this workflow and `anti-ai-slop.md`
-
-The judge must not rubber-stamp the draft. It should leave boxes unchecked when evidence is missing, the work skipped a step, the thread is hard to read, visuals are weak/missing, claims are unsupported, or the tone misses the bar. A checkbox without concrete evidence underneath is not complete.
-
-Revise `output/output.md` and the supporting work until the judge's blocking feedback is resolved.
-
-## 8. Publish
-
-Share the finished output through `cli`.
-
-- Quick update: `cli message send`.
-- New medium/deep story: `cli thread create`.
-- Update to an existing story: `cli thread append`.
+- **Plan it out:** Before writing the thread, decide how much of the research is worth sending. Use a longer thread when there are multiple useful perspectives, artifacts, or deltas; use a short thread or single post when one point carries the story. Then explain the role of each post: why it goes there, what it includes, what it leaves out, how it moves the story forward, what visual it uses, where the visual comes from, why that visual fits, and why weaker options lost.
+- **Make the first post the abstract:** Treat the first post like the thread abstract, but write it like a timely update to the user. By default, give enough background to contextualize the event, explain what happened or what it is in plain English, say what changed compared with the relevant baseline, and include the main visual. Adjust or omit parts when the story calls for it. Use later posts for mechanism, comparison, results, caveats, user-relevant context, quotes, or examples. The first post should be around ~1,000 characters, subsequent posts should be around 500~.
+- **Keep it readable:** Spend words on the event, mechanism, evidence, and consequence instead of unnecessary names. Avoid wall-of-text posts; use spacing, emphasis, visuals, quotes, and post breaks. Don’t give every post a hook or headline. Get to the point, and show where the perspective comes from when it matters: original source, outside reaction, repo, issue, comment, benchmark, or prior work. Do not expose internal tool details like CLI names, tool responses, sandbox status, traces, or file paths unless the user asked or that detail changes the public story. Avoid heavy signposting; do not open posts with sentences that explain the role of the post instead of advancing the story. If a signpost is useful, fold it into a factual sentence instead of leaving it as a standalone opener and just get to the point.
+- **Synthesize without opining:** Act like a reporter, not a pundit. Don’t share your own opinions by default; collect facts, attributed perspectives, source claims, contradictions, and open questions, then report how they fit together. Reconcile competing views and say what is supported, disputed, missing, or uncertain. Avoid ranking claims unless the sources support the ranking. If a judgment belongs in the thread, ground it in who said it, what data supports it, what comparison it depends on, and what would change the conclusion. Keep caveats proportional. Do not help me "frame" or tell me what the "read" is, just investigate and faithfully report different perspectives around the event.
+- **Run the anti-slop pass:** Before publishing, check the draft against [anti-ai-slop.md](anti-ai-slop.md). Remove banned phrases, generic framing, internal narration, over-structured prose, and unsupported judgments.
+- **Put sources last:** End with sources. Split main sources from supplementary sources when both shaped the output.

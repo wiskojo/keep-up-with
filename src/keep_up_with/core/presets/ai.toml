@@ -91,6 +91,12 @@ section = "ai"
 description = "The platform layer for running AI systems. Use for model serving, sandboxes, observability, orchestration, tracing, vector databases, eval harness infrastructure, deployment, scaling, Kubernetes, and production architecture."
 
 [[space.channels]]
+key = "ai.engineering"
+name = "🛠️・engineering"
+section = "ai"
+description = "Engineering writeups and implementation details. Use for architecture notes, postmortems, debugging stories, scaling lessons, production incidents, system design, and how teams are actually building AI systems."
+
+[[space.channels]]
 key = "ai.tips"
 name = "💡・tips"
 section = "ai"
@@ -119,6 +125,12 @@ key = "ai.business"
 name = "💼・business"
 section = "ai"
 description = "Commercial AI ecosystem movement. Use for funding, pricing, acquisitions, partnerships, enterprise adoption, revenue, company strategy, chips, and market structure."
+
+[[space.channels]]
+key = "ai.rumors"
+name = "👀・rumors"
+section = "ai"
+description = "Unconfirmed AI chatter. Use for leaks, launch speculation, model sightings, screenshots, credible rumors, and claims that need verification. Keep attribution and uncertainty clear."
 
 [[space.channels]]
 key = "ai.policy"

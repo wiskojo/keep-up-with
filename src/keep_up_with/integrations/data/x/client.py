@@ -1,12 +1,18 @@
 from __future__ import annotations
 
+import json
+from collections.abc import Callable, Iterable, Iterator
 from typing import Any
 
 import httpx
 
+BASE_URL = "https://api.x.com"
 POST_FIELDS = "author_id,created_at,conversation_id,lang,public_metrics,referenced_tweets"
 USER_FIELDS = "created_at,description,public_metrics,verified,verified_type"
 EXPANSIONS = "author_id"
+STREAM_RULE_TAG_PREFIX = "keep-up-with:x.posts"
+STREAM_RULE_MAX_LENGTH = 1024
+STREAM_READ_TIMEOUT_SECONDS = 30.0
 
 
 class XClient:
@@ -75,16 +81,159 @@ class XClient:
             )
         )[:requested]
 
+    def stream_accounts(
+        self,
+        accounts: Iterable[str],
+        *,
+        should_stop: Callable[[], bool] | None = None,
+    ) -> Iterator[dict[str, Any]]:
+        account_list = clean_accounts(accounts)
+        self.sync_account_stream_rules(account_list)
+        if not account_list:
+            return
+        yield from self.filtered_stream(should_stop=should_stop)
+
+    def sync_account_stream_rules(self, accounts: Iterable[str]) -> None:
+        desired_values = account_stream_rule_values(accounts)
+        desired_by_value = {
+            value: f"{STREAM_RULE_TAG_PREFIX}:{index}"
+            for index, value in enumerate(desired_values)
+        }
+        managed_rules = [
+            rule
+            for rule in self.stream_rules()
+            if str(rule.get("tag") or "").startswith(STREAM_RULE_TAG_PREFIX)
+        ]
+
+        delete_ids = [
+            str(rule.get("id"))
+            for rule in managed_rules
+            if rule.get("id") and rule.get("value") not in desired_by_value
+        ]
+        add_rules = [
+            {"value": value, "tag": tag}
+            for value, tag in desired_by_value.items()
+            if value not in {rule.get("value") for rule in managed_rules}
+        ]
+
+        if delete_ids:
+            self.post_json(
+                "/2/tweets/search/stream/rules",
+                {"delete": {"ids": delete_ids}},
+            )
+        if add_rules:
+            self.post_json("/2/tweets/search/stream/rules", {"add": add_rules})
+
+    def stream_rules(self) -> list[dict[str, Any]]:
+        rules: list[dict[str, Any]] = []
+        next_token: str | None = None
+        while True:
+            params: dict[str, Any] = {"max_results": 1000}
+            if next_token:
+                params["pagination_token"] = next_token
+            payload = self.get("/2/tweets/search/stream/rules", params)
+            rules.extend(
+                rule for rule in payload.get("data", []) if isinstance(rule, dict)
+            )
+            token = payload.get("meta", {}).get("next_token")
+            if not token:
+                return rules
+            next_token = str(token)
+
+    def filtered_stream(
+        self,
+        *,
+        should_stop: Callable[[], bool] | None = None,
+    ) -> Iterator[dict[str, Any]]:
+        params = {
+            "tweet.fields": POST_FIELDS,
+            "user.fields": USER_FIELDS,
+            "expansions": EXPANSIONS,
+        }
+        timeout = httpx.Timeout(30.0, read=STREAM_READ_TIMEOUT_SECONDS)
+        with httpx.stream(
+            "GET",
+            f"{BASE_URL}/2/tweets/search/stream",
+            params=params,
+            headers=self.headers(),
+            timeout=timeout,
+        ) as response:
+            response.raise_for_status()
+            for line in response.iter_lines():
+                if should_stop and should_stop():
+                    return
+                if not line:
+                    continue
+                payload = json.loads(line)
+                if not isinstance(payload, dict):
+                    continue
+                matching_rules = payload.get("matching_rules") or []
+                for row in posts(payload):
+                    row["matching_rules"] = matching_rules
+                    yield row
+
     def get(self, path: str, params: dict[str, Any]) -> dict[str, Any]:
         response = httpx.get(
-            f"https://api.x.com{path}",
+            f"{BASE_URL}{path}",
             params=params,
-            headers={"Authorization": f"Bearer {self.bearer_token}"},
+            headers=self.headers(),
             timeout=30,
         )
         response.raise_for_status()
         data = response.json()
         return data if isinstance(data, dict) else {}
+
+    def post_json(self, path: str, body: dict[str, Any]) -> dict[str, Any]:
+        response = httpx.post(
+            f"{BASE_URL}{path}",
+            json=body,
+            headers=self.headers(),
+            timeout=30,
+        )
+        response.raise_for_status()
+        data = response.json()
+        return data if isinstance(data, dict) else {}
+
+    def headers(self) -> dict[str, str]:
+        return {"Authorization": f"Bearer {self.bearer_token}"}
+
+
+def clean_accounts(accounts: Iterable[str]) -> list[str]:
+    clean: list[str] = []
+    seen: set[str] = set()
+    for account in accounts:
+        username = str(account).removeprefix("@").strip()
+        key = username.lower()
+        if not username or key in seen:
+            continue
+        clean.append(username)
+        seen.add(key)
+    return clean
+
+
+def account_stream_rule_values(accounts: Iterable[str]) -> list[str]:
+    rules: list[str] = []
+    current_terms: list[str] = []
+    for account in clean_accounts(accounts):
+        term = f"from:{account}"
+        candidate_terms = [*current_terms, term]
+        candidate = account_stream_rule_value(candidate_terms)
+        if len(candidate) <= STREAM_RULE_MAX_LENGTH:
+            current_terms = candidate_terms
+            continue
+        if not current_terms:
+            raise ValueError(f"X stream rule is too long for account: {account}")
+        rules.append(account_stream_rule_value(current_terms))
+        current_terms = [term]
+    if current_terms:
+        rules.append(account_stream_rule_value(current_terms))
+    return rules
+
+
+def account_stream_rule_value(terms: list[str]) -> str:
+    if len(terms) == 1:
+        return terms[0]
+    return f"({' OR '.join(terms)})"
 
 
 def posts(data: dict[str, Any]) -> list[dict[str, Any]]:
