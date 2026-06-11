@@ -54,7 +54,7 @@ def configure(ctx: MessagingSetupContext) -> MessagingSetupResult:
     reset_space_default = False
     if server_id:
         show_guild(ui, token, server_id)
-        server_id = ui.prompt("message space ID", server_id)
+        server_id = ui.prompt("Your Discord server ID", server_id)
     else:
         ui.info("keep-up-with works best in a new private server it can organize.")
         server_kind = ui.select(
@@ -82,7 +82,7 @@ def configure(ctx: MessagingSetupContext) -> MessagingSetupResult:
         server_id = choose_guild(ui, token) if token else ""
     if not server_id:
         ui.info("Right-click your private message space and copy Server ID.")
-        server_id = prompt_required(ui, "message space ID")
+        server_id = prompt_required(ui, "Your Discord server ID")
 
     return MessagingSetupResult(
         settings={
