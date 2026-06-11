@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from keep_up_with.integrations.base import DataIntegration, IntegrationParameter
 from keep_up_with.integrations.data.web.subscription import items
+from keep_up_with.integrations.data.web import tools
 
 
 def register(registry) -> None:
@@ -10,6 +11,7 @@ def register(registry) -> None:
             name="web",
             description="Watch RSS feeds and web pages",
             subscriptions=(items,),
+            tools=(tools.screenshot,),
             parameters=(
                 IntegrationParameter(
                     name="feeds",
