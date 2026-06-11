@@ -54,11 +54,15 @@ def list_command(
     thread_id: Annotated[str | None, typer.Option(help="Thread id")] = None,
     limit: Annotated[
         int,
-        typer.Option("--limit", "-n", help="Maximum recent messages to scan"),
+        typer.Option("--limit", "-n", help="Maximum recent messages to scan per channel"),
     ] = 25,
     query: Annotated[
         str | None,
-        typer.Option("--query", "-q", help="Only include messages containing text"),
+        typer.Option(
+            "--query",
+            "-q",
+            help="Only include messages containing text; without --channel this searches every channel and the DM",
+        ),
     ] = None,
     author: Annotated[
         str | None,

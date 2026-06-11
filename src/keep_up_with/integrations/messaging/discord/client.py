@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncIterator, Sequence
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -257,21 +258,37 @@ class DiscordMessagingClient:
         author: str | None = None,
     ) -> list[dict[str, Any]]:
         async with self._client(_message_intents()) as client:
-            target = await self._message_target(client, channel=channel, thread_id=thread_id)
-            messages = []
-            async for message in target.history(limit=limit):
-                data = message_data(message)
-                if query and query.lower() not in data["content"].lower():
-                    continue
-                if author:
-                    author_filter = author.strip().lower()
-                    if author_filter not in {
-                        data["author_id"].lower(),
-                        data["author_name"].lower(),
-                    }:
-                        continue
-                messages.append(data)
-            return list(reversed(messages))
+            if channel or thread_id or not query:
+                target = await self._message_target(
+                    client, channel=channel, thread_id=thread_id
+                )
+                return await _collect_messages(
+                    target, limit=limit, query=query, author=author
+                )
+            # A query without a channel searches everywhere the bot can read.
+            guild = await self._guild(client)
+            targets: list[discord.abc.Messageable] = [
+                item
+                for item in await guild.fetch_channels()
+                if isinstance(item, discord.TextChannel)
+            ]
+            user = await client.fetch_user(int(self.context.settings()["user_id"]))
+            targets.append(user.dm_channel or await user.create_dm())
+            semaphore = asyncio.Semaphore(8)
+
+            async def collect(target: discord.abc.Messageable) -> list[dict[str, Any]]:
+                async with semaphore:
+                    try:
+                        return await _collect_messages(
+                            target, limit=limit, query=query, author=author
+                        )
+                    except discord.HTTPException:
+                        return []
+
+            results = await asyncio.gather(*(collect(target) for target in targets))
+            rows = [row for result in results for row in result]
+            rows.sort(key=lambda row: row["created_at"])
+            return rows
 
     async def send_message(
         self,
@@ -514,6 +531,31 @@ class DiscordMessagingClient:
             topic=description[:1024] if description else None,
             reason="keep-up-with space management",
         )
+
+
+async def _collect_messages(
+    target: discord.abc.Messageable,
+    *,
+    limit: int,
+    query: str | None,
+    author: str | None,
+) -> list[dict[str, Any]]:
+    channel_name = getattr(target, "name", None) or "DM"
+    messages = []
+    async for message in target.history(limit=limit):
+        data = message_data(message)
+        data["channel_name"] = channel_name
+        if query and query.lower() not in data["content"].lower():
+            continue
+        if author:
+            author_filter = author.strip().lower()
+            if author_filter not in {
+                data["author_id"].lower(),
+                data["author_name"].lower(),
+            }:
+                continue
+        messages.append(data)
+    return list(reversed(messages))
 
 
 async def _delete_channels(channels: list[Any]) -> None:

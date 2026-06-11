@@ -41,7 +41,7 @@ No “not X, more Y.”
 
 ### Gotchas
 
-- Send a normal message by default. Use `--reply-to` only when it clarifies which older message, question, or active topic you are answering.
+- Send a normal message by default. Never use `--reply-to` on the latest message in a conversation — the context is already clear, especially in the DM. Use it only when the message you are answering is far enough back or several topics are active at once.
 - `cli` commands run through a shell. Quote message text for the shell, not for Markdown.
 - Use single quotes around `--text` when the message contains backticks, `$`, or double quotes.
 - Quote multi-word option values, including search queries.
@@ -86,22 +86,26 @@ Subscriptions fill your inbox with events. The inbox dedupes identical events, n
 
 Triage is cheap, bounded, and runs before anything user-facing:
 
-1. **Search for prior coverage, like a human would before posting.** Search the main link or a distinctive keyword: `cli message list -q "<link or keyword>" --limit 100` in the likely channel and the DM, `cli thread list -q "<keyword>"` across all channels for an existing story thread, and `cli events list -q "<link or keyword>"` to see whether the same item already arrived from another source. Check `stories/` for an existing story folder.
-2. **Skip** anything stale, duplicate, already handled, low-signal, or without a useful delta. Dismiss the inbox item.
+1. **Search for prior coverage, like a human would before posting.** Search the main link or a distinctive keyword: `cli message list -q "<link or keyword>" --limit 100` searches every channel and the DM, `cli thread list -q "<keyword>"` finds existing story threads, and `cli events list -q "<link or keyword>"` shows whether the same item already arrived from another source. Check `stories/` for an existing story folder.
+2. **Skip** anything stale, duplicate, already handled, low-signal, or without a useful delta.
 3. **Append the delta** if the story already has a thread. Do not start a second thread or repeat background.
 4. **Send a quick update now** if the event alone is clearly enough for the user.
 5. **Investigate** everything else with `$keep-up-with`, preferably in a subagent. The response depth is decided by what research finds, not at triage.
 
+Close every inbox item with `cli inbox dismiss <id> [<id>…] --reason "<disposition>"` — the published link, the story it was dispatched to, the coverage that already exists, or why it was skipped. Batch ids that share a disposition. `cli inbox list --dismissed` shows the history.
+
+Look at a channel before posting to it (`cli message list --channel <target> -n 10`); if the story is already there, send only the delta.
+
 ### Response tiers
 
-Match the response to what the story earned. Most events end at skip or a quick update; deep dives are the exception.
+Match the response to what the story earned. Most events end at skip or a quick update; a rich source deserves a thread.
 
 - **Quick update:** one short message — what happened, the key detail, the link.
-- **Update post:** one message, up to ~1,000 characters — what happened, why it matters, the delta from what the user already knows, with one source visual or quote when it carries the point. No thread.
-- **Deep dive:** a full thread, built with `$keep-up-with`.
+- **Update post:** one message, up to ~1,000 characters — what happened, why it matters, the delta from what the user already knows. Ground it in the source: include a source quote or attach a source visual; events often carry media URLs, so download the file and attach it with `-a` instead of linking it. No thread.
+- **Deep dive:** a full thread, built with `$keep-up-with`. A rich primary source the user would have bookmarked but never gotten through — a conference talk, long video, paper, or deep technical post — belongs here when its highlights do not fit in one post; compressing it is the job.
 
-Stories can move up later: a quick update can grow into an update post or a thread when the story develops. Finishing lower than expected is a good outcome, not a failure.
+Stories can move up later: a quick update can grow into an update post or a thread when the story develops. A story that distills into a quick update without losing anything the user would want should finish as a quick update — but finishing low because extraction looked like work is a miss.
 
 ## Orchestration
 
-Dispatch story investigations to subagents when subagents are available. A subagent should own one story end to end — research, tier decision, draft, and publish — using `$keep-up-with`, not a random fragment. Give it a compact task packet: event id, source URLs, target question, relevant files, and the expected return shape. Do not fork the full conversation history unless the subagent truly needs it. If new events arrive for the same story, route them to that subagent when possible. Do not do long source-gathering passes alone unless the task is small or delegation is unavailable. Coordinate subagents, synthesize their findings, and stay responsive in the main thread while they run.
+Hand each story to a subagent when subagents are available; do not keep story work in the main thread. The subagent owns the story end to end: it runs `$keep-up-with` itself — research, cross-reference, tier decision, draft, and **publish** — and reports back what it published or why it recommends skipping. Never instruct a subagent to stop before publishing, and do not redraft its output in the main thread; if the result misses the bar, send it back with feedback. Inbox dismissal stays in the main thread: dismiss items as you dispatch them, naming the story they went to. Give each subagent a compact task packet: event id, source URLs, target question, relevant files, and the expected return shape. If new events arrive for the same story, route them to that subagent when possible. The main thread triages, dispatches, answers the user, and stays responsive; it publishes directly only for quick updates and direct replies.

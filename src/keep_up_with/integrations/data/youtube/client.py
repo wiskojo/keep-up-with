@@ -229,11 +229,7 @@ def transcript(url: str, *, language: str = "en") -> dict[str, Any]:
     info = extract(url)
     tracks = info.get("subtitles") or {}
     automatic = info.get("automatic_captions") or {}
-    source = "subtitles"
-    candidates = tracks.get(language)
-    if not candidates:
-        source = "automatic_captions"
-        candidates = automatic.get(language)
+    source, matched, candidates = transcript_candidates(tracks, automatic, language)
     if not candidates:
         return {
             "id": info.get("id") or "",
@@ -254,11 +250,37 @@ def transcript(url: str, *, language: str = "en") -> dict[str, Any]:
     return {
         "id": info.get("id") or "",
         "title": info.get("title") or "",
-        "language": language,
+        "language": matched,
         "source": source,
         "segments": segments,
         "text": " ".join(segment["text"] for segment in segments),
     }
+
+
+def transcript_candidates(
+    tracks: dict[str, Any],
+    automatic: dict[str, Any],
+    language: str,
+) -> tuple[str, str, list[dict[str, Any]]]:
+    for source, available in (("subtitles", tracks), ("automatic_captions", automatic)):
+        for key in transcript_language_keys(available, language):
+            candidates = available.get(key)
+            if candidates:
+                return source, key, candidates
+    return "", language, []
+
+
+def transcript_language_keys(available: dict[str, Any], language: str) -> list[str]:
+    prefixes = [language, "en"] if language != "en" else [language]
+    keys: list[str] = []
+    for prefix in prefixes:
+        keys.append(prefix)
+        keys.extend(
+            key for key in sorted(available) if key.startswith((f"{prefix}-", f"{prefix}_"))
+        )
+    # The "-orig" track is the video's original spoken language.
+    keys.extend(key for key in sorted(available) if key.endswith("-orig") and key not in keys)
+    return keys
 
 
 def frames(url: str, *, timestamps: list[str], output_dir: Path) -> list[dict[str, Any]]:

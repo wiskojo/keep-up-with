@@ -22,8 +22,20 @@ def list_command(
         bool,
         typer.Option("--unnotified", help="Only show items not yet sent into Codex"),
     ] = False,
+    dismissed: Annotated[
+        bool,
+        typer.Option(
+            "--dismissed",
+            help="Show dismissed items with their dispositions instead of pending ones",
+        ),
+    ] = False,
 ) -> None:
-    echo_jsonl(EventStore(get_config()).list_inbox(only_unnotified=unnotified))
+    echo_jsonl(
+        EventStore(get_config()).list_inbox(
+            only_unnotified=unnotified,
+            dismissed=dismissed,
+        )
+    )
 
 
 @app.command("show", help="Show one pending event")
@@ -36,10 +48,26 @@ def show_command(
     echo_json(event)
 
 
-@app.command("dismiss", help="Dismiss one pending event")
+@app.command("dismiss", help="Resolve pending events, recording their disposition")
 def dismiss_command(
-    event_id: Annotated[str, typer.Argument(help="Event id or unique prefix")],
+    event_ids: Annotated[
+        list[str],
+        typer.Argument(help="Event ids or unique prefixes; batch ids that share one disposition"),
+    ],
+    reason: Annotated[
+        str,
+        typer.Option(
+            "--reason",
+            help="Disposition: the published message/thread link, the prior coverage, or why it was skipped",
+        ),
+    ],
 ) -> None:
-    if not EventStore(get_config()).dismiss_inbox(event_id):
-        fail("unknown inbox item", id=event_id)
-    echo_json({"dismissed": True, "id": event_id})
+    store = EventStore(get_config())
+    unknown = []
+    for event_id in event_ids:
+        if store.dismiss_inbox(event_id, reason=reason):
+            echo_json({"dismissed": True, "id": event_id, "reason": reason})
+        else:
+            unknown.append(event_id)
+    if unknown:
+        fail("unknown inbox items", ids=unknown)

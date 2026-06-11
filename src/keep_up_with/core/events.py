@@ -29,6 +29,8 @@ class InboxItem:
     event: Event
     created_at: str
     notified_at: str | None
+    dismissed_at: str | None = None
+    reason: str = ""
 
 
 class EventStore:
@@ -144,11 +146,14 @@ class EventStore:
         self,
         *,
         only_unnotified: bool = False,
+        dismissed: bool = False,
     ) -> list[InboxItem]:
         sql = """
             select
               inbox.created_at as inbox_created_at,
               inbox.notified_at,
+              inbox.dismissed_at,
+              inbox.reason,
               events.id,
               events.integration,
               events.kind,
@@ -160,9 +165,12 @@ class EventStore:
             from inbox
             join events on events.id = inbox.event_id
         """
+        clauses = [
+            "inbox.dismissed_at is not null" if dismissed else "inbox.dismissed_at is null"
+        ]
         if only_unnotified:
-            sql += " where inbox.notified_at is null"
-        sql += " order by inbox.created_at asc"
+            clauses.append("inbox.notified_at is null")
+        sql += f" where {' and '.join(clauses)} order by inbox.created_at asc"
         with self._connect() as db:
             rows = db.execute(sql).fetchall()
         return [_inbox_from_row(row) for row in rows]
@@ -177,13 +185,13 @@ class EventStore:
                 [(notified_at, event_id) for event_id in event_ids],
             )
 
-    def dismiss_inbox(self, event_id_or_prefix: str) -> bool:
+    def dismiss_inbox(self, event_id_or_prefix: str, *, reason: str = "") -> bool:
         with self._connect() as db:
             rows = db.execute(
                 """
                 select event_id
                 from inbox
-                where event_id like ?
+                where event_id like ? and dismissed_at is null
                 order by created_at asc
                 limit 2
                 """,
@@ -192,8 +200,8 @@ class EventStore:
             if len(rows) != 1:
                 return False
             cursor = db.execute(
-                "delete from inbox where event_id = ?",
-                (rows[0]["event_id"],),
+                "update inbox set dismissed_at = ?, reason = ? where event_id = ?",
+                (datetime.now(UTC).isoformat(), reason, rows[0]["event_id"]),
             )
         return cursor.rowcount > 0
 
@@ -225,10 +233,20 @@ class EventStore:
                 create table if not exists inbox (
                   event_id text primary key references events(id) on delete cascade,
                   created_at text not null,
-                  notified_at text
+                  notified_at text,
+                  dismissed_at text,
+                  reason text
                 );
                 """
             )
+            for migration in (
+                "alter table inbox add column dismissed_at text",
+                "alter table inbox add column reason text",
+            ):
+                try:
+                    db.execute(migration)
+                except sqlite3.OperationalError:
+                    pass
             yield db
             db.commit()
         finally:
@@ -260,6 +278,8 @@ def _inbox_from_row(row: sqlite3.Row) -> InboxItem:
         event=_event_from_row(row),
         created_at=row["inbox_created_at"],
         notified_at=row["notified_at"],
+        dismissed_at=row["dismissed_at"],
+        reason=row["reason"] or "",
     )
 
 
