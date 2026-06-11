@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
@@ -15,6 +15,7 @@ from keep_up_with.integrations.base import (
     SpaceDeleteItem,
     SpacePlan,
     SpaceResetPreview,
+    ThreadPost,
     ThreadRef,
 )
 from keep_up_with.integrations.messaging.discord.payloads import message_data
@@ -312,64 +313,94 @@ class DiscordMessagingClient:
         *,
         channel: str,
         title: str,
-        text: str,
-        attachments: list[str] | None = None,
+        posts: Sequence[ThreadPost],
     ) -> ThreadRef:
         if not title.strip():
             raise ValueError("title is required")
+        if not posts:
+            raise ValueError("at least one post is required")
+        for index, post in enumerate(posts, start=1):
+            if not post.text and not post.attachments:
+                raise ValueError(f"post {index} needs text or an attachment")
+            _validate_message_text(post.text)
+            for path in post.attachments:
+                if not Path(path).expanduser().exists():
+                    raise ValueError(f"attachment not found: {path}")
         user_id = str(self.context.settings()["user_id"])
-        content = _with_user_mention(text, user_id)
-        _validate_message_text(content)
-        files = [_file(path) for path in attachments or []]
-        try:
-            async with self._client() as client:
-                parent = await self._text_channel(client, channel)
-                thread = await parent.create_thread(
-                    name=title[:100],
-                    type=discord.ChannelType.public_thread,
-                    reason="keep-up-with thread",
-                )
-                try:
-                    await thread.send(
-                        content=content,
-                        files=files or None,
-                        allowed_mentions=_user_allowed_mentions(user_id),
-                    )
-                except discord.HTTPException as error:
-                    raise ValueError(_discord_error(error)) from error
-                return ThreadRef(
-                    id=str(thread.id),
-                    name=thread.name,
-                    channel_id=str(parent.id),
-                    url=f"https://discord.com/channels/{parent.guild.id}/{thread.id}",
-                )
-        finally:
-            for file in files:
-                file.close()
-
-    async def list_threads(self, *, channel: str) -> list[ThreadRef]:
         async with self._client() as client:
             parent = await self._text_channel(client, channel)
+            thread = await parent.create_thread(
+                name=title[:100],
+                type=discord.ChannelType.public_thread,
+                reason="keep-up-with thread",
+            )
+            try:
+                for post in posts:
+                    files = [_file(path) for path in post.attachments]
+                    try:
+                        await thread.send(
+                            content=post.text or None,
+                            files=files or None,
+                            allowed_mentions=discord.AllowedMentions.none(),
+                        )
+                    finally:
+                        for file in files:
+                            file.close()
+                await thread.send(
+                    content=f"<@{user_id}>",
+                    allowed_mentions=_user_allowed_mentions(user_id),
+                )
+            except discord.HTTPException as error:
+                raise ValueError(_discord_error(error)) from error
+            return ThreadRef(
+                id=str(thread.id),
+                name=thread.name,
+                channel_id=str(parent.id),
+                url=f"https://discord.com/channels/{parent.guild.id}/{thread.id}",
+            )
+
+    async def list_threads(
+        self,
+        *,
+        channel: str | None = None,
+        query: str | None = None,
+    ) -> list[ThreadRef]:
+        async with self._client() as client:
+            guild = await self._guild(client)
+            if channel:
+                parents = [await self._text_channel(client, channel)]
+            else:
+                parents = [
+                    item
+                    for item in await guild.fetch_channels()
+                    if isinstance(item, discord.TextChannel)
+                ]
+            parent_ids = {parent.id for parent in parents}
             threads = [
                 thread
-                for thread in await parent.guild.active_threads()
-                if thread.parent_id == parent.id
+                for thread in await guild.active_threads()
+                if thread.parent_id in parent_ids
             ]
-            try:
-                async for thread in parent.archived_threads(limit=50):
-                    threads.append(thread)
-            except discord.HTTPException:
-                pass
+            for parent in parents:
+                try:
+                    async for thread in parent.archived_threads(limit=50):
+                        threads.append(thread)
+                except discord.HTTPException:
+                    continue
             unique_threads = {thread.id: thread for thread in threads}
-            return [
+            refs = [
                 ThreadRef(
                     id=str(thread.id),
                     name=thread.name,
-                    channel_id=str(parent.id),
-                    url=f"https://discord.com/channels/{parent.guild.id}/{thread.id}",
+                    channel_id=str(thread.parent_id or ""),
+                    url=f"https://discord.com/channels/{guild.id}/{thread.id}",
                 )
                 for thread in unique_threads.values()
             ]
+            if query:
+                needle = query.casefold()
+                refs = [ref for ref in refs if needle in ref.name.casefold()]
+            return refs
 
     async def show_thread(self, *, thread_id: str, limit: int) -> dict[str, Any]:
         async with self._client(_message_intents()) as client:
@@ -644,15 +675,6 @@ def _section_ref(section: discord.CategoryChannel) -> SectionRef:
         name=section.name,
         position=section.position,
     )
-
-
-def _with_user_mention(text: str, user_id: str) -> str:
-    mention = f"<@{user_id}>"
-    if mention in text or f"<@!{user_id}>" in text:
-        return text
-    if not text.strip():
-        return mention
-    return f"{text.rstrip()}\n\n{mention}"
 
 
 def _user_allowed_mentions(user_id: str) -> discord.AllowedMentions:

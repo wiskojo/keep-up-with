@@ -133,6 +133,12 @@ class ThreadRef:
 
 
 @dataclass(frozen=True)
+class ThreadPost:
+    text: str
+    attachments: Sequence[str] = ()
+
+
+@dataclass(frozen=True)
 class SpaceSection:
     key: str
     name: str
@@ -281,11 +287,15 @@ class MessagingClient(Protocol):
         *,
         channel: str,
         title: str,
-        text: str,
-        attachments: list[str] | None = None,
+        posts: Sequence[ThreadPost],
     ) -> ThreadRef: ...
 
-    async def list_threads(self, *, channel: str) -> list[ThreadRef]: ...
+    async def list_threads(
+        self,
+        *,
+        channel: str | None = None,
+        query: str | None = None,
+    ) -> list[ThreadRef]: ...
 
     async def show_thread(self, *, thread_id: str, limit: int) -> dict[str, Any]: ...
 

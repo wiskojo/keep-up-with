@@ -90,6 +90,7 @@ class EventStore:
         limit: int = 100,
         since: str | None = None,
         until: str | None = None,
+        query: str | None = None,
     ) -> list[Event]:
         fields = """
             select id, integration, kind, summary, refs, data, high_priority, created_at
@@ -103,6 +104,10 @@ class EventStore:
         if until:
             clauses.append("created_at <= ?")
             params.append(until)
+        if query:
+            needle = f"%{query}%"
+            clauses.append("(summary like ? or refs like ? or data like ?)")
+            params.extend([needle, needle, needle])
         where = f" where {' and '.join(clauses)}" if clauses else ""
         sql = f"""
             select *

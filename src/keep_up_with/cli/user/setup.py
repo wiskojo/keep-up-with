@@ -164,13 +164,13 @@ def managed_workflow_needs_sync(paths: KeepUpWithPaths) -> bool:
 
 def managed_workflow_paths(paths: KeepUpWithPaths):
     source = resources.files("keep_up_with.resources").joinpath("workspace_template")
-    return [
-        (source / "AGENTS.md", paths.workspace / "AGENTS.md"),
-        (
-            source / "skills" / "keep-up-with",
-            paths.workspace / ".agents" / "skills" / "keep-up-with",
-        ),
-    ]
+    items = [(source / "AGENTS.md", paths.workspace / "AGENTS.md")]
+    items.extend(
+        (skill, paths.workspace / ".agents" / "skills" / skill.name)
+        for skill in (source / "skills").iterdir()
+        if skill.is_dir()
+    )
+    return items
 
 
 def ensure_managed_sources(items) -> None:

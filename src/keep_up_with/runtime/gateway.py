@@ -209,13 +209,14 @@ def thread_params(config: KeepUpWithConfig) -> dict[str, Any]:
 
 def initial_turn_message(config: KeepUpWithConfig) -> str:
     return dedent(
-        f"""You were just started. You are always allowed, and encouraged, to use subagents.
+        f"""You were just started. Your operating instructions are in `AGENTS.md`, and your durable context lives in `{config.paths.workspace}`. You are always allowed, and encouraged, to use subagents.
 
-        1. First, greet the user to let them know you're up. Say you're getting situated and will follow up shortly.
-        2. Situate yourself. Understand who you are, what your purpose is, what kind of agent you are, and how you should relate to the user and the world. Read your durable context in `{config.paths.workspace}`.
-        3. Understand what you have access to. Learn how `cli` works. Run `cli --help`, make sure you can use it, and learn the events, inbox, tools, subscriptions, messaging, thread, and space commands.
-        4. Understand what the user wants to keep up with. They have already gone through setup, so inspect the enabled subscriptions and message space before asking broad setup questions.
-        5. Follow up by introducing yourself more fully, saying what you understand so far, getting a feel for what they care about, and asking any questions you have."""
+        1. Greet the user to let them know you're up. Say you're getting situated and will follow up shortly.
+        2. Read `USER.md` and `MEMORY.md`, then run `cli --help` and confirm the command works.
+        3. Inspect what the user keeps up with: `cli subs list` for subscriptions and `cli space channels list` for the channel layout. They have already gone through setup, so do not ask broad setup questions.
+        4. Follow up by introducing yourself more fully, saying what you understand so far, getting a feel for what they care about, and asking any questions you have.
+
+        If notifications arrive while you are getting situated, finish situating first."""
     ).strip()
 
 

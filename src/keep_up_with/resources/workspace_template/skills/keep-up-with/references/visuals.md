@@ -27,25 +27,22 @@ Record the visual inventory in `research/notes.md`: what existed, what you used,
 Prefer the least lossy source path available:
 
 1. Download or save the original image, chart, video frame, table, or document asset when the page exposes it directly.
-2. For webpages, use browser automation to screenshot the chart, figure, table, or card itself instead of hand-cropping a viewport.
+2. For webpages, capture the page with `cli tools web screenshot` and crop to the chart, figure, table, or card; use element screenshots instead when browser automation is available.
 3. For videos or demos, capture the exact frame, GIF, or short clip that carries the point, with the timestamp in notes.
 4. For flat screenshots, crop from the screenshot with normalized coordinates or an auto-detected crop box.
 5. Use manual pixel offsets only as a fallback, and write the crop box down so it can be reproduced.
 
-## Webpage Crops
+## Webpage Captures
 
-For live pages, avoid raw pixel trial and error when possible. Use element screenshots.
+For live pages, capture a full-page screenshot, find the crop box with a grid, then crop:
 
-Good targets:
+```sh
+cli tools web screenshot "https://example.com/post" --output research/artifacts/page.png
+cli tools image grid research/artifacts/page.png research/artifacts/page-grid.png
+cli tools image crop research/artifacts/page.png outputs/assets/post-2-chart.png 0.18,0.33,0.67,0.44
+```
 
-- `figure`
-- `img`
-- `svg`
-- a chart container found by heading text
-- a bordered card or table around the chart
-- a video element or canvas element
-
-Playwright-style pattern:
+If browser automation (for example Playwright) is set up, element screenshots are less lossy than full-page crops. Good targets: `figure`, `img`, `svg`, a chart container found by heading text, a bordered card or table around the chart, or a video/canvas element.
 
 ```js
 const chart = page.locator('text=DeepSWE tasks are larger').locator('..');
@@ -62,8 +59,6 @@ const boxes = await page.locator('figure, svg, img, canvas').evaluateAll(nodes =
   })
 );
 ```
-
-Use full-page screenshots only to locate material or when element screenshots are blocked.
 
 ## Screenshot Crops
 

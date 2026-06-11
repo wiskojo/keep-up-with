@@ -38,12 +38,21 @@ def list_command(
         str | None,
         typer.Option(help="Only include events at or before this ISO timestamp"),
     ] = None,
+    query: Annotated[
+        str | None,
+        typer.Option(
+            "--query",
+            "-q",
+            help="Only include events containing this text, e.g. a URL or keyword",
+        ),
+    ] = None,
 ) -> None:
     echo_jsonl(
         EventStore(get_config()).list_events(
             limit=limit or MAX_EVENTS,
             since=since,
             until=until,
+            query=query,
         )
     )
 
