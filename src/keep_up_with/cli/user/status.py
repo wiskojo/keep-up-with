@@ -30,7 +30,7 @@ def run_status(config: KeepUpWithConfig) -> None:
     state = "configured" if not missing else "missing " + ", ".join(missing)
     ui.info(f"{messaging.name}: {state}")
 
-    ui.header("Data connectors")
+    ui.header("Integrations")
     for integration in sorted(available_data_integrations(), key=lambda item: item.name):
         enabled = config.integration_enabled(integration.name)
         missing = missing_env(config, integration) if enabled else ()

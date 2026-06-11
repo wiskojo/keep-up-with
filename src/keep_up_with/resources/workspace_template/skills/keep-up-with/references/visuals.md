@@ -70,11 +70,21 @@ Use full-page screenshots only to locate material or when element screenshots ar
 For screenshot-only inputs, use a crop helper when the same page may be captured at different resolutions:
 
 ```sh
-node <skill>/scripts/crop-image.mjs \
+cli tools image crop \
   --in research/artifacts/source-screenshot.png \
   --out outputs/assets/post-2.png \
   --box 0.189,0.339,0.671,0.444
 ```
+
+If you need help finding the normalized crop box, generate a guide image first:
+
+```sh
+cli tools image grid \
+  --in research/artifacts/source-screenshot.png \
+  --out research/artifacts/source-screenshot-grid.png
+```
+
+Use the percentage labels and guide lines to choose the normalized `x,y,w,h` values for `cli tools image crop`.
 
 ## Video Frames And Clips
 

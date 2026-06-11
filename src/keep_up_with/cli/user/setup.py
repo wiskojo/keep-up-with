@@ -37,7 +37,7 @@ def run_setup(paths: KeepUpWithPaths) -> None:
     ui.header("keep-up-with setup")
     ensure_dirs(paths)
     reset_space_default = setup_messaging(paths)
-    setup_data_connectors(paths)
+    setup_integrations(paths)
     presets = setup_keep_up_with(paths)
     setup_space(paths, presets, reset_default=reset_space_default)
     finish_workspace(paths)
@@ -317,7 +317,7 @@ def write_messaging_config(
     write_config(paths, KeepUpWithSettings.model_validate(updated))
 
 
-def setup_data_connectors(paths: KeepUpWithPaths) -> None:
+def setup_integrations(paths: KeepUpWithPaths) -> None:
     config = load_config(paths)
     integrations = sorted(available_data_integrations(), key=lambda item: item.name)
     current = {
@@ -326,7 +326,7 @@ def setup_data_connectors(paths: KeepUpWithPaths) -> None:
         if config.integration_enabled(integration.name)
     }
     selected = ui.multiselect(
-        "Data connectors",
+        "Integrations",
         [
             ui.Choice(
                 label=integration.name,
@@ -565,7 +565,7 @@ def apply_keep_up_with_preset(
     if applied:
         ui.success(f"{preset_label(name)} preset applied: {', '.join(applied)}.")
     else:
-        ui.warning(f"No enabled data connectors match the {preset_label(name)} preset.")
+        ui.warning(f"No enabled integrations match the {preset_label(name)} preset.")
 
 
 def setup_space(

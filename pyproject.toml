@@ -9,6 +9,7 @@ dependencies = [
     "httpx>=0.28.1",
     "isodate>=0.7.2",
     "markitdown[pdf]>=0.1.6",
+    "pillow>=12.2.0",
     "praw>=7.8.1",
     "pydantic>=2.13.4",
     "python-dotenv>=1.2.2",

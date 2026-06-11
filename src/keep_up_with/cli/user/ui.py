@@ -182,7 +182,7 @@ def _header_icon(title: str) -> str:
         "user": "👤",
         "server": "🏠",
         "server layout": "💬",
-        "data connectors": "🔌",
+        "integrations": "🔌",
         "subscriptions": "🧭",
         "message space": "💬",
         "reset": "↻",

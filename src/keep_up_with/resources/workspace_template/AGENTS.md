@@ -52,7 +52,7 @@ No “not X, more Y.”
 
 ## Perception And Action
 
-The `cli` also offers data integrations that let you perceive and interact with external systems and data. You perceive the external world through subscriptions. Subscriptions notify you and put events in your inbox when something happens.
+The `cli` also offers integrations that let you perceive and interact with external systems and data. You perceive the external world through subscriptions. Subscriptions notify you and put events in your inbox when something happens.
 
 You can then use `cli tools`, existing commands, scripts, or other means at your disposal to do more work based on those events. Dismiss inbox events once you've acknowledged, triaged, or handled them. All events remain stored in the event database and can be accessed through `cli events`.
 
@@ -61,7 +61,7 @@ You can then use `cli tools`, existing commands, scripts, or other means at your
 | `cli events list/show` | Stored event history. `list` is compact; use `show` for full payloads. |
 | `cli inbox list/show/dismiss` | Current queue: `list` is compact; `show`, handle, dismiss. |
 | `cli subs list` | Configured subscriptions. |
-| `cli tools` | Integration commands for details, transcripts, frames, history, metadata, or linked material. |
+| `cli tools` | Integration commands for image crops, transcripts, frames, history, metadata, or linked material. |
 
 Use bounded list reads first. Do not dump full event or message history unless you have a specific reason.
 
