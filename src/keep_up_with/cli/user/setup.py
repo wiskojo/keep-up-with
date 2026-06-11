@@ -591,23 +591,23 @@ def setup_space(
         asyncio.run(client.apply_space(plan, reset=True))
         ui.success("Server layout is ready.")
         return
-    if preview and not preview.default_empty_server:
-        for line in space_delete_lines(preview):
-            ui.info(ui.red(line))
-    reset = dangerous_confirm(
-        "Reset server layout?",
-        (
-            f"This deletes channels and sections in {target}, "
-            "then recreates the keep-up-with layout."
-        ),
-        "RESET SPACE",
-        default=reset_default,
-    )
-    if not reset:
+    if not ui.confirm("Reset server layout?", default=reset_default):
         return
-
-    asyncio.run(client.apply_space(plan, reset=reset))
+    if not confirm_space_reset(target, preview):
+        return
+    asyncio.run(client.apply_space(plan, reset=True))
     ui.success("Server layout is ready.")
+
+
+def confirm_space_reset(target: str, preview: SpaceResetPreview | None) -> bool:
+    if preview is None:
+        ui.warning("Could not inspect the current server layout.")
+        return ui.confirm(f"Reset {target} anyway?", default=False)
+    if preview.default_empty_server or not preview.items:
+        return True
+    for line in space_delete_lines(preview):
+        ui.info(ui.red(line))
+    return ui.confirm("Delete these items and reset server layout?", default=False)
 
 
 def preview_space_reset(client) -> SpaceResetPreview | None:
