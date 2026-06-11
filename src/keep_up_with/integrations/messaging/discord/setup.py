@@ -39,7 +39,7 @@ def configure(ctx: MessagingSetupContext) -> MessagingSetupResult:
         if token_changed and current_server_id:
             ui.header("Invite")
             ui.info(invite_url(str(bot.get("application_id") or "")))
-            ui.pause("Invite the bot to your private message space, then press Enter")
+            ui.pause("Invite the bot to your private server, then press Enter")
     elif should_check_bot and token:
         ui.warning("Could not verify the bot token. Continuing with manual IDs.")
 
@@ -53,35 +53,15 @@ def configure(ctx: MessagingSetupContext) -> MessagingSetupResult:
     server_id = current_server_id
     reset_space_default = False
     if server_id:
-        show_guild(ui, token, server_id)
-        server_id = ui.prompt("Your Discord server ID", server_id)
+        visible_server = show_guild(ui, token, server_id)
+        if token and not visible_server:
+            ui.warning("keep-up-with cannot see this server. Invite the bot or change servers.")
+        if ui.confirm("Change Discord server?", default=False):
+            server_id, reset_space_default = choose_server(ui, token, bot)
     else:
-        ui.info("keep-up-with works best in a new private server it can organize.")
-        server_kind = ui.select(
-            "Server",
-            [
-                ui.Choice(
-                    "New private message space",
-                    "new",
-                    "recommended",
-                ),
-                ui.Choice(
-                    "Existing server",
-                    "existing",
-                    "advanced",
-                ),
-            ],
-            "new",
-        )
-        reset_space_default = server_kind == "new"
-        if server_kind == "new":
-            ui.info("Create a new message space, invite keep-up-with, then continue.")
-            if bot:
-                ui.info(invite_url(str(bot.get("application_id") or "")))
-            ui.pause("Press Enter after keep-up-with has joined the new server")
-        server_id = choose_guild(ui, token) if token else ""
+        server_id, reset_space_default = choose_server(ui, token, bot)
     if not server_id:
-        ui.info("Right-click your private message space and copy Server ID.")
+        ui.info("Right-click your private server and copy Server ID.")
         server_id = prompt_required(ui, "Your Discord server ID")
 
     return MessagingSetupResult(
@@ -100,6 +80,21 @@ def prompt_required(ui, message: str, default: str = "", *, secret: bool = False
         if value:
             return value
         ui.warning(f"{message} is required.")
+
+
+def choose_server(ui, token: str, bot: dict[str, str]) -> tuple[str, bool]:
+    ui.info("New private server: recommended.")
+    ui.info(f"Existing server: {ui.red('dangerous')}")
+    use_existing = ui.confirm("Use an existing server?", default=False)
+    reset_space_default = not use_existing
+    if reset_space_default:
+        ui.info("Create a new private server, invite keep-up-with, then continue.")
+        bot = bot or (fetch_bot(token) if token else {})
+        if bot:
+            ui.info(invite_url(str(bot.get("application_id") or "")))
+        ui.pause("Press Enter after keep-up-with has joined the new server")
+    server_id = choose_guild(ui, token) if token else ""
+    return server_id, reset_space_default
 
 
 def choose_guild(ui, token: str) -> str:
@@ -130,12 +125,26 @@ def show_user(ui, token: str, user_id: str) -> None:
         ui.info(f"Current user: {user.get('name')} ({user.get('id')})")
 
 
-def show_guild(ui, token: str, guild_id: str) -> None:
-    if not token or not guild_id:
-        return
-    guild = fetch_guild(token, guild_id)
+def show_guild(ui, token: str, guild_id: str) -> bool:
+    if not guild_id:
+        return False
+    guild = lookup_guild(token, guild_id) if token else {}
     if guild:
         ui.info(f"Current server: {guild.get('name')} ({guild.get('id')})")
+        return True
+    else:
+        ui.info(f"Current server: {guild_id}")
+        return False
+
+
+def lookup_guild(token: str, guild_id: str) -> dict[str, str]:
+    guild = fetch_guild(token, guild_id)
+    if guild:
+        return guild
+    return next(
+        (guild for guild in fetch_guilds(token) if str(guild.get("id")) == guild_id),
+        {},
+    )
 
 
 def fetch_bot(token: str) -> dict[str, str]:

@@ -177,6 +177,7 @@ def _header_icon(title: str) -> str:
         return "🔑"
     icons = {
         "keep up with setup": "👀",
+        "keep-up-with setup": "👀",
         "invite": "🔗",
         "user": "👤",
         "server": "🏠",
