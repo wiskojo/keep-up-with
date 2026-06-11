@@ -21,6 +21,7 @@ from keep_up_with.integrations.base import (
     DataIntegration,
     MessagingIntegration,
     MessagingSetupContext,
+    SpaceResetPreview,
     SpaceChannel,
     SpacePlan,
     SpaceSection,
@@ -539,23 +540,52 @@ def setup_space(
 
     config = load_config(paths)
     target = message_space_target(config)
-    ui.header("Message space")
+    client = messaging_client(config)
+    preview = preview_space_reset(client)
+    ui.header("Server layout")
     ui.info(target)
     ui.info("Reset recreates the default channel layout.")
-    if reset_default:
-        ui.info("For a new private message space, setup can replace the default layout.")
+    if preview and preview.default_empty_server:
+        ui.info("Fresh default Discord server detected. Resetting layout.")
+        asyncio.run(client.apply_space(plan, reset=True))
+        ui.success("Server layout is ready.")
+        return
+    if preview and not preview.default_empty_server:
+        for line in space_delete_lines(preview):
+            ui.info(ui.red(line))
     reset = dangerous_confirm(
-        "Reset message space layout?",
-        f"This deletes channels and sections in {target}, then recreates the keep-up-with layout.",
+        "Reset server layout?",
+        (
+            f"This deletes channels and sections in {target}, "
+            "then recreates the keep-up-with layout."
+        ),
         "RESET SPACE",
         default=reset_default,
     )
     if not reset:
         return
 
-    client = messaging_client(config)
     asyncio.run(client.apply_space(plan, reset=reset))
-    ui.success("Message space is ready.")
+    ui.success("Server layout is ready.")
+
+
+def preview_space_reset(client) -> SpaceResetPreview | None:
+    try:
+        return asyncio.run(client.preview_space_reset())
+    except Exception as error:
+        ui.warning(f"Could not inspect server layout: {error}")
+        return None
+
+
+def space_delete_lines(preview: SpaceResetPreview) -> list[str]:
+    if not preview.items:
+        return ["No existing channels or sections."]
+    count = len(preview.items)
+    noun = "item" if count == 1 else "items"
+    return [
+        f"Reset will delete {count} existing {noun}:",
+        *(f"- {item.kind}: {item.name}" for item in preview.items),
+    ]
 
 
 def message_space_target(config: KeepUpWithConfig) -> str:
@@ -573,11 +603,11 @@ def discord_server_label(config: KeepUpWithConfig, server_id: str) -> str:
     try:
         from keep_up_with.integrations.messaging.discord.setup import (
             BOT_TOKEN_ENV,
-            fetch_guild,
+            lookup_guild,
         )
 
         token = config.env(BOT_TOKEN_ENV) if config.has_env(BOT_TOKEN_ENV) else ""
-        guild = fetch_guild(token, server_id) if token else {}
+        guild = lookup_guild(token, server_id) if token else {}
     except Exception:
         guild = {}
     name = str(guild.get("name") or "").strip()

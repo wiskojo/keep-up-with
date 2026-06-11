@@ -152,6 +152,18 @@ class SpacePlan:
     channels: Sequence[SpaceChannel] = ()
 
 
+@dataclass(frozen=True)
+class SpaceDeleteItem:
+    kind: str
+    name: str
+
+
+@dataclass(frozen=True)
+class SpaceResetPreview:
+    items: Sequence[SpaceDeleteItem] = ()
+    default_empty_server: bool = False
+
+
 class IntegrationContext:
     def __init__(
         self,
@@ -210,6 +222,8 @@ class MessagingClient(Protocol):
     async def list_sections(self) -> list[SectionRef]: ...
 
     async def apply_space(self, plan: SpacePlan, *, reset: bool = False) -> None: ...
+
+    async def preview_space_reset(self) -> SpaceResetPreview: ...
 
     async def create_channel(
         self,

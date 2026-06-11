@@ -55,7 +55,9 @@ def configure(ctx: MessagingSetupContext) -> MessagingSetupResult:
     if server_id:
         visible_server = show_guild(ui, token, server_id)
         if token and not visible_server:
-            ui.warning("keep-up-with cannot see this server. Invite the bot or change servers.")
+            ui.warning(
+                "keep-up-with cannot see this server. Invite the bot or change servers."
+            )
         if ui.confirm("Change Discord server?", default=False):
             server_id, reset_space_default = choose_server(ui, token, bot)
     else:
@@ -83,18 +85,13 @@ def prompt_required(ui, message: str, default: str = "", *, secret: bool = False
 
 
 def choose_server(ui, token: str, bot: dict[str, str]) -> tuple[str, bool]:
-    ui.info("New private server: recommended.")
-    ui.info(f"Existing server: {ui.red('dangerous')}")
-    use_existing = ui.confirm("Use an existing server?", default=False)
-    reset_space_default = not use_existing
-    if reset_space_default:
-        ui.info("Create a new private server, invite keep-up-with, then continue.")
-        bot = bot or (fetch_bot(token) if token else {})
-        if bot:
-            ui.info(invite_url(str(bot.get("application_id") or "")))
-        ui.pause("Press Enter after keep-up-with has joined the new server")
+    ui.info("Create a new private server, invite keep-up-with, then continue.")
+    bot = bot or (fetch_bot(token) if token else {})
+    if bot:
+        ui.info(invite_url(str(bot.get("application_id") or "")))
+    ui.pause("Press Enter after keep-up-with has joined the new server")
     server_id = choose_guild(ui, token) if token else ""
-    return server_id, reset_space_default
+    return server_id, True
 
 
 def choose_guild(ui, token: str) -> str:

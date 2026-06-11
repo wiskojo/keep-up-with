@@ -181,6 +181,7 @@ def _header_icon(title: str) -> str:
         "invite": "🔗",
         "user": "👤",
         "server": "🏠",
+        "server layout": "💬",
         "data connectors": "🔌",
         "subscriptions": "🧭",
         "message space": "💬",

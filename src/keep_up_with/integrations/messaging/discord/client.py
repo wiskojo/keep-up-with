@@ -12,7 +12,9 @@ from keep_up_with.integrations.base import (
     MessageRef,
     MessagingContext,
     SectionRef,
+    SpaceDeleteItem,
     SpacePlan,
+    SpaceResetPreview,
     ThreadRef,
 )
 from keep_up_with.integrations.messaging.discord.payloads import message_data
@@ -142,6 +144,15 @@ class DiscordMessagingClient:
                             updated if item.id == updated.id else item
                             for item in text_channels
                         ]
+
+    async def preview_space_reset(self) -> SpaceResetPreview:
+        async with self._client() as client:
+            guild = await self._guild(client)
+            channels = await guild.fetch_channels()
+            return SpaceResetPreview(
+                items=_space_delete_items(channels),
+                default_empty_server=await _default_empty_server(channels),
+            )
 
     async def rename_channel(self, *, channel: str, name: str) -> ChannelRef:
         if not name.strip():
@@ -476,10 +487,73 @@ class DiscordMessagingClient:
 async def _delete_channels(channels: list[Any]) -> None:
     for channel in channels:
         if not isinstance(channel, discord.CategoryChannel):
-            await channel.delete(reason="message space reset")
+            await channel.delete(reason="server layout reset")
     for channel in channels:
         if isinstance(channel, discord.CategoryChannel):
-            await channel.delete(reason="message space reset")
+            await channel.delete(reason="server layout reset")
+
+
+def _space_delete_items(channels: list[Any]) -> list[SpaceDeleteItem]:
+    items = []
+    for channel in channels:
+        if isinstance(channel, discord.CategoryChannel):
+            items.append(SpaceDeleteItem(kind="section", name=channel.name))
+        elif isinstance(channel, discord.TextChannel):
+            items.append(
+                SpaceDeleteItem(
+                    kind="text channel",
+                    name=f"#{channel.name}",
+                )
+            )
+        elif isinstance(channel, discord.VoiceChannel):
+            items.append(SpaceDeleteItem(kind="voice channel", name=channel.name))
+        else:
+            items.append(
+                SpaceDeleteItem(
+                    kind=str(getattr(channel, "type", "channel")),
+                    name=str(getattr(channel, "name", channel.id)),
+                )
+            )
+    return items
+
+
+async def _default_empty_server(channels: list[Any]) -> bool:
+    if len(channels) != 4:
+        return False
+    sections = [
+        channel for channel in channels if isinstance(channel, discord.CategoryChannel)
+    ]
+    text_channels = [
+        channel for channel in channels if isinstance(channel, discord.TextChannel)
+    ]
+    voice_channels = [
+        channel for channel in channels if isinstance(channel, discord.VoiceChannel)
+    ]
+    if {section.name for section in sections} != {"Text Channels", "Voice Channels"}:
+        return False
+    if len(text_channels) != 1 or len(voice_channels) != 1:
+        return False
+    text_channel = text_channels[0]
+    voice_channel = voice_channels[0]
+    sections_by_id = _sections_by_id(channels)
+    return (
+        text_channel.name == "general"
+        and sections_by_id.get(text_channel.category_id)
+        and sections_by_id[text_channel.category_id].name == "Text Channels"
+        and not await _has_messages(text_channel)
+        and voice_channel.name == "General"
+        and sections_by_id.get(voice_channel.category_id)
+        and sections_by_id[voice_channel.category_id].name == "Voice Channels"
+    )
+
+
+async def _has_messages(channel: discord.TextChannel) -> bool:
+    try:
+        async for _message in channel.history(limit=1):
+            return True
+    except discord.HTTPException:
+        return True
+    return False
 
 
 def _find_section(
