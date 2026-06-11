@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable, Iterable, Iterator
+from html import unescape
 from typing import Any
 
 import httpx
 
 BASE_URL = "https://api.x.com"
 POST_FIELDS = (
-    "attachments,author_id,created_at,conversation_id,lang,public_metrics,"
+    "attachments,author_id,created_at,conversation_id,lang,note_tweet,public_metrics,"
     "referenced_tweets"
 )
 USER_FIELDS = "created_at,description,public_metrics,verified,verified_type"
@@ -269,7 +270,7 @@ def posts(data: dict[str, Any], *, include_media: bool = False) -> list[dict[str
         author = users.get(item.get("author_id"), {})
         row = {
             "id": item.get("id") or "",
-            "text": item.get("text") or "",
+            "text": post_text(item),
             "author_id": item.get("author_id") or "",
             "author": author,
             "created_at": item.get("created_at") or "",
@@ -283,6 +284,13 @@ def posts(data: dict[str, Any], *, include_media: bool = False) -> list[dict[str
             row["media"] = post_media(item, media_by_key)
         rows.append(row)
     return rows
+
+
+def post_text(post: dict[str, Any]) -> str:
+    note = post.get("note_tweet")
+    if isinstance(note, dict) and isinstance(note.get("text"), str):
+        return unescape(note["text"])
+    return unescape(post.get("text") or "")
 
 
 def post_media(
