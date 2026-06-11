@@ -7,7 +7,7 @@ from keep_up_with.cli.agent import events, inbox, message, space, subscriptions,
 app = typer.Typer(
     add_completion=False,
     invoke_without_command=True,
-    help="Agent-side commands for keep-up-with.",
+    help="Agent-side commands for keep-up-with",
     no_args_is_help=True,
 )
 

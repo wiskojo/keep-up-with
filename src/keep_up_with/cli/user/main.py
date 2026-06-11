@@ -12,7 +12,7 @@ from keep_up_with.core.config import get_config, get_paths
 app = typer.Typer(
     add_completion=False,
     invoke_without_command=True,
-    help="Manage keep-up-with on this machine.",
+    help="Manage keep-up-with on this machine",
     no_args_is_help=True,
 )
 

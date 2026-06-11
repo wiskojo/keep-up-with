@@ -36,7 +36,7 @@ def subscription_rows() -> list[dict[str, Any]]:
         missing = list(missing_env(config, integration))
         rows.extend(
             subscription_row(
-                connector=integration.name,
+                integration=integration.name,
                 kind="data",
                 enabled=enabled,
                 settings=settings,
@@ -51,7 +51,7 @@ def subscription_rows() -> list[dict[str, Any]]:
 
 def subscription_row(
     *,
-    connector: str,
+    integration: str,
     kind: str,
     enabled: bool,
     settings: dict[str, Any],
@@ -60,7 +60,7 @@ def subscription_row(
     watches: dict[str, Any],
 ) -> dict[str, Any]:
     return {
-        "connector": connector,
+        "integration": integration,
         "kind": kind,
         "subscription": subscription.name,
         "enabled": enabled,

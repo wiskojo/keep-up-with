@@ -71,17 +71,17 @@ For screenshot-only inputs, use a crop helper when the same page may be captured
 
 ```sh
 cli tools image crop \
-  --in research/artifacts/source-screenshot.png \
-  --out outputs/assets/post-2.png \
-  --box 0.189,0.339,0.671,0.444
+  research/artifacts/source-screenshot.png \
+  outputs/assets/post-2.png \
+  0.189,0.339,0.671,0.444
 ```
 
 If you need help finding the normalized crop box, generate a guide image first:
 
 ```sh
 cli tools image grid \
-  --in research/artifacts/source-screenshot.png \
-  --out research/artifacts/source-screenshot-grid.png
+  research/artifacts/source-screenshot.png \
+  research/artifacts/source-screenshot-grid.png
 ```
 
 Use the percentage labels and guide lines to choose the normalized `x,y,w,h` values for `cli tools image crop`.

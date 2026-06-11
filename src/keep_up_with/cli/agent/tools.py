@@ -72,7 +72,7 @@ def build_tools_app() -> typer.Typer:
     app = typer.Typer(
         add_completion=False,
         invoke_without_command=True,
-        help="Run connector tools",
+        help="Run tools",
         no_args_is_help=False,
     )
     try:
@@ -84,7 +84,7 @@ def build_tools_app() -> typer.Typer:
     def main(ctx: typer.Context) -> None:
         if ctx.invoked_subcommand is None:
             if not configured_integrations:
-                typer.echo("No connector tools enabled. Enable data connectors with `kuw setup`.")
+                typer.echo("No tools enabled. Enable integrations with `kuw setup`.")
                 raise typer.Exit()
             typer.echo(ctx.get_help())
             raise typer.Exit()

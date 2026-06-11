@@ -37,7 +37,7 @@ def run_status(config: KeepUpWithConfig) -> None:
         state = "on" if enabled else "off"
         if missing:
             state += "; missing " + ", ".join(missing)
-        details = connector_details(config, integration)
+        details = integration_details(config, integration)
         suffix = f"; {details}" if details else ""
         ui.info(f"{integration.name}: {state}{suffix}")
 
@@ -50,7 +50,7 @@ def read_running_pid(config: KeepUpWithConfig, service: Service) -> int | None:
     return pid if is_running(pid) else None
 
 
-def connector_details(config: KeepUpWithConfig, integration) -> str:
+def integration_details(config: KeepUpWithConfig, integration) -> str:
     section = config.integration(integration.name)
     parts: list[str] = []
     for parameter in integration.parameters:

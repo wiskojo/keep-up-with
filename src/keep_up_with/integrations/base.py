@@ -162,6 +162,7 @@ class SpaceDeleteItem:
 class SpaceResetPreview:
     items: Sequence[SpaceDeleteItem] = ()
     default_empty_server: bool = False
+    target: str = ""
 
 
 class IntegrationContext:
@@ -213,7 +214,6 @@ class MessagingSetupContext:
 @dataclass(frozen=True)
 class MessagingSetupResult:
     settings: dict[str, Any]
-    reset_space_default: bool = False
 
 
 class MessagingClient(Protocol):

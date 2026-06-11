@@ -36,10 +36,10 @@ from keep_up_with.integrations.registry import (
 def run_setup(paths: KeepUpWithPaths) -> None:
     ui.header("keep-up-with setup")
     ensure_dirs(paths)
-    reset_space_default = setup_messaging(paths)
+    setup_messaging(paths)
     setup_integrations(paths)
     presets = setup_keep_up_with(paths)
-    setup_space(paths, presets, reset_default=reset_space_default)
+    setup_space(paths, presets)
     finish_workspace(paths)
     finish_workflow(paths)
     print()
@@ -231,7 +231,7 @@ def resource_files(source, prefix: str = "") -> dict[str, bytes]:
     return files
 
 
-def setup_messaging(paths: KeepUpWithPaths) -> bool:
+def setup_messaging(paths: KeepUpWithPaths) -> None:
     config = load_existing_config(paths)
     integration = choose_messaging_integration(config)
     if integration.setup is None:
@@ -248,7 +248,6 @@ def setup_messaging(paths: KeepUpWithPaths) -> bool:
     messaging = result.settings
     messaging["integration"] = integration.name
     write_messaging_config(paths=paths, config=config, messaging=messaging)
-    return result.reset_space_default
 
 
 def choose_messaging_integration(config: KeepUpWithConfig | None) -> MessagingIntegration:
@@ -339,14 +338,14 @@ def setup_integrations(paths: KeepUpWithPaths) -> None:
     )
     for integration in integrations:
         if integration.name in selected and integration.name not in current:
-            enable_connector(paths, integration)
+            enable_integration(paths, integration)
         elif integration.name in selected:
-            ensure_connector(paths, integration)
+            ensure_integration(paths, integration)
         elif integration.name in current:
-            disable_connector(paths, integration)
+            disable_integration(paths, integration)
 
 
-def enable_connector(paths: KeepUpWithPaths, integration: DataIntegration) -> None:
+def enable_integration(paths: KeepUpWithPaths, integration: DataIntegration) -> None:
     config = load_config(paths)
     section = {
         **integration.default_config(enabled=True),
@@ -363,7 +362,7 @@ def enable_connector(paths: KeepUpWithPaths, integration: DataIntegration) -> No
     ui.success(f"{integration.name} enabled.")
 
 
-def ensure_connector(paths: KeepUpWithPaths, integration: DataIntegration) -> None:
+def ensure_integration(paths: KeepUpWithPaths, integration: DataIntegration) -> None:
     config = load_config(paths)
     configure_credentials(paths, integration.name, integration.required_env, config)
 
@@ -385,7 +384,7 @@ def setup_keep_up_with(paths: KeepUpWithPaths) -> list[str]:
         ),
     ]
     selected_values = ui.multiselect(
-        "Subscriptions",
+        "Topics",
         choices,
         selected,
     )
@@ -571,8 +570,6 @@ def apply_keep_up_with_preset(
 def setup_space(
     paths: KeepUpWithPaths,
     preset_names: list[str],
-    *,
-    reset_default: bool,
 ) -> None:
     presets = keep_up_with_presets()
     plan = space_plan([presets[name] for name in preset_names if name in presets])
@@ -580,9 +577,9 @@ def setup_space(
         return
 
     config = load_config(paths)
-    target = message_space_target(config)
     client = messaging_client(config)
     preview = preview_space_reset(client)
+    target = preview.target if preview and preview.target else "configured message space"
     ui.header("Server layout")
     ui.info(target)
     ui.info("Reset recreates the default channel layout.")
@@ -591,7 +588,7 @@ def setup_space(
         asyncio.run(client.apply_space(plan, reset=True))
         ui.success("Server layout is ready.")
         return
-    if not ui.confirm("Reset server layout?", default=reset_default):
+    if not ui.confirm("Reset server layout?", default=False):
         return
     if not confirm_space_reset(target, preview):
         return
@@ -627,33 +624,6 @@ def space_delete_lines(preview: SpaceResetPreview) -> list[str]:
         f"Reset will delete {count} existing {noun}:",
         *(f"- {item.kind}: {item.name}" for item in preview.items),
     ]
-
-
-def message_space_target(config: KeepUpWithConfig) -> str:
-    settings = config.messaging().model_dump(mode="json")
-    integration = str(settings.get("integration") or "messaging")
-    if integration == "discord":
-        server_id = str(settings.get("server_id") or "")
-        return f"Discord server: {discord_server_label(config, server_id)}"
-    return f"Configured messaging platform: {integration}"
-
-
-def discord_server_label(config: KeepUpWithConfig, server_id: str) -> str:
-    if not server_id:
-        return "not set"
-    try:
-        from keep_up_with.integrations.messaging.discord.setup import (
-            BOT_TOKEN_ENV,
-            lookup_guild,
-        )
-
-        token = config.env(BOT_TOKEN_ENV) if config.has_env(BOT_TOKEN_ENV) else ""
-        guild = lookup_guild(token, server_id) if token else {}
-    except Exception:
-        guild = {}
-    name = str(guild.get("name") or "").strip()
-    guild_id = str(guild.get("id") or server_id).strip()
-    return f"{name} ({guild_id})" if name else guild_id
 
 
 def dangerous_confirm(
@@ -706,7 +676,7 @@ def space_plan(presets: list[KeepUpWithPreset]) -> SpacePlan:
     )
 
 
-def disable_connector(paths: KeepUpWithPaths, integration: DataIntegration) -> None:
+def disable_integration(paths: KeepUpWithPaths, integration: DataIntegration) -> None:
     config = load_config(paths)
     section = {
         **integration.default_config(),

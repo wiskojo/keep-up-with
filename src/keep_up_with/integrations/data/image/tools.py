@@ -3,10 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-import typer
 from PIL import Image, ImageDraw, ImageFont, ImageOps, UnidentifiedImageError
 
 from keep_up_with.integrations.base import ToolContext, tool
+from keep_up_with.integrations.data.common import resolve_path
 
 
 @dataclass(frozen=True)
@@ -27,88 +27,52 @@ class CropBox:
 @tool("Crop an image with normalized or pixel coordinates")
 def crop(
     _ctx: ToolContext,
-    input_path: Path = typer.Option(
-        ...,
-        "--in",
-        "-i",
-        exists=True,
-        file_okay=True,
-        dir_okay=False,
-        readable=True,
-        resolve_path=True,
-        help="Input image",
-    ),
-    output_path: Path = typer.Option(..., "--out", "-o", help="Output image"),
-    box_value: str = typer.Option(
-        ...,
-        "--box",
-        help="Crop box as x,y,w,h; decimals from 0-1 are normalized",
-    ),
+    input_path: str,
+    output_path: str,
+    box: str,
 ) -> dict[str, object]:
-    image = _open_image(input_path)
+    source_path = resolve_path(input_path)
+    output = resolve_path(output_path)
+    image = _open_image(source_path)
     size = ImageSize(*image.size)
-    box = _parse_box(box_value, size)
-    output_path = output_path.resolve()
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    crop_box = _parse_box(box, size)
+    output.parent.mkdir(parents=True, exist_ok=True)
 
-    cropped = image.crop((box.x, box.y, box.x + box.w, box.y + box.h))
-    _save_image(cropped, output_path)
+    cropped = image.crop(
+        (crop_box.x, crop_box.y, crop_box.x + crop_box.w, crop_box.y + crop_box.h)
+    )
+    _save_image(cropped, output)
 
     return {
-        "input": str(input_path),
-        "output": str(output_path),
+        "input": str(source_path),
+        "output": str(output),
         "image": {"width": size.width, "height": size.height},
-        "crop": _crop_payload(box, size),
+        "crop": _crop_payload(crop_box, size),
     }
 
 
 @tool("Draw normalized crop guide lines over an image")
 def grid(
     _ctx: ToolContext,
-    input_path: Path = typer.Option(
-        ...,
-        "--in",
-        "-i",
-        exists=True,
-        file_okay=True,
-        dir_okay=False,
-        readable=True,
-        resolve_path=True,
-        help="Input image",
-    ),
-    output_path: Path = typer.Option(..., "--out", "-o", help="Output image"),
-    major: float = typer.Option(
-        0.10,
-        "--major",
-        help="Major line interval as a normalized fraction",
-        min=0.01,
-        max=1.0,
-    ),
-    minor: float = typer.Option(
-        0.05,
-        "--minor",
-        help="Minor line interval as a normalized fraction; use 0 to disable",
-        min=0.0,
-        max=1.0,
-    ),
-    labels: bool = typer.Option(
-        True,
-        "--labels/--no-labels",
-        help="Label major grid lines",
-    ),
+    input_path: str,
+    output_path: str,
+    major: float = 0.10,
+    minor: float = 0.05,
+    labels: bool = True,
 ) -> dict[str, object]:
     if minor and minor >= major:
-        raise ValueError(f"--minor must be smaller than --major: minor={minor}, major={major}")
+        raise ValueError(f"minor must be smaller than major: minor={minor}, major={major}")
 
-    source = _open_image(input_path).convert("RGBA")
+    source_path = resolve_path(input_path)
+    output_path = resolve_path(output_path)
+    source = _open_image(source_path).convert("RGBA")
     size = ImageSize(*source.size)
     output = _draw_grid(source, size, major=major, minor=minor, labels=labels)
-    output_path = output_path.resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     _save_image(output, output_path)
 
     return {
-        "input": str(input_path),
+        "input": str(source_path),
         "output": str(output_path),
         "image": {"width": size.width, "height": size.height},
         "grid": {
@@ -132,12 +96,12 @@ def _open_image(path: Path) -> Image.Image:
 def _parse_box(value: str, size: ImageSize) -> CropBox:
     parts = [part.strip() for part in value.split(",")]
     if len(parts) != 4:
-        raise ValueError("--box must be x,y,w,h")
+        raise ValueError("crop box must be x,y,w,h")
 
     try:
         numbers = [float(part) for part in parts]
     except ValueError as error:
-        raise ValueError("--box must contain numbers") from error
+        raise ValueError("crop box must contain numbers") from error
 
     normalized = all(0 <= number <= 1 for number in numbers)
     if normalized:

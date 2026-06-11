@@ -152,6 +152,7 @@ class DiscordMessagingClient:
             return SpaceResetPreview(
                 items=_space_delete_items(channels),
                 default_empty_server=await _default_empty_server(channels),
+                target=f"Discord server: {guild.name} ({guild.id})",
             )
 
     async def rename_channel(self, *, channel: str, name: str) -> ChannelRef:
@@ -518,6 +519,8 @@ def _space_delete_items(channels: list[Any]) -> list[SpaceDeleteItem]:
 
 
 async def _default_empty_server(channels: list[Any]) -> bool:
+    # This detects Discord's English default template. Other locales fall back
+    # to the explicit reset confirmation path.
     if len(channels) != 4:
         return False
     sections = [
@@ -536,7 +539,7 @@ async def _default_empty_server(channels: list[Any]) -> bool:
     text_channel = text_channels[0]
     voice_channel = voice_channels[0]
     sections_by_id = _sections_by_id(channels)
-    return (
+    return bool(
         text_channel.name == "general"
         and sections_by_id.get(text_channel.category_id)
         and sections_by_id[text_channel.category_id].name == "Text Channels"

@@ -13,51 +13,21 @@ from typing import Any
 from urllib.parse import quote
 
 import httpx
-import typer
 import websocket
 
 from keep_up_with.integrations.base import ToolContext, tool
 from keep_up_with.integrations.data.common import resolve_path
 
 
-@tool("Capture a full-page screenshot")
+@tool("Capture a full-page screenshot with Chrome; set KUW_CHROME to override")
 def screenshot(
     _ctx: ToolContext,
     url: str,
-    output: str = typer.Option(
-        "research/artifacts/web/screenshot.png",
-        "--out",
-        "-o",
-        help="Output PNG",
-    ),
-    width: int = typer.Option(
-        1440,
-        "--width",
-        help="Viewport width",
-        min=320,
-        max=4096,
-    ),
-    height: int = typer.Option(
-        1000,
-        "--height",
-        help="Viewport height",
-        min=320,
-        max=4096,
-    ),
-    wait_ms: int = typer.Option(
-        1000,
-        "--wait-ms",
-        help="Extra wait after page load",
-        min=0,
-        max=30000,
-    ),
-    timeout: float = typer.Option(
-        30.0,
-        "--timeout",
-        help="Page load timeout in seconds",
-        min=1.0,
-        max=300.0,
-    ),
+    output: str = "research/artifacts/web/screenshot.png",
+    width: int = 1440,
+    height: int = 1000,
+    wait_ms: int = 1000,
+    timeout: float = 30.0,
 ) -> dict[str, Any]:
     output_path = resolve_path(output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -82,7 +52,7 @@ def _capture_full_page(
 ) -> dict[str, Any]:
     chrome = _chrome_executable()
     if not chrome:
-        raise RuntimeError(
+        raise ValueError(
             "Chrome or Chromium was not found. Set KUW_CHROME to a Chrome executable."
         )
 
