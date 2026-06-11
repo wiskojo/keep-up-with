@@ -42,6 +42,7 @@ No “not X, more Y.”
 ### Gotchas
 
 - Send a normal message by default. Never use `--reply-to` on the latest message in a conversation — the context is already clear, especially in the DM. Use it only when the message you are answering is far enough back or several topics are active at once.
+- Fix your own mistakes in place: `cli message edit` for a typo or correction in a recent post, `cli message delete` or `cli thread delete` plus a clean repost for a botched publish. Only keep-up-with's own content can be edited or deleted; do not leave a broken post up with a correction underneath it.
 - `cli` commands run through a shell. Quote message text for the shell, not for Markdown.
 - Use single quotes around `--text` when the message contains backticks, `$`, or double quotes.
 - Quote multi-word option values, including search queries.

@@ -30,7 +30,7 @@ stories/2026-06-10-example-launch/
 ```
 
 - **Use the notes template:** Initialize `research/notes.md` from [template.md](references/template.md). Keep the headings and fill them in as you work. `notes.md` is the running record of what you checked, learned, decided, and why.
-- **Keep raw work separate from final work:** Put raw files gathered during research in `research/artifacts/`. If you find potentially useful figures, diagrams, screenshots, charts, videos, frames, tables, or source images, save them there as you go. Put the camera-ready draft in `outputs/output.md` and final visual assets in `outputs/assets/`.
+- **Keep raw work separate from final work:** Put raw files gathered during research in `research/artifacts/`. If you find potentially useful figures, diagrams, screenshots, charts, videos, frames, tables, or source images, save them there as you go. Put the camera-ready draft in `outputs/output.md` — one `## ` heading per post, with `Attachment: <path>` lines inside the post they belong to — and final visual assets in `outputs/assets/`.
 - **Check available tools:** You have access to the `cli` command for this work. Run `cli tools --help` during setup.
 
 ## Step 1: Research
@@ -82,6 +82,6 @@ stories/2026-06-10-example-launch/
 
 ## Step 6: Publish
 
-- **Ship through `cli`:** Quick update or update post: `cli message send --channel <topic channel>`, with the DM reserved for direct replies. New deep dive: publish the whole thread in one command — `cli thread create --channel <channel> --title <title> -p "<post 1>" -p "<post 2>" …`, attaching visuals from `outputs/assets/` with `-a N:path` to bind a file to post N. The user is mentioned automatically in a final post once everything is up, so create the thread only when it is complete. Update to an existing story: `cli thread append --thread-id <id>`.
+- **Ship through `cli`:** Quick update or update post: `cli message send --channel <topic channel>`, with the DM reserved for direct replies. New deep dive: publish the draft directly — `cli thread create --channel <channel> --title <title> --file outputs/output.md`; each `## ` heading becomes a post and its `Attachment:` lines become attached files. Do not write ad-hoc scripts to convert the draft into arguments. The user is mentioned automatically in a final post once everything is up, so create the thread only when it is complete. Update to an existing story: `cli thread append --thread-id <id>`.
 - **Stay under the limits:** Keep each message or post comfortably under Discord’s 2,000-character cap; split before sending.
 - **Record what you published:** Write the message or thread ids and links into `notes.md` so future triage finds this story.

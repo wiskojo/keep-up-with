@@ -282,6 +282,23 @@ class MessagingClient(Protocol):
         attachments: list[str] | None = None,
     ) -> MessageRef: ...
 
+    async def edit_message(
+        self,
+        *,
+        message_id: str,
+        text: str,
+        channel: str | None = None,
+        thread_id: str | None = None,
+    ) -> MessageRef: ...
+
+    async def delete_message(
+        self,
+        *,
+        message_id: str,
+        channel: str | None = None,
+        thread_id: str | None = None,
+    ) -> None: ...
+
     async def create_thread(
         self,
         *,
@@ -289,6 +306,8 @@ class MessagingClient(Protocol):
         title: str,
         posts: Sequence[ThreadPost],
     ) -> ThreadRef: ...
+
+    async def delete_thread(self, *, thread_id: str) -> None: ...
 
     async def list_threads(
         self,

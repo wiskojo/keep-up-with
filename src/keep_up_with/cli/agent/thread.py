@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import re
+from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -17,15 +19,26 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
+POST_HEADING_RE = re.compile(r"^##\s.*\n?", re.MULTILINE)
+ATTACHMENT_LINE_RE = re.compile(r"^attachment:\s*(.+)$", re.IGNORECASE)
+
 
 @app.command("create", help="Create a thread and publish all of its posts at once")
 def create_command(
     channel: Annotated[str, typer.Option(help="Channel name or id")],
     title: Annotated[str, typer.Option(help="Thread title")],
+    file: Annotated[
+        str | None,
+        typer.Option(
+            "--file",
+            "-f",
+            help="Markdown draft to publish: each '## ' heading starts a post; 'Attachment: <path>' lines attach files to their post",
+        ),
+    ] = None,
     post: Annotated[
-        list[str],
+        list[str] | None,
         typer.Option("--post", "-p", help="Post text, repeat once per post in order"),
-    ],
+    ] = None,
     attachment: Annotated[
         list[str] | None,
         typer.Option(
@@ -35,7 +48,14 @@ def create_command(
         ),
     ] = None,
 ) -> None:
-    posts = build_posts(post, attachment or [])
+    if file and (post or attachment):
+        fail("use --file or --post/--attachment, not both")
+    if file:
+        posts = parse_posts_file(file)
+    elif post:
+        posts = build_posts(post, attachment or [])
+    else:
+        fail("provide --file or at least one --post")
     client = messaging_client(get_config())
     try:
         thread = asyncio.run(
@@ -48,6 +68,29 @@ def create_command(
     except ValueError as error:
         fail(str(error))
     echo_json(thread)
+
+
+def parse_posts_file(path: str) -> list[ThreadPost]:
+    try:
+        text = Path(path).expanduser().read_text()
+    except OSError as error:
+        fail(f"could not read posts file: {error}")
+    posts: list[ThreadPost] = []
+    for section in POST_HEADING_RE.split(text)[1:]:
+        attachments: list[str] = []
+        lines: list[str] = []
+        for line in section.splitlines():
+            match = ATTACHMENT_LINE_RE.match(line.strip())
+            if match:
+                attachments.append(match.group(1).strip())
+            else:
+                lines.append(line)
+        body = "\n".join(lines).strip()
+        if body or attachments:
+            posts.append(ThreadPost(text=body, attachments=tuple(attachments)))
+    if not posts:
+        fail(f"no posts found in {path}; start each post with a '## ' heading")
+    return posts
 
 
 def build_posts(texts: list[str], attachments: list[str]) -> list[ThreadPost]:
@@ -92,6 +135,18 @@ def append_command(
     except ValueError as error:
         fail(str(error))
     echo_json(message)
+
+
+@app.command("delete", help="Delete a thread created by keep-up-with")
+def delete_command(
+    thread_id: Annotated[str, typer.Argument(help="Thread id")],
+) -> None:
+    client = messaging_client(get_config())
+    try:
+        asyncio.run(client.delete_thread(thread_id=thread_id))
+    except ValueError as error:
+        fail(str(error))
+    echo_json({"deleted": True, "id": thread_id})
 
 
 @app.command("list", help="List threads, searching all channels unless --channel is given")

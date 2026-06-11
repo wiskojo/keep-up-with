@@ -85,6 +85,48 @@ def list_command(
     echo_jsonl(messages)
 
 
+@app.command("edit", help="Edit one of keep-up-with's own messages")
+def edit_command(
+    message_id: Annotated[str, typer.Option(help="Message id")],
+    text: Annotated[str, typer.Option("--text", "-t", help="Replacement text")],
+    channel: Annotated[str | None, typer.Option(help="Channel name or id")] = None,
+    thread_id: Annotated[str | None, typer.Option(help="Thread id")] = None,
+) -> None:
+    client = messaging_client(get_config())
+    try:
+        result = asyncio.run(
+            client.edit_message(
+                message_id=message_id,
+                text=text,
+                channel=channel,
+                thread_id=thread_id,
+            )
+        )
+    except ValueError as error:
+        fail(str(error))
+    echo_json(result)
+
+
+@app.command("delete", help="Delete one of keep-up-with's own messages")
+def delete_command(
+    message_id: Annotated[str, typer.Option(help="Message id")],
+    channel: Annotated[str | None, typer.Option(help="Channel name or id")] = None,
+    thread_id: Annotated[str | None, typer.Option(help="Thread id")] = None,
+) -> None:
+    client = messaging_client(get_config())
+    try:
+        asyncio.run(
+            client.delete_message(
+                message_id=message_id,
+                channel=channel,
+                thread_id=thread_id,
+            )
+        )
+    except ValueError as error:
+        fail(str(error))
+    echo_json({"deleted": True, "id": message_id})
+
+
 @app.command("channels", help="List message channels")
 def channels_command() -> None:
     client = messaging_client(get_config())

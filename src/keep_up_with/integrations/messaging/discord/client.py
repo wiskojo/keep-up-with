@@ -325,6 +325,38 @@ class DiscordMessagingClient:
             for file in files:
                 file.close()
 
+    async def edit_message(
+        self,
+        *,
+        message_id: str,
+        text: str,
+        channel: str | None = None,
+        thread_id: str | None = None,
+    ) -> MessageRef:
+        if not text:
+            raise ValueError("text is required")
+        _validate_message_text(text)
+        async with self._client() as client:
+            target = await self._message_target(client, channel=channel, thread_id=thread_id)
+            message = await _own_message(client, target, message_id)
+            try:
+                updated = await message.edit(content=text)
+            except discord.HTTPException as error:
+                raise ValueError(_discord_error(error)) from error
+            return _message_ref(updated)
+
+    async def delete_message(
+        self,
+        *,
+        message_id: str,
+        channel: str | None = None,
+        thread_id: str | None = None,
+    ) -> None:
+        async with self._client() as client:
+            target = await self._message_target(client, channel=channel, thread_id=thread_id)
+            message = await _own_message(client, target, message_id)
+            await message.delete()
+
     async def create_thread(
         self,
         *,
@@ -375,6 +407,18 @@ class DiscordMessagingClient:
                 channel_id=str(parent.id),
                 url=f"https://discord.com/channels/{parent.guild.id}/{thread.id}",
             )
+
+    async def delete_thread(self, *, thread_id: str) -> None:
+        async with self._client() as client:
+            try:
+                target = await client.fetch_channel(int(thread_id))
+            except discord.NotFound as error:
+                raise ValueError(f"unknown Discord thread: {thread_id}") from error
+            if not isinstance(target, discord.Thread):
+                raise ValueError(f"not a Discord thread: {thread_id}")
+            if client.user is None or target.owner_id != client.user.id:
+                raise ValueError("can only delete threads created by keep-up-with")
+            await target.delete()
 
     async def list_threads(
         self,
@@ -678,7 +722,21 @@ async def _fetch_message(channel: discord.abc.Messageable, message_id: str) -> A
     fetch = getattr(channel, "fetch_message", None)
     if not callable(fetch):
         raise ValueError("channel does not support message lookup")
-    return await fetch(int(message_id))
+    try:
+        return await fetch(int(message_id))
+    except discord.NotFound as error:
+        raise ValueError(f"unknown message: {message_id}") from error
+
+
+async def _own_message(
+    client: discord.Client,
+    channel: discord.abc.Messageable,
+    message_id: str,
+) -> discord.Message:
+    message = await _fetch_message(channel, message_id)
+    if client.user is None or message.author.id != client.user.id:
+        raise ValueError("can only edit or delete keep-up-with's own messages")
+    return message
 
 
 def _message_ref(message: discord.Message) -> MessageRef:
