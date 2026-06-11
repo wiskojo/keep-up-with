@@ -1,3 +1,10 @@
+---
+name: keep-up-with
+description: Deep-dive workflow for researching an event, deciding what matters, and publishing a user-facing keep-up-with thread.
+---
+
+# keep-up-with deep dive
+
 ## Goal
 
 Your job is to turn something the user would have bookmarked and maybe never read into the research they would have done if they had the time: read the main source, inspect the actual artifact, check the surrounding discussion, relate it to what they already know, and compress the useful parts into a thread.
@@ -19,7 +26,7 @@ outputs/
     assets/
 ```
 
-- **Use the notes template:** Initialize `research/notes.md` from `template.md` in the skill root. Keep the headings and replace the text inside each block as you work. `notes.md` is the running record of what you checked, learned, decided, and why.
+- **Use the notes template:** Initialize `research/notes.md` from [template.md](references/template.md). Keep the headings and replace the text inside each block as you work. `notes.md` is the running record of what you checked, learned, decided, and why.
 - **Keep raw work separate from final work:** Put raw files gathered during research in `research/artifacts/`. If you find potentially useful figures, diagrams, screenshots, charts, videos, frames, tables, or source images, save them there as you go. Put the camera-ready thread in `outputs/output.md` and put the final visual assets in `outputs/assets/`.
 - **Check available tools:** You have access to the `cli` command for this work. Run `cli tools --help` during setup.
 
@@ -45,7 +52,7 @@ outputs/
 - **Explain the mechanism:** Say what actually changed, what’s new, what got corrected, what got confirmed, what’s still unproven, and what the claim depends on, especially any evaluator, benchmark, dataset, verifier, ablation, or technical phrase carrying the substance.
 - **Compare against familiar context:** Use comparisons the user is likely to understand to explain what’s similar, what’s different, and why it matters. Spend fewer words on familiar background and more on the new details that get them to understanding faster.
 - **Surface public discussion:** If there is real public discourse around the event, say where people are talking and what they are saying: the launch post on X, practitioner debate on Reddit/forums, YouTube or newsletter explainers, confusion, or pushback. If there is not much discourse around the event, do not mention it. If the discussion has several useful threads, split them into separate highlights instead of compressing them into one reactions post. Use short representative quotes when they carry the tone, claim, critique, or evidence better than a paraphrase; format them as blockquotes with `>`. Use metrics to show scale, but spend the words on the claims, disagreements, evidence, and open questions.
-- **Choose the right visual:** Inventory visuals from the source, linked artifacts, docs, demos, videos, social posts, repos, and discussion threads. Use source visuals when they carry the point directly. Build a custom visual when a comparison, crop, timeline, table, diagram, or summary would make the highlight clearer than a raw source image. Every non-source post in a thread needs a visual. Custom visuals should follow [visuals.md](visuals.md) and use [design.md](design.md) before rendering.
+- **Choose the right visual:** Inventory visuals from the source, linked artifacts, docs, demos, videos, social posts, repos, and discussion threads. Use source visuals when they carry the point directly. Build a custom visual when a comparison, crop, timeline, table, diagram, or summary would make the highlight clearer than a raw source image. Every non-source post in a thread needs a visual. Custom visuals should follow [visuals.md](references/visuals.md) and use [design.md](references/design.md) before rendering.
 - **Order by usefulness:** Arrange highlights as answers backed by sources, from most useful to least. The user should get the main story early; each later highlight adds less essential detail.
 
 ## Step 4: Draft The Thread
@@ -54,5 +61,5 @@ outputs/
 - **Make the first post the abstract:** Treat the first post like the thread abstract, but write it like a timely update to the user. By default, give enough background to contextualize the event, explain what happened or what it is in plain English, say what changed compared with the relevant baseline, and include the main visual. Adjust or omit parts when the story calls for it. Use later posts for mechanism, comparison, results, caveats, user-relevant context, quotes, or examples. The first post should be around ~1,000 characters, subsequent posts should be around 500~.
 - **Keep it readable:** Spend words on the event, mechanism, evidence, and consequence instead of unnecessary names. Avoid wall-of-text posts; use spacing, emphasis, visuals, quotes, and post breaks. Don’t give every post a hook or headline. Get to the point, and show where the perspective comes from when it matters: original source, outside reaction, repo, issue, comment, benchmark, or prior work. Do not expose internal tool details like CLI names, tool responses, sandbox status, traces, or file paths unless the user asked or that detail changes the public story. Avoid heavy signposting; do not open posts with sentences that explain the role of the post instead of advancing the story. If a signpost is useful, fold it into a factual sentence instead of leaving it as a standalone opener and just get to the point.
 - **Synthesize without opining:** Act like a reporter, not a pundit. Don’t share your own opinions by default; collect facts, attributed perspectives, source claims, contradictions, and open questions, then report how they fit together. Reconcile competing views and say what is supported, disputed, missing, or uncertain. Avoid ranking claims unless the sources support the ranking. If a judgment belongs in the thread, ground it in who said it, what data supports it, what comparison it depends on, and what would change the conclusion. Keep caveats proportional. Do not help me "frame" or tell me what the "read" is, just investigate and faithfully report different perspectives around the event.
-- **Run the anti-slop pass:** Before publishing, check the draft against [anti-ai-slop.md](anti-ai-slop.md). Remove banned phrases, generic framing, internal narration, over-structured prose, and unsupported judgments.
+- **Run the anti-slop pass:** Before publishing, check the draft against [anti-ai-slop.md](references/anti-ai-slop.md). Remove banned phrases, generic framing, internal narration, over-structured prose, and unsupported judgments.
 - **Put sources last:** End with sources. Split main sources from supplementary sources when both shaped the output.

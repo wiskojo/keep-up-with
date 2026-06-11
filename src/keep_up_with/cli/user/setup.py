@@ -41,7 +41,7 @@ def run_setup(paths: KeepUpWithPaths) -> None:
     presets = setup_keep_up_with(paths)
     setup_space(paths, presets, reset_default=reset_space_default)
     finish_workspace(paths)
-    finish_skill(paths)
+    finish_workflow(paths)
     print()
     ui.success("keep-up-with is ready.")
 
@@ -88,7 +88,7 @@ def default_config(messaging: dict) -> dict:
 
 def write_default_workspace(paths: KeepUpWithPaths) -> None:
     write_workspace_files(paths)
-    ensure_skill(paths)
+    ensure_managed_workflow(paths)
 
 
 def write_workspace_files(paths: KeepUpWithPaths) -> None:
@@ -109,19 +109,19 @@ def finish_workspace(paths: KeepUpWithPaths) -> None:
     ui.info("Reset deletes this workspace and recreates the starter files.")
     if dangerous_confirm(
         "Reset workspace?",
-        "This deletes every file in the keep-up-with workspace directory and recreates USER.md, MEMORY.md, and the managed keep-up-with workflow.",
+        "This deletes every file in the keep-up-with workspace directory and recreates AGENTS.md, USER.md, MEMORY.md, and the managed keep-up-with workflow.",
         "RESET WORKSPACE",
     ):
         reset_workspace(paths)
 
 
-def finish_skill(paths: KeepUpWithPaths) -> None:
-    if not skill_needs_sync(paths):
+def finish_workflow(paths: KeepUpWithPaths) -> None:
+    if not managed_workflow_needs_sync(paths):
         return
     ui.header("Workflow")
-    ui.info("The AI's keep-up-with instructions and templates.")
-    ui.info("Update replaces your workspace copy with the packaged version.")
-    ensure_skill(paths)
+    ui.info("AGENTS.md plus the keep-up-with deep-dive skill.")
+    ui.info("Update replaces managed workflow files with the packaged version.")
+    ensure_managed_workflow(paths)
 
 
 def reset_workspace(paths: KeepUpWithPaths) -> None:
@@ -131,33 +131,73 @@ def reset_workspace(paths: KeepUpWithPaths) -> None:
     ui.success("workspace reset.")
 
 
-def ensure_skill(paths: KeepUpWithPaths) -> None:
-    source, target = skill_paths(paths)
-    if not source.is_dir():
-        raise RuntimeError("managed keep-up-with skill is missing from the package")
-    if not target.exists():
-        copy_resource_tree(source, target)
+def ensure_managed_workflow(paths: KeepUpWithPaths) -> None:
+    items = managed_workflow_paths(paths)
+    ensure_managed_sources(items)
+    missing = [(source, target) for source, target in items if not target.exists()]
+    changed = [
+        (source, target)
+        for source, target in items
+        if target.exists() and not same_resource(source, target)
+    ]
+    if missing:
+        for source, target in missing:
+            copy_resource(source, target)
         ui.success("Installed keep-up-with workflow.")
-        return
-    if same_resource_tree(source, target):
+    if not changed:
         return
     ui.warning("The workspace keep-up-with workflow differs from the packaged version.")
     if ui.confirm("Update keep-up-with workflow?", default=False):
-        shutil.rmtree(target)
+        for source, target in changed:
+            remove_target(target)
+            copy_resource(source, target)
+
+
+def managed_workflow_needs_sync(paths: KeepUpWithPaths) -> bool:
+    items = managed_workflow_paths(paths)
+    ensure_managed_sources(items)
+    return any(
+        not target.exists() or not same_resource(source, target)
+        for source, target in items
+    )
+
+
+def managed_workflow_paths(paths: KeepUpWithPaths):
+    source = resources.files("keep_up_with.resources").joinpath("workspace_template")
+    return [
+        (source / "AGENTS.md", paths.workspace / "AGENTS.md"),
+        (
+            source / "skills" / "keep-up-with",
+            paths.workspace / ".agents" / "skills" / "keep-up-with",
+        ),
+    ]
+
+
+def ensure_managed_sources(items) -> None:
+    for source, _target in items:
+        if not source.is_file() and not source.is_dir():
+            raise RuntimeError("managed keep-up-with workflow is missing from the package")
+
+
+def same_resource(source, target: Path) -> bool:
+    if source.is_dir():
+        return target.is_dir() and same_resource_tree(source, target)
+    return target.is_file() and target.read_bytes() == source.read_bytes()
+
+
+def copy_resource(source, target: Path) -> None:
+    if source.is_dir():
         copy_resource_tree(source, target)
+        return
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(source.read_bytes())
 
 
-def skill_needs_sync(paths: KeepUpWithPaths) -> bool:
-    source, target = skill_paths(paths)
-    if not source.is_dir():
-        raise RuntimeError("managed keep-up-with skill is missing from the package")
-    return not target.exists() or not same_resource_tree(source, target)
-
-
-def skill_paths(paths: KeepUpWithPaths):
-    source = resources.files("keep_up_with.core").joinpath("skills", "keep-up-with")
-    target = paths.workspace / ".agents" / "skills" / "keep-up-with"
-    return source, target
+def remove_target(target: Path) -> None:
+    if target.is_dir():
+        shutil.rmtree(target)
+    else:
+        target.unlink(missing_ok=True)
 
 
 def copy_resource_tree(source, target: Path) -> None:
@@ -402,9 +442,10 @@ def preset_is_configured(
 
 def keep_up_with_presets() -> dict[str, KeepUpWithPreset]:
     loaded: dict[str, KeepUpWithPreset] = {}
+    presets = resources.files("keep_up_with.resources").joinpath("presets")
     preset_paths = [
         item
-        for item in resources.files("keep_up_with.core").joinpath("presets").iterdir()
+        for item in presets.iterdir()
         if item.name.endswith(".toml")
     ]
     for path in sorted(preset_paths, key=lambda item: item.name):
