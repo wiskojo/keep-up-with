@@ -9,18 +9,22 @@ import typer
 from keep_up_with.cli.agent.output import echo_json, echo_jsonl
 from keep_up_with.core.config import get_config
 from keep_up_with.integrations.base import DataIntegration, Tool, ToolContext
-from keep_up_with.integrations.registry import available_data_integrations, missing_env
+from keep_up_with.integrations.registry import data_integrations, missing_env
 
 app = typer.Typer(
     add_completion=False,
     invoke_without_command=True,
-    help="Use source-specific tools.",
+    help="Use configured tools.",
+    no_args_is_help=False,
 )
 
 
 @app.callback(invoke_without_command=True)
 def main(ctx: typer.Context) -> None:
     if ctx.invoked_subcommand is None:
+        if not configured_integrations:
+            typer.echo("No configured tools. Enable data connectors with `kuw setup`.")
+            raise typer.Exit()
         typer.echo(ctx.get_help())
         raise typer.Exit()
 
@@ -28,11 +32,11 @@ def main(ctx: typer.Context) -> None:
 def tool_command(integration: DataIntegration, tool: Tool) -> Callable[..., None]:
     def command(*args: Any, **kwargs: Any) -> None:
         config = get_config()
-        if (
-            integration.tools_require_enabled
-            and not config.integration_enabled(integration.name)
-        ):
-            typer.echo(f"{integration.name} is not enabled.", err=True)
+        if not config.integration_enabled(integration.name):
+            typer.echo(
+                f"{integration.name} is not enabled. Tell the user to enable it with `kuw setup`.",
+                err=True,
+            )
             raise typer.Exit(1)
         missing = missing_env(config, integration)
         if missing:
@@ -81,7 +85,12 @@ def resolved_signature(
     )
 
 
-for integration in available_data_integrations():
+try:
+    configured_integrations = data_integrations(get_config())
+except RuntimeError:
+    configured_integrations = []
+
+for integration in configured_integrations:
     if integration.tools:
         help_text = integration.description or f"Use {integration.name} tools."
         integration_app = typer.Typer(

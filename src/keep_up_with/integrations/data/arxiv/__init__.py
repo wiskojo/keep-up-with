@@ -10,6 +10,5 @@ def register(registry) -> None:
             name="arxiv",
             description="Fetch arXiv PDFs, Markdown, source bundles, and figures.",
             tools=(download,),
-            tools_require_enabled=False,
         )
     )
