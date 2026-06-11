@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from html import unescape
 from typing import Any
 from urllib.parse import urlparse
 
@@ -88,7 +89,7 @@ class RedditClient:
         post.comments.replace_more(limit=0)
         remaining = [clamp(limit, 1, 500)]
         return {
-            "post": post_data(post),
+            "post": post_data(post, include_media=True),
             "comments": comments(
                 post.comments,
                 depth=clamp(depth, 1, 10),
@@ -98,8 +99,8 @@ class RedditClient:
         }
 
 
-def post_data(post: Any) -> dict[str, Any]:
-    return {
+def post_data(post: Any, *, include_media: bool = False) -> dict[str, Any]:
+    row = {
         "id": post.id or "",
         "name": post.name or f"t3_{post.id}",
         "subreddit": str(post.subreddit) if post.subreddit else "",
@@ -119,6 +120,228 @@ def post_data(post: Any) -> dict[str, Any]:
         "spoiler": bool(post.spoiler),
         "stickied": bool(post.stickied),
     }
+    if include_media:
+        row["media"] = post_media(post)
+    return row
+
+
+def post_media(post: Any) -> list[dict[str, Any]]:
+    media: list[dict[str, Any]] = []
+    seen: set[str] = set()
+
+    add_direct_url(media, seen, getattr(post, "url", ""), source="url")
+    add_preview(media, seen, getattr(post, "preview", None))
+    add_gallery(
+        media,
+        seen,
+        getattr(post, "gallery_data", None),
+        getattr(post, "media_metadata", None),
+    )
+    add_reddit_video(media, seen, getattr(post, "media", None), source="media")
+    add_reddit_video(
+        media,
+        seen,
+        getattr(post, "secure_media", None),
+        source="secure_media",
+    )
+    add_thumbnail(media, seen, post)
+
+    return media
+
+
+def add_direct_url(
+    rows: list[dict[str, Any]],
+    seen: set[str],
+    value: str,
+    *,
+    source: str,
+) -> None:
+    url = clean_url(value)
+    if not url or not looks_like_media_url(url):
+        return
+    add_media(rows, seen, source=source, media_type=media_type_from_url(url), url=url)
+
+
+def add_preview(
+    rows: list[dict[str, Any]],
+    seen: set[str],
+    preview: Any,
+) -> None:
+    if not isinstance(preview, dict):
+        return
+    for image in preview.get("images") or []:
+        if not isinstance(image, dict):
+            continue
+        source = image.get("source") or {}
+        if isinstance(source, dict):
+            add_media(
+                rows,
+                seen,
+                source="preview",
+                media_type="image",
+                url=clean_url(source.get("url", "")),
+                width=source.get("width"),
+                height=source.get("height"),
+            )
+        variants = image.get("variants") or {}
+        if isinstance(variants, dict):
+            for variant_type, variant in variants.items():
+                if not isinstance(variant, dict):
+                    continue
+                source = variant.get("source") or {}
+                if not isinstance(source, dict):
+                    continue
+                add_media(
+                    rows,
+                    seen,
+                    source=f"preview.{variant_type}",
+                    media_type=variant_type,
+                    url=clean_url(source.get("url", "")),
+                    width=source.get("width"),
+                    height=source.get("height"),
+                )
+
+
+def add_gallery(
+    rows: list[dict[str, Any]],
+    seen: set[str],
+    gallery_data: Any,
+    media_metadata: Any,
+) -> None:
+    if not isinstance(gallery_data, dict) or not isinstance(media_metadata, dict):
+        return
+    for item in gallery_data.get("items") or []:
+        if not isinstance(item, dict):
+            continue
+        media_id = item.get("media_id")
+        metadata = media_metadata.get(media_id)
+        if not isinstance(metadata, dict):
+            continue
+        source = metadata.get("s") or {}
+        if not isinstance(source, dict):
+            continue
+        url = clean_url(source.get("u") or source.get("gif") or source.get("mp4") or "")
+        add_media(
+            rows,
+            seen,
+            source="gallery",
+            media_type=media_type_from_metadata(metadata),
+            url=url,
+            width=source.get("x"),
+            height=source.get("y"),
+            media_id=media_id,
+        )
+
+
+def add_reddit_video(
+    rows: list[dict[str, Any]],
+    seen: set[str],
+    media: Any,
+    *,
+    source: str,
+) -> None:
+    if not isinstance(media, dict):
+        return
+    video = media.get("reddit_video") or {}
+    if not isinstance(video, dict):
+        return
+    for key in ("fallback_url", "hls_url", "dash_url"):
+        add_media(
+            rows,
+            seen,
+            source=f"{source}.reddit_video",
+            media_type="video",
+            url=clean_url(video.get(key, "")),
+            width=video.get("width"),
+            height=video.get("height"),
+            duration=video.get("duration"),
+        )
+
+
+def add_thumbnail(rows: list[dict[str, Any]], seen: set[str], post: Any) -> None:
+    thumbnail = clean_url(getattr(post, "thumbnail", ""))
+    if not thumbnail.startswith(("http://", "https://")):
+        return
+    add_media(
+        rows,
+        seen,
+        source="thumbnail",
+        media_type="thumbnail",
+        url=thumbnail,
+        width=getattr(post, "thumbnail_width", None),
+        height=getattr(post, "thumbnail_height", None),
+    )
+
+
+def add_media(
+    rows: list[dict[str, Any]],
+    seen: set[str],
+    *,
+    source: str,
+    media_type: str,
+    url: str,
+    width: Any = None,
+    height: Any = None,
+    duration: Any = None,
+    media_id: Any = None,
+) -> None:
+    if not url or url in seen:
+        return
+    seen.add(url)
+    item: dict[str, Any] = {"source": source, "type": media_type, "url": url}
+    if width is not None:
+        item["width"] = width
+    if height is not None:
+        item["height"] = height
+    if duration is not None:
+        item["duration"] = duration
+    if media_id is not None:
+        item["media_id"] = media_id
+    rows.append(item)
+
+
+def clean_url(value: Any) -> str:
+    return unescape(str(value or "")).strip()
+
+
+def looks_like_media_url(value: str) -> bool:
+    parsed = urlparse(value)
+    suffix = parsed.path.rsplit(".", 1)[-1].lower() if "." in parsed.path else ""
+    return parsed.netloc.endswith(("redd.it", "redditmedia.com")) or suffix in {
+        "apng",
+        "avif",
+        "gif",
+        "jpeg",
+        "jpg",
+        "m4v",
+        "mov",
+        "mp4",
+        "png",
+        "svg",
+        "webp",
+        "webm",
+    }
+
+
+def media_type_from_url(value: str) -> str:
+    parsed = urlparse(value)
+    if parsed.netloc.startswith("v.redd.it"):
+        return "video"
+    suffix = parsed.path.rsplit(".", 1)[-1].lower()
+    if suffix in {"m4v", "mov", "mp4", "webm"}:
+        return "video"
+    if suffix == "gif":
+        return "gif"
+    return "image"
+
+
+def media_type_from_metadata(metadata: dict[str, Any]) -> str:
+    media_type = str(metadata.get("e") or metadata.get("m") or "")
+    if "video" in media_type:
+        return "video"
+    if "gif" in media_type:
+        return "gif"
+    return "image"
 
 
 def comments(items: Any, *, depth: int, remaining: list[int]) -> list[dict[str, Any]]:

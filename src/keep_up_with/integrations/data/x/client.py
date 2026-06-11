@@ -7,9 +7,16 @@ from typing import Any
 import httpx
 
 BASE_URL = "https://api.x.com"
-POST_FIELDS = "author_id,created_at,conversation_id,lang,public_metrics,referenced_tweets"
+POST_FIELDS = (
+    "attachments,author_id,created_at,conversation_id,lang,public_metrics,"
+    "referenced_tweets"
+)
 USER_FIELDS = "created_at,description,public_metrics,verified,verified_type"
 EXPANSIONS = "author_id"
+POST_EXPANSIONS = "author_id,attachments.media_keys"
+MEDIA_FIELDS = (
+    "alt_text,duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width"
+)
 STREAM_RULE_TAG_PREFIX = "keep-up-with:x.posts"
 STREAM_RULE_MAX_LENGTH = 1024
 STREAM_READ_TIMEOUT_SECONDS = 30.0
@@ -42,9 +49,11 @@ class XClient:
                 {
                     "tweet.fields": POST_FIELDS,
                     "user.fields": USER_FIELDS,
-                    "expansions": EXPANSIONS,
+                    "media.fields": MEDIA_FIELDS,
+                    "expansions": POST_EXPANSIONS,
                 },
-            )
+            ),
+            include_media=True,
         )
         return rows[0] if rows else {}
 
@@ -236,10 +245,15 @@ def account_stream_rule_value(terms: list[str]) -> str:
     return f"({' OR '.join(terms)})"
 
 
-def posts(data: dict[str, Any]) -> list[dict[str, Any]]:
+def posts(data: dict[str, Any], *, include_media: bool = False) -> list[dict[str, Any]]:
     users = {
         item.get("id"): user(item)
         for item in data.get("includes", {}).get("users", [])
+        if isinstance(item, dict)
+    }
+    media_by_key = {
+        item.get("media_key"): media(item)
+        for item in data.get("includes", {}).get("media", [])
         if isinstance(item, dict)
     }
     raw_posts = data.get("data") or []
@@ -253,21 +267,53 @@ def posts(data: dict[str, Any]) -> list[dict[str, Any]]:
         if not isinstance(item, dict):
             continue
         author = users.get(item.get("author_id"), {})
-        rows.append(
-            {
-                "id": item.get("id") or "",
-                "text": item.get("text") or "",
-                "author_id": item.get("author_id") or "",
-                "author": author,
-                "created_at": item.get("created_at") or "",
-                "conversation_id": item.get("conversation_id") or "",
-                "lang": item.get("lang") or "",
-                "metrics": item.get("public_metrics") or {},
-                "referenced_tweets": item.get("referenced_tweets") or [],
-                "url": post_url(author, item),
-            }
-        )
+        row = {
+            "id": item.get("id") or "",
+            "text": item.get("text") or "",
+            "author_id": item.get("author_id") or "",
+            "author": author,
+            "created_at": item.get("created_at") or "",
+            "conversation_id": item.get("conversation_id") or "",
+            "lang": item.get("lang") or "",
+            "metrics": item.get("public_metrics") or {},
+            "referenced_tweets": item.get("referenced_tweets") or [],
+            "url": post_url(author, item),
+        }
+        if include_media:
+            row["media"] = post_media(item, media_by_key)
+        rows.append(row)
     return rows
+
+
+def post_media(
+    post: dict[str, Any],
+    media_by_key: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    attachments = post.get("attachments") or {}
+    if not isinstance(attachments, dict):
+        return []
+    keys = attachments.get("media_keys") or []
+    if not isinstance(keys, list):
+        return []
+    return [
+        media_by_key[key]
+        for key in keys
+        if isinstance(key, str) and key in media_by_key
+    ]
+
+
+def media(data: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "media_key": data.get("media_key") or "",
+        "type": data.get("type") or "",
+        "url": data.get("url") or "",
+        "preview_image_url": data.get("preview_image_url") or "",
+        "alt_text": data.get("alt_text") or "",
+        "width": data.get("width"),
+        "height": data.get("height"),
+        "duration_ms": data.get("duration_ms"),
+        "metrics": data.get("public_metrics") or {},
+    }
 
 
 def user(data: dict[str, Any]) -> dict[str, Any]:
