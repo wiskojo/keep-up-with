@@ -2,14 +2,39 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import Callable
-from typing import Any, get_type_hints
+from typing import Annotated, Any, get_type_hints
 
 import typer
+from typer.main import get_command
 
 from keep_up_with.cli.agent.output import echo_json, echo_jsonl
 from keep_up_with.core.config import get_config
 from keep_up_with.integrations.base import DataIntegration, Tool, ToolContext
 from keep_up_with.integrations.registry import data_integrations, missing_env
+
+app = typer.Typer(
+    add_completion=False,
+    invoke_without_command=True,
+    help="Run connector tools",
+    no_args_is_help=False,
+    add_help_option=False,
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+)
+
+
+@app.callback(invoke_without_command=True)
+def main(
+    ctx: typer.Context,
+    help_option: Annotated[
+        bool,
+        typer.Option("--help", help="Show this message and exit"),
+    ] = False,
+) -> None:
+    get_command(build_tools_app()).main(
+        args=["--help"] if help_option else list(ctx.args),
+        prog_name="cli tools",
+        standalone_mode=True,
+    )
 
 
 def tool_command(integration: DataIntegration, tool: Tool) -> Callable[..., None]:
@@ -72,7 +97,7 @@ def build_tools_app() -> typer.Typer:
     app = typer.Typer(
         add_completion=False,
         invoke_without_command=True,
-        help="Use configured tools.",
+        help="Run connector tools",
         no_args_is_help=False,
     )
     try:
@@ -84,7 +109,7 @@ def build_tools_app() -> typer.Typer:
     def main(ctx: typer.Context) -> None:
         if ctx.invoked_subcommand is None:
             if not configured_integrations:
-                typer.echo("No configured tools. Enable data connectors with `kuw setup`.")
+                typer.echo("No connector tools enabled. Enable data connectors with `kuw setup`.")
                 raise typer.Exit()
             typer.echo(ctx.get_help())
             raise typer.Exit()

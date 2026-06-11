@@ -7,7 +7,7 @@ from keep_up_with.integrations.data.arxiv import client
 from keep_up_with.integrations.data.common import resolve_path
 
 
-@tool("Download an arXiv PDF, best-effort Markdown, raw source, and figure inventory.")
+@tool("Download an arXiv paper and artifacts")
 def download(
     _ctx: ToolContext,
     id_or_url: str,

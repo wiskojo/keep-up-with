@@ -8,7 +8,7 @@ def register(registry) -> None:
     registry.add_data(
         DataIntegration(
             name="reddit",
-            description="Search Reddit posts and threads.",
+            description="Search Reddit posts and threads",
             subscriptions=(subscription.posts,),
             tools=(tools.posts, tools.search, tools.thread),
             required_env=(

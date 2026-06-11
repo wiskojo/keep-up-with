@@ -12,12 +12,12 @@ from keep_up_with.core.config import get_config, get_paths
 app = typer.Typer(
     add_completion=False,
     invoke_without_command=True,
-    help="Local runtime for keep-up-with.",
+    help="Manage keep-up-with on this machine.",
     no_args_is_help=True,
 )
 
 
-@app.command(help="Configure keep-up-with for this machine.")
+@app.command(help="Run setup wizard")
 def setup() -> None:
     paths = get_paths()
     try:
@@ -38,7 +38,7 @@ def setup() -> None:
     )
 
 
-@app.command(help="Start keep-up-with.")
+@app.command(help="Start the runtime")
 def start() -> None:
     try:
         results = start_services(get_config())
@@ -48,14 +48,14 @@ def start() -> None:
     print_results(results)
 
 
-@app.command(help="Stop keep-up-with.")
+@app.command(help="Stop the runtime")
 def stop() -> None:
     print_results(stop_services(get_config()))
 
 
-@app.command(help="Reset runtime state while keeping setup.")
+@app.command(help="Reset runtime state")
 def reset(
-    yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation."),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation"),
 ) -> None:
     try:
         config = get_config()
@@ -71,7 +71,7 @@ def reset(
     ui.info("next `kuw start` will create a new Codex thread.")
 
 
-@app.command(help="Show runtime and connector health.")
+@app.command(help="Show runtime status")
 def status() -> None:
     try:
         run_status(get_config())

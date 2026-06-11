@@ -7,13 +7,13 @@ from keep_up_with.integrations.data.common import resolve_path
 from keep_up_with.integrations.data.youtube import client
 
 
-@tool("Fetch YouTube video metadata.")
+@tool("Show video metadata")
 def video(ctx: ToolContext, url: str) -> dict[str, Any]:
     del ctx
     return client.video(url)
 
 
-@tool("Search YouTube.")
+@tool("Search YouTube")
 def search(
     ctx: ToolContext,
     query: str,
@@ -36,7 +36,7 @@ def search(
     )
 
 
-@tool("Fetch YouTube channel metadata and recent videos.")
+@tool("Show channel metadata and videos")
 def channel(ctx: ToolContext, channel: str, limit: int = 10) -> dict[str, Any]:
     return client.channel(
         ctx.env("YOUTUBE_API_KEY"),
@@ -45,13 +45,13 @@ def channel(ctx: ToolContext, channel: str, limit: int = 10) -> dict[str, Any]:
     )
 
 
-@tool("Fetch a YouTube transcript.")
+@tool("Show a transcript")
 def transcript(ctx: ToolContext, url: str, language: str = "en") -> dict[str, Any]:
     del ctx
     return client.transcript(url, language=language)
 
 
-@tool("Extract frames from a YouTube video.")
+@tool("Extract video frames")
 def frames(
     ctx: ToolContext,
     url: str,
@@ -62,7 +62,7 @@ def frames(
     return client.frames(url, timestamps=timestamps, output_dir=resolve_path(output_dir))
 
 
-@tool("Download a local YouTube source copy for clips.")
+@tool("Download source video")
 def download(
     ctx: ToolContext,
     url: str,
@@ -72,7 +72,7 @@ def download(
     return client.download(url, output_dir=resolve_path(output_dir))
 
 
-@tool("Extract a short muted YouTube clip.")
+@tool("Export a video clip")
 def clip(
     ctx: ToolContext,
     url: str,
@@ -95,7 +95,7 @@ def clip(
     )
 
 
-@tool("Export a short YouTube clip as a GIF.")
+@tool("Export a GIF")
 def gif(
     ctx: ToolContext,
     url: str,

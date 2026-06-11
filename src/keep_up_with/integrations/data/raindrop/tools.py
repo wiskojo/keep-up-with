@@ -6,7 +6,7 @@ from keep_up_with.integrations.base import ToolContext, tool
 from keep_up_with.integrations.data.raindrop import client
 
 
-@tool("Search Raindrop bookmarks.")
+@tool("Search Raindrop bookmarks")
 def bookmarks(
     ctx: ToolContext,
     since: str = "P30D",

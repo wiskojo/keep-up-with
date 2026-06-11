@@ -15,12 +15,12 @@ from keep_up_with.integrations.registry import (
 app = typer.Typer(
     add_completion=False,
     invoke_without_command=True,
-    help="Show enabled data subscriptions.",
+    help="List enabled subscriptions",
     no_args_is_help=True,
 )
 
 
-@app.command("list", help="Print enabled data subscriptions as JSONL.")
+@app.command("list", help="Print enabled subscriptions as JSONL")
 def list_command() -> None:
     echo_jsonl(subscription_rows())
 

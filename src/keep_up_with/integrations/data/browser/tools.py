@@ -9,7 +9,7 @@ from keep_up_with.integrations.base import ToolContext, tool
 from keep_up_with.integrations.data.common import TimeWindowQuery
 
 
-@tool("Search local browser history.")
+@tool("Search browser history")
 def history(
     _ctx: ToolContext,
     since: str = "P30D",

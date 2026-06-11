@@ -8,7 +8,7 @@ def register(registry) -> None:
     registry.add_data(
         DataIntegration(
             name="youtube",
-            description="Search YouTube and fetch videos, transcripts, frames, and clips.",
+            description="Search YouTube and extract video assets",
             subscriptions=(subscription.videos,),
             tools=(
                 tools.search,

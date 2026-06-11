@@ -8,7 +8,7 @@ def register(registry) -> None:
     registry.add_data(
         DataIntegration(
             name="web",
-            description="Watch RSS feeds and web pages.",
+            description="Watch RSS feeds and web pages",
             subscriptions=(items,),
             parameters=(
                 IntegrationParameter(

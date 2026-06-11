@@ -11,24 +11,24 @@ from keep_up_with.core.events import EventStore
 app = typer.Typer(
     add_completion=False,
     invoke_without_command=True,
-    help="Review and clear pending inbox items.",
+    help="Handle pending events",
     no_args_is_help=True,
 )
 
 
-@app.command("list", help="Print pending inbox items as JSONL.")
+@app.command("list", help="Print pending events as JSONL")
 def list_command(
     unnotified: Annotated[
         bool,
-        typer.Option("--unnotified", help="Only show items not yet sent into Codex."),
+        typer.Option("--unnotified", help="Only show items not yet sent into Codex"),
     ] = False,
 ) -> None:
     echo_jsonl(EventStore(get_config()).list_inbox(only_unnotified=unnotified))
 
 
-@app.command("show", help="Show one inbox item by event id or prefix.")
+@app.command("show", help="Show one pending event")
 def show_command(
-    event_id: Annotated[str, typer.Argument(help="Event id or unique prefix.")],
+    event_id: Annotated[str, typer.Argument(help="Event id or unique prefix")],
 ) -> None:
     event = EventStore(get_config()).get_event(event_id)
     if event is None:
@@ -36,9 +36,9 @@ def show_command(
     echo_json(event)
 
 
-@app.command("dismiss", help="Remove one handled item from the inbox.")
+@app.command("dismiss", help="Dismiss one pending event")
 def dismiss_command(
-    event_id: Annotated[str, typer.Argument(help="Event id or unique prefix.")],
+    event_id: Annotated[str, typer.Argument(help="Event id or unique prefix")],
 ) -> None:
     if not EventStore(get_config()).dismiss_inbox(event_id):
         fail("unknown inbox item", id=event_id)

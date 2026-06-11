@@ -13,7 +13,7 @@ def client(ctx: ToolContext) -> RedditClient:
     )
 
 
-@tool("List posts from a subreddit.")
+@tool("List subreddit posts")
 def posts(
     ctx: ToolContext,
     subreddit: str,
@@ -24,7 +24,7 @@ def posts(
     return client(ctx).posts(subreddit, sort=sort, period=period, limit=limit)
 
 
-@tool("Search Reddit posts.")
+@tool("Search Reddit posts")
 def search(
     ctx: ToolContext,
     query: str,
@@ -42,7 +42,7 @@ def search(
     )
 
 
-@tool("Fetch a Reddit post and nested comments.")
+@tool("Show a Reddit thread")
 def thread(
     ctx: ToolContext,
     url_or_id: str,

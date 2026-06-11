@@ -12,23 +12,23 @@ from keep_up_with.integrations.registry import messaging_client
 app = typer.Typer(
     add_completion=False,
     invoke_without_command=True,
-    help="Send and read messages.",
+    help="Send and list messages",
     no_args_is_help=True,
 )
 
 
-@app.command("send", help="Send a message. Defaults to DM.")
+@app.command("send", help="Send a message, defaults to DM")
 def send_command(
-    text: Annotated[str, typer.Option("--text", "-t", help="Message text.")] = "",
-    channel: Annotated[str | None, typer.Option(help="Channel name or id.")] = None,
-    thread_id: Annotated[str | None, typer.Option(help="Thread id.")] = None,
-    reply_to: Annotated[str | None, typer.Option(help="Message id to reply to.")] = None,
+    text: Annotated[str, typer.Option("--text", "-t", help="Message text")] = "",
+    channel: Annotated[str | None, typer.Option(help="Channel name or id")] = None,
+    thread_id: Annotated[str | None, typer.Option(help="Thread id")] = None,
+    reply_to: Annotated[str | None, typer.Option(help="Message id to reply to")] = None,
     attachment: Annotated[
         list[str] | None,
         typer.Option(
             "--attachment",
             "-a",
-            help="File path to attach. Repeat for multiple files.",
+            help="File path to attach, repeat for multiple files",
         ),
     ] = None,
 ) -> None:
@@ -48,21 +48,21 @@ def send_command(
     echo_json(result)
 
 
-@app.command("list", help="List recent messages. Defaults to DM.")
+@app.command("list", help="List recent messages, defaults to DM")
 def list_command(
-    channel: Annotated[str | None, typer.Option(help="Channel name or id.")] = None,
-    thread_id: Annotated[str | None, typer.Option(help="Thread id.")] = None,
+    channel: Annotated[str | None, typer.Option(help="Channel name or id")] = None,
+    thread_id: Annotated[str | None, typer.Option(help="Thread id")] = None,
     limit: Annotated[
         int,
-        typer.Option("--limit", "-n", help="Maximum recent messages to scan."),
+        typer.Option("--limit", "-n", help="Maximum recent messages to scan"),
     ] = 25,
     query: Annotated[
         str | None,
-        typer.Option("--query", "-q", help="Only include messages containing text."),
+        typer.Option("--query", "-q", help="Only include messages containing text"),
     ] = None,
     author: Annotated[
         str | None,
-        typer.Option(help="Only include messages by author id or exact name."),
+        typer.Option(help="Only include messages by author id or exact name"),
     ] = None,
 ) -> None:
     client = messaging_client(get_config())
@@ -81,7 +81,7 @@ def list_command(
     echo_jsonl(messages)
 
 
-@app.command("channels", help="List available messaging channels.")
+@app.command("channels", help="List message channels")
 def channels_command() -> None:
     client = messaging_client(get_config())
     echo_jsonl(asyncio.run(client.list_channels()))
