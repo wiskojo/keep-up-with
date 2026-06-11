@@ -33,7 +33,7 @@ from keep_up_with.integrations.registry import (
 
 
 def run_setup(paths: KeepUpWithPaths) -> None:
-    ui.header("Keep Up With setup")
+    ui.header("keep-up-with setup")
     ensure_dirs(paths)
     reset_space_default = setup_messaging(paths)
     setup_data_connectors(paths)
@@ -41,7 +41,7 @@ def run_setup(paths: KeepUpWithPaths) -> None:
     setup_space(paths, presets, reset_default=reset_space_default)
     finish_workspace(paths)
     print()
-    ui.success("Keep Up With is ready.")
+    ui.success("keep-up-with is ready.")
 
 
 @dataclass(frozen=True)
@@ -101,7 +101,7 @@ def finish_workspace(paths: KeepUpWithPaths) -> None:
     ui.header("Reset")
     if dangerous_confirm(
         "Reset workspace?",
-        "This deletes every file in the Keep Up With workspace directory and recreates USER.md, MEMORY.md, and the managed keep-up-with skill.",
+        "This deletes every file in the keep-up-with workspace directory and recreates USER.md, MEMORY.md, and the managed keep-up-with skill.",
         "RESET WORKSPACE",
     ):
         reset_workspace(paths)
@@ -514,7 +514,7 @@ def setup_space(
         ui.info("For a new private message space, setup can replace the default layout.")
     reset = dangerous_confirm(
         "Reset message space layout?",
-        "This deletes channels and sections in the configured message space, then recreates Keep Up With's layout.",
+        "This deletes channels and sections in the configured message space, then recreates the keep-up-with layout.",
         "RESET SPACE",
         default=reset_default,
     )

@@ -3,7 +3,7 @@ name: keep-up-with
 description: Help the user stay on top of things and keep up with what matters. Use when receiving an update or event and deciding whether and how to communicate what happened to the user.
 ---
 
-# Keep Up With
+# keep-up-with
 
 Operate as a personal 24/7 agent that helps users keep up with what matters. Track the things the user cares about. When something happens, decide whether it deserves their attention, investigate enough to understand why it matters, and explain it at the right level of detail.
 

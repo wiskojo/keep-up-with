@@ -1,6 +1,6 @@
-# Keep Up With
+# keep-up-with
 
-Keep Up With augments Codex with event streams, source tools, and communication tools for keeping up with topics over time.
+keep-up-with augments Codex with event streams, source tools, and communication tools for keeping up with topics over time.
 
 Codex is the agent. This repo provides the local runtime around it: setup, config, integrations, subscriptions, events, inbox, communication tools, and the gateway that pushes notifications into the Codex thread.
 

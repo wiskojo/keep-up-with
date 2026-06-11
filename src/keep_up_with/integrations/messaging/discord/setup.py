@@ -56,7 +56,7 @@ def configure(ctx: MessagingSetupContext) -> MessagingSetupResult:
         show_guild(ui, token, server_id)
         server_id = ui.prompt("message space ID", server_id)
     else:
-        ui.info("Keep Up With works best in a new private server it can organize.")
+        ui.info("keep-up-with works best in a new private server it can organize.")
         server_kind = ui.select(
             "Server",
             [
@@ -75,10 +75,10 @@ def configure(ctx: MessagingSetupContext) -> MessagingSetupResult:
         )
         reset_space_default = server_kind == "new"
         if server_kind == "new":
-            ui.info("Create a new message space, invite Keep Up With, then continue.")
+            ui.info("Create a new message space, invite keep-up-with, then continue.")
             if bot:
                 ui.info(invite_url(str(bot.get("application_id") or "")))
-            ui.pause("Press Enter after Keep Up With has joined the new server")
+            ui.pause("Press Enter after keep-up-with has joined the new server")
         server_id = choose_guild(ui, token) if token else ""
     if not server_id:
         ui.info("Right-click your private message space and copy Server ID.")
@@ -119,7 +119,7 @@ def choose_guild(ui, token: str) -> str:
         for guild in guilds
         if guild.get("id")
     ]
-    return ui.select("Choose the server Keep Up With should use", choices)
+    return ui.select("Choose the server keep-up-with should use", choices)
 
 
 def show_user(ui, token: str, user_id: str) -> None:

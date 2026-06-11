@@ -12,12 +12,12 @@ from keep_up_with.core.config import get_config, get_paths
 app = typer.Typer(
     add_completion=False,
     invoke_without_command=True,
-    help="Local runtime for Keep Up With.",
+    help="Local runtime for keep-up-with.",
     no_args_is_help=True,
 )
 
 
-@app.command(help="Configure Keep Up With for this machine.")
+@app.command(help="Configure keep-up-with for this machine.")
 def setup() -> None:
     paths = get_paths()
     try:
@@ -38,7 +38,7 @@ def setup() -> None:
     )
 
 
-@app.command(help="Start Keep Up With.")
+@app.command(help="Start keep-up-with.")
 def start() -> None:
     try:
         results = start_services(get_config())
@@ -48,7 +48,7 @@ def start() -> None:
     print_results(results)
 
 
-@app.command(help="Stop Keep Up With.")
+@app.command(help="Stop keep-up-with.")
 def stop() -> None:
     print_results(stop_services(get_config()))
 

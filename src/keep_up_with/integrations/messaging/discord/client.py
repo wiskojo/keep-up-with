@@ -73,7 +73,7 @@ class DiscordMessagingClient:
                 name=name[:100],
                 category=category,
                 topic=description[:1024] if description else None,
-                reason="Keep Up With space management",
+                reason="keep-up-with space management",
             )
             return _channel_ref(channel, category=category)
 
@@ -102,7 +102,7 @@ class DiscordMessagingClient:
                 if category is None:
                     category = await guild.create_category(
                         name=section.name[:100],
-                        reason="Keep Up With space management",
+                        reason="keep-up-with space management",
                     )
                     sections.append(category)
                 sections_by_key[section.key] = category
@@ -114,7 +114,7 @@ class DiscordMessagingClient:
                 if category is None and channel.section:
                     category = await guild.create_category(
                         name=channel.section[:100],
-                        reason="Keep Up With space management",
+                        reason="keep-up-with space management",
                     )
                     sections.append(category)
                 existing = _find_text_channel(text_channels, channel.name, category=category)
@@ -130,7 +130,7 @@ class DiscordMessagingClient:
                     text_channels.append(created)
                     continue
 
-                changes: dict[str, Any] = {"reason": "Keep Up With space management"}
+                changes: dict[str, Any] = {"reason": "keep-up-with space management"}
                 if category is not None and existing.category_id != category.id:
                     changes["category"] = category
                 if channel.description and not (existing.topic or ""):
@@ -151,7 +151,7 @@ class DiscordMessagingClient:
             sections_by_id = _sections_by_id(await target.guild.fetch_channels())
             updated = await target.edit(
                 name=name[:100],
-                reason="Keep Up With space management",
+                reason="keep-up-with space management",
             )
             return _channel_ref(updated or target, sections_by_id)
 
@@ -182,7 +182,7 @@ class DiscordMessagingClient:
                         if anchor.category_id
                         else anchor.category
                     )
-            changes: dict[str, Any] = {"reason": "Keep Up With space management"}
+            changes: dict[str, Any] = {"reason": "keep-up-with space management"}
             if category is not None:
                 changes["category"] = category
             if position is not None:
@@ -197,7 +197,7 @@ class DiscordMessagingClient:
             guild = await self._guild(client)
             section = await guild.create_category(
                 name=name[:100],
-                reason="Keep Up With space management",
+                reason="keep-up-with space management",
             )
             return _section_ref(section)
 
@@ -208,7 +208,7 @@ class DiscordMessagingClient:
             category = await self._section(await self._guild(client), section)
             updated = await category.edit(
                 name=name[:100],
-                reason="Keep Up With space management",
+                reason="keep-up-with space management",
             )
             return _section_ref(updated or category)
 
@@ -230,7 +230,7 @@ class DiscordMessagingClient:
             position = anchor.position + (1 if after else 0)
             updated = await target.edit(
                 position=position,
-                reason="Keep Up With space management",
+                reason="keep-up-with space management",
             )
             return _section_ref(updated or target)
 
@@ -315,7 +315,7 @@ class DiscordMessagingClient:
                 thread = await parent.create_thread(
                     name=title[:100],
                     type=discord.ChannelType.public_thread,
-                    reason="Keep Up With thread",
+                    reason="keep-up-with thread",
                 )
                 try:
                     await thread.send(
@@ -453,7 +453,7 @@ class DiscordMessagingClient:
         if create:
             return await guild.create_category(
                 name=section[:100],
-                reason="Keep Up With space management",
+                reason="keep-up-with space management",
             )
         raise ValueError(f"unknown section: {section}")
 
@@ -469,7 +469,7 @@ class DiscordMessagingClient:
             name=name[:100],
             category=category,
             topic=description[:1024] if description else None,
-            reason="Keep Up With space management",
+            reason="keep-up-with space management",
         )
 
 
