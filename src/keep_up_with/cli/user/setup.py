@@ -40,6 +40,7 @@ def run_setup(paths: KeepUpWithPaths) -> None:
     presets = setup_keep_up_with(paths)
     setup_space(paths, presets, reset_default=reset_space_default)
     finish_workspace(paths)
+    finish_skill(paths)
     print()
     ui.success("keep-up-with is ready.")
 
@@ -85,6 +86,11 @@ def default_config(messaging: dict) -> dict:
 
 
 def write_default_workspace(paths: KeepUpWithPaths) -> None:
+    write_workspace_files(paths)
+    ensure_skill(paths)
+
+
+def write_workspace_files(paths: KeepUpWithPaths) -> None:
     files = {
         "USER.md": "# User",
         "MEMORY.md": "# Memory",
@@ -93,18 +99,28 @@ def write_default_workspace(paths: KeepUpWithPaths) -> None:
         path = paths.workspace / name
         if not path.exists():
             path.write_text(text + "\n")
-    ensure_skill(paths)
 
 
 def finish_workspace(paths: KeepUpWithPaths) -> None:
-    write_default_workspace(paths)
-    ui.header("Reset")
+    write_workspace_files(paths)
+    ui.header("Workspace")
+    ui.info("Local AI work: USER.md, MEMORY.md, story folders, notes, drafts, assets.")
+    ui.info("Reset deletes this workspace and recreates the starter files.")
     if dangerous_confirm(
         "Reset workspace?",
-        "This deletes every file in the keep-up-with workspace directory and recreates USER.md, MEMORY.md, and the managed keep-up-with skill.",
+        "This deletes every file in the keep-up-with workspace directory and recreates USER.md, MEMORY.md, and the managed keep-up-with workflow.",
         "RESET WORKSPACE",
     ):
         reset_workspace(paths)
+
+
+def finish_skill(paths: KeepUpWithPaths) -> None:
+    if not skill_needs_sync(paths):
+        return
+    ui.header("Workflow")
+    ui.info("The AI's keep-up-with instructions and templates.")
+    ui.info("Update replaces your workspace copy with the packaged version.")
+    ensure_skill(paths)
 
 
 def reset_workspace(paths: KeepUpWithPaths) -> None:
@@ -115,20 +131,32 @@ def reset_workspace(paths: KeepUpWithPaths) -> None:
 
 
 def ensure_skill(paths: KeepUpWithPaths) -> None:
-    source = resources.files("keep_up_with.core").joinpath("skills", "keep-up-with")
-    target = paths.workspace / ".agents" / "skills" / "keep-up-with"
+    source, target = skill_paths(paths)
     if not source.is_dir():
         raise RuntimeError("managed keep-up-with skill is missing from the package")
     if not target.exists():
         copy_resource_tree(source, target)
-        ui.success("Installed keep-up-with skill.")
+        ui.success("Installed keep-up-with workflow.")
         return
     if same_resource_tree(source, target):
         return
-    ui.warning("The workspace keep-up-with skill differs from the packaged version.")
-    if ui.confirm("Reset keep-up-with skill?", default=False):
+    ui.warning("The workspace keep-up-with workflow differs from the packaged version.")
+    if ui.confirm("Update keep-up-with workflow?", default=False):
         shutil.rmtree(target)
         copy_resource_tree(source, target)
+
+
+def skill_needs_sync(paths: KeepUpWithPaths) -> bool:
+    source, target = skill_paths(paths)
+    if not source.is_dir():
+        raise RuntimeError("managed keep-up-with skill is missing from the package")
+    return not target.exists() or not same_resource_tree(source, target)
+
+
+def skill_paths(paths: KeepUpWithPaths):
+    source = resources.files("keep_up_with.core").joinpath("skills", "keep-up-with")
+    target = paths.workspace / ".agents" / "skills" / "keep-up-with"
+    return source, target
 
 
 def copy_resource_tree(source, target: Path) -> None:
@@ -316,7 +344,7 @@ def setup_keep_up_with(paths: KeepUpWithPaths) -> list[str]:
         ),
     ]
     selected_values = ui.multiselect(
-        "Keep up with",
+        "Subscriptions",
         choices,
         selected,
     )
@@ -509,22 +537,52 @@ def setup_space(
     if not plan.sections or not plan.channels:
         return
 
+    config = load_config(paths)
+    target = message_space_target(config)
     ui.header("Message space")
+    ui.info(target)
+    ui.info("Reset recreates the default channel layout.")
     if reset_default:
         ui.info("For a new private message space, setup can replace the default layout.")
     reset = dangerous_confirm(
         "Reset message space layout?",
-        "This deletes channels and sections in the configured message space, then recreates the keep-up-with layout.",
+        f"This deletes channels and sections in {target}, then recreates the keep-up-with layout.",
         "RESET SPACE",
         default=reset_default,
     )
     if not reset:
         return
 
-    config = load_config(paths)
     client = messaging_client(config)
     asyncio.run(client.apply_space(plan, reset=reset))
     ui.success("Message space is ready.")
+
+
+def message_space_target(config: KeepUpWithConfig) -> str:
+    settings = config.messaging().model_dump(mode="json")
+    integration = str(settings.get("integration") or "messaging")
+    if integration == "discord":
+        server_id = str(settings.get("server_id") or "")
+        return f"Discord server: {discord_server_label(config, server_id)}"
+    return f"Configured messaging platform: {integration}"
+
+
+def discord_server_label(config: KeepUpWithConfig, server_id: str) -> str:
+    if not server_id:
+        return "not set"
+    try:
+        from keep_up_with.integrations.messaging.discord.setup import (
+            BOT_TOKEN_ENV,
+            fetch_guild,
+        )
+
+        token = config.env(BOT_TOKEN_ENV) if config.has_env(BOT_TOKEN_ENV) else ""
+        guild = fetch_guild(token, server_id) if token else {}
+    except Exception:
+        guild = {}
+    name = str(guild.get("name") or "").strip()
+    guild_id = str(guild.get("id") or server_id).strip()
+    return f"{name} ({guild_id})" if name else guild_id
 
 
 def dangerous_confirm(

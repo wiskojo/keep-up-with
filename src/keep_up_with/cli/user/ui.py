@@ -181,11 +181,13 @@ def _header_icon(title: str) -> str:
         "user": "👤",
         "server": "🏠",
         "data connectors": "🔌",
-        "keep up with": "🧭",
+        "subscriptions": "🧭",
         "message space": "💬",
         "reset": "↻",
         "runtime": "⚙️",
         "messaging": "💬",
+        "workspace": "📁",
+        "workflow": "🧠",
     }
     return icons.get(normalized, "")
 
