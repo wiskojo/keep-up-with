@@ -209,7 +209,8 @@ def thread_params(config: KeepUpWithConfig) -> dict[str, Any]:
 
 def initial_turn_message(config: KeepUpWithConfig) -> str:
     return dedent(
-        f"""You were just started. Your operating instructions are in `AGENTS.md`, and your durable context lives in `{config.paths.workspace}`. You are always allowed, and encouraged, to use subagents.
+        f"""
+        You were just started. Your operating instructions are in `AGENTS.md`, and your durable context lives in `{config.paths.workspace}`. You are always allowed, and encouraged, to use subagents.
 
         1. Greet the user to let them know you're up. Say you're getting situated and will follow up shortly.
         2. Read `USER.md` and `MEMORY.md`, then run `cli --help` and confirm the command works.
