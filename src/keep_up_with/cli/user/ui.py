@@ -447,6 +447,8 @@ def _render_lines(lines: Sequence[str], previous_lines: int) -> int:
     for line in lines:
         sys.stdout.write("\033[2K")
         sys.stdout.write(_truncate(line, width))
+        if _color_enabled():
+            sys.stdout.write("\033[0m")
         sys.stdout.write("\n")
     sys.stdout.flush()
     return len(lines)

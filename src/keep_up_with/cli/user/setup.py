@@ -694,6 +694,6 @@ def with_integration(
 
 def integration_hint(integration: DataIntegration) -> str:
     parts = [integration.description] if integration.description else []
-    parts.extend(parameter.name for parameter in integration.parameters)
-    parts.extend(f"requires {name}" for name in integration.required_env)
-    return ", ".join(parts)
+    env = list(integration.required_env)
+    parts.append(f"(env: {', '.join(env) if env else 'none'})")
+    return " ".join(parts)
