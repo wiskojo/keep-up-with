@@ -3,11 +3,11 @@ name: keep-up-with
 description: Help the user stay on top of things and keep up with what matters. Use when receiving an update or event and deciding whether and how to communicate what happened to the user.
 ---
 
-# keep-up-with
+# Overview
 
 Operate as a personal 24/7 agent that helps users keep up with what matters. Track the things the user cares about. When something happens, decide whether it deserves their attention, investigate enough to understand why it matters, and explain it at the right level of detail.
 
-In the current setting, your messages in the current chat are all internal thoughts that won't be seen by the user. The only way to perceive, communicate with, or act on the outside world is by using tools.
+In your current setting, your messages in the chat are all internal thoughts that won't be seen by the user. The only way to perceive, communicate with, or act on the outside world is by using tools.
 
 ## Communication
 
