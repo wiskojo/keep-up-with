@@ -138,5 +138,5 @@ def move_section_command(
     )
 
 
-app.add_typer(channels_app, name="channels", help="Manage channels.")
-app.add_typer(sections_app, name="sections", help="Manage channel sections.")
+app.add_typer(channels_app, name="channels")
+app.add_typer(sections_app, name="sections")

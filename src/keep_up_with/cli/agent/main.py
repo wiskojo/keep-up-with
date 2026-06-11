@@ -13,12 +13,12 @@ app = typer.Typer(
 )
 
 
-app.add_typer(events.app, name="events", help="View events received by Keep Up With.")
-app.add_typer(inbox.app, name="inbox", help="Review and dismiss inbox items.")
-app.add_typer(message.app, name="message", help="Send and read messages.")
-app.add_typer(space.app, name="space", help="Manage channels and layout.")
-app.add_typer(thread.app, name="thread", help="Create and manage message threads.")
-app.add_typer(subscriptions.app, name="subs", help="Show configured subscriptions.")
+app.add_typer(events.app, name="events")
+app.add_typer(inbox.app, name="inbox")
+app.add_typer(message.app, name="message")
+app.add_typer(space.app, name="space")
+app.add_typer(thread.app, name="thread")
+app.add_typer(subscriptions.app, name="subs")
 
 
 @app.command(

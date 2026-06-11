@@ -106,6 +106,5 @@ def build_tools_app() -> typer.Typer:
             app.add_typer(
                 integration_app,
                 name=integration.name,
-                help=help_text,
             )
     return app
