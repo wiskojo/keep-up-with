@@ -8,7 +8,7 @@ from keep_up_with.integrations.messaging.discord.subscription import messages
 
 
 def register(registry) -> None:
-    registry.messaging(
+    registry.add_messaging(
         MessagingIntegration(
             name="discord",
             client=DiscordMessagingClient,

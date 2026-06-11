@@ -6,7 +6,7 @@ from keep_up_with.integrations.data.x.tools import post, search, timeline, user
 
 
 def register(registry) -> None:
-    registry.data(
+    registry.add_data(
         DataIntegration(
             name="x",
             description="Stream and search X posts and accounts.",

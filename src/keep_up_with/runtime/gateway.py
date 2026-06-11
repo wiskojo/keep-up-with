@@ -218,6 +218,7 @@ def initial_turn_message(config: KeepUpWithConfig) -> str:
 
 def start_messaging(config: KeepUpWithConfig, store: EventStore) -> None:
     messaging = messaging_integration(config)
+    # Messaging credentials and subscriptions are fixed for the process lifetime.
     for subscription in messaging.subscriptions:
         start_subscription(
             config=config,
@@ -226,7 +227,7 @@ def start_messaging(config: KeepUpWithConfig, store: EventStore) -> None:
             settings=config.messaging().model_dump(),
             subscription=subscription,
             daemon=True,
-            baseline_first_poll=False,
+            baseline_first_run=False,
         )
 
 
@@ -267,7 +268,7 @@ def reconcile_data(
             settings=settings,
             subscription=subscription,
             stop_event=stop_event,
-            baseline_first_poll=subscription.default_interval_seconds is not None,
+            baseline_first_run=subscription.baseline_first_run,
         )
         running[key] = RunningSubscription(
             key=key,
@@ -286,7 +287,7 @@ def start_subscription(
     subscription: Subscription,
     stop_event: ThreadEvent | None = None,
     daemon: bool = False,
-    baseline_first_poll: bool = False,
+    baseline_first_run: bool = False,
 ) -> Thread:
     thread = Thread(
         target=run_subscription,
@@ -297,7 +298,7 @@ def start_subscription(
             settings,
             subscription,
             stop_event,
-            baseline_first_poll,
+            baseline_first_run,
         ),
         daemon=daemon,
     )
@@ -312,7 +313,7 @@ def run_subscription(
     settings: dict[str, Any],
     subscription: Subscription,
     stop_event: ThreadEvent | None = None,
-    baseline_first_poll: bool = False,
+    baseline_first_run: bool = False,
 ) -> None:
     consecutive_failures = 0
     last_error_at: dict[str, float] = {}
@@ -323,7 +324,7 @@ def run_subscription(
             config=config,
             record_event=partial(
                 store.record,
-                pending=not (baseline_first_poll and first_run),
+                pending=not (baseline_first_run and first_run),
             ),
             integration=integration,
             settings=settings,

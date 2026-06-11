@@ -19,6 +19,7 @@ class Subscription:
     name: str
     run: Callable[["SubscriptionContext"], None]
     default_interval_seconds: float | None = None
+    baseline_first_run: bool = False
 
 
 @dataclass(frozen=True)
@@ -77,6 +78,7 @@ def poll_every(
             name=name,
             run=poll,
             default_interval_seconds=default_interval_seconds,
+            baseline_first_run=True,
         )
 
     return decorate
@@ -209,18 +211,6 @@ class MessagingClient(Protocol):
 
     async def apply_space(self, plan: SpacePlan, *, reset: bool = False) -> None: ...
 
-    async def reset_space(self) -> None: ...
-
-    async def ensure_section(self, *, name: str) -> SectionRef: ...
-
-    async def ensure_channel(
-        self,
-        *,
-        name: str,
-        section: str | None = None,
-        description: str | None = None,
-    ) -> ChannelRef: ...
-
     async def create_channel(
         self,
         *,
@@ -270,7 +260,6 @@ class MessagingClient(Protocol):
         thread_id: str | None = None,
         reply_to: str | None = None,
         attachments: list[str] | None = None,
-        force: bool = False,
     ) -> MessageRef: ...
 
     async def create_thread(
@@ -281,14 +270,6 @@ class MessagingClient(Protocol):
         text: str,
         attachments: list[str] | None = None,
     ) -> ThreadRef: ...
-
-    async def append_thread(
-        self,
-        *,
-        thread_id: str,
-        text: str,
-        attachments: list[str] | None = None,
-    ) -> MessageRef: ...
 
     async def list_threads(self, *, channel: str) -> list[ThreadRef]: ...
 

@@ -1,18 +1,16 @@
 from __future__ import annotations
 
 from keep_up_with.integrations.base import DataIntegration, IntegrationParameter
-from keep_up_with.integrations.data.reddit.subscription import posts
-from keep_up_with.integrations.data.reddit.tools import posts as posts_tool
-from keep_up_with.integrations.data.reddit.tools import search, thread
+from keep_up_with.integrations.data.reddit import subscription, tools
 
 
 def register(registry) -> None:
-    registry.data(
+    registry.add_data(
         DataIntegration(
             name="reddit",
             description="Search Reddit posts and threads.",
-            subscriptions=(posts,),
-            tools=(posts_tool, search, thread),
+            subscriptions=(subscription.posts,),
+            tools=(tools.posts, tools.search, tools.thread),
             required_env=(
                 "REDDIT_CLIENT_ID",
                 "REDDIT_CLIENT_SECRET",

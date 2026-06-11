@@ -11,23 +11,6 @@ from keep_up_with.core.config import get_config
 from keep_up_with.integrations.base import DataIntegration, Tool, ToolContext
 from keep_up_with.integrations.registry import data_integrations, missing_env
 
-app = typer.Typer(
-    add_completion=False,
-    invoke_without_command=True,
-    help="Use configured tools.",
-    no_args_is_help=False,
-)
-
-
-@app.callback(invoke_without_command=True)
-def main(ctx: typer.Context) -> None:
-    if ctx.invoked_subcommand is None:
-        if not configured_integrations:
-            typer.echo("No configured tools. Enable data connectors with `kuw setup`.")
-            raise typer.Exit()
-        typer.echo(ctx.get_help())
-        raise typer.Exit()
-
 
 def tool_command(integration: DataIntegration, tool: Tool) -> Callable[..., None]:
     def command(*args: Any, **kwargs: Any) -> None:
@@ -85,32 +68,44 @@ def resolved_signature(
     )
 
 
-try:
-    configured_integrations = data_integrations(get_config())
-except RuntimeError:
-    configured_integrations = []
+def build_tools_app() -> typer.Typer:
+    app = typer.Typer(
+        add_completion=False,
+        invoke_without_command=True,
+        help="Use configured tools.",
+        no_args_is_help=False,
+    )
+    try:
+        configured_integrations = data_integrations(get_config())
+    except RuntimeError:
+        configured_integrations = []
 
-for integration in configured_integrations:
-    if integration.tools:
-        help_text = integration.description or f"Use {integration.name} tools."
-        integration_app = typer.Typer(
-            add_completion=False,
-            invoke_without_command=True,
-            help=help_text,
-        )
-
-        @integration_app.callback(invoke_without_command=True)
-        def integration_main(ctx: typer.Context) -> None:
-            if ctx.invoked_subcommand is None:
-                typer.echo(ctx.get_help())
+    @app.callback(invoke_without_command=True)
+    def main(ctx: typer.Context) -> None:
+        if ctx.invoked_subcommand is None:
+            if not configured_integrations:
+                typer.echo("No configured tools. Enable data connectors with `kuw setup`.")
                 raise typer.Exit()
+            typer.echo(ctx.get_help())
+            raise typer.Exit()
 
-        for tool in integration.tools:
-            integration_app.command(tool.name, help=tool.help)(
-                tool_command(integration, tool)
+    for integration in configured_integrations:
+        if integration.tools:
+            help_text = integration.description or f"Use {integration.name} tools."
+            integration_app = typer.Typer(
+                add_completion=False,
+                invoke_without_command=True,
+                help=help_text,
+                no_args_is_help=True,
             )
-        app.add_typer(
-            integration_app,
-            name=integration.name,
-            help=help_text,
-        )
+
+            for tool in integration.tools:
+                integration_app.command(tool.name, help=tool.help)(
+                    tool_command(integration, tool)
+                )
+            app.add_typer(
+                integration_app,
+                name=integration.name,
+                help=help_text,
+            )
+    return app

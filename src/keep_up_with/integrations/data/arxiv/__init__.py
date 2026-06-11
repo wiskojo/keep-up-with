@@ -5,7 +5,7 @@ from keep_up_with.integrations.data.arxiv.tools import download
 
 
 def register(registry) -> None:
-    registry.data(
+    registry.add_data(
         DataIntegration(
             name="arxiv",
             description="Fetch arXiv PDFs, Markdown, source bundles, and figures.",

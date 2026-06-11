@@ -5,7 +5,7 @@ from keep_up_with.integrations.data.browser.tools import history
 
 
 def register(registry) -> None:
-    registry.data(
+    registry.add_data(
         DataIntegration(
             name="browser",
             description="Search local browser history.",

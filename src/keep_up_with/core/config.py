@@ -9,7 +9,7 @@ from typing import Any
 
 import tomli_w
 from dotenv import dotenv_values
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 
 @dataclass(frozen=True)
@@ -53,17 +53,7 @@ class KeepUpWithConfig:
 class MessagingSettings(BaseModel):
     model_config = ConfigDict(extra="allow", str_strip_whitespace=True)
 
-    integration: str = "discord"
-
-    @field_validator("integration", mode="before")
-    @classmethod
-    def required_integration(cls, value: Any) -> str:
-        if value is None or isinstance(value, bool) or not isinstance(value, (int, str)):
-            raise ValueError("required")
-        text = str(value).strip()
-        if not text:
-            raise ValueError("required")
-        return text
+    integration: str = Field(default="discord", min_length=1)
 
 
 class AppSettings(BaseModel):

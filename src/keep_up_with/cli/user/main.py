@@ -13,14 +13,8 @@ app = typer.Typer(
     add_completion=False,
     invoke_without_command=True,
     help="Local runtime for Keep Up With.",
+    no_args_is_help=True,
 )
-
-
-@app.callback(invoke_without_command=True)
-def main(ctx: typer.Context) -> None:
-    if ctx.invoked_subcommand is None:
-        typer.echo(ctx.get_help())
-        raise typer.Exit()
 
 
 @app.command(help="Configure Keep Up With for this machine.")
@@ -87,10 +81,7 @@ def status() -> None:
 
 
 def print_results(results) -> None:
-    labels = {
-        "gateway": "gateway",
-    }
     for result in results:
         pid = f" pid={result.pid}" if result.pid is not None else ""
         log = f" log={result.log}" if result.log else ""
-        ui.info(f"{labels.get(result.name, result.name)}: {result.action}{pid}{log}")
+        ui.info(f"{result.name}: {result.action}{pid}{log}")

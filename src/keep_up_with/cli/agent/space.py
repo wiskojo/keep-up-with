@@ -13,38 +13,20 @@ app = typer.Typer(
     add_completion=False,
     invoke_without_command=True,
     help="Manage channels and layout.",
+    no_args_is_help=True,
 )
 channels_app = typer.Typer(
     add_completion=False,
     invoke_without_command=True,
     help="Manage channels.",
+    no_args_is_help=True,
 )
 sections_app = typer.Typer(
     add_completion=False,
     invoke_without_command=True,
     help="Manage channel sections.",
+    no_args_is_help=True,
 )
-
-
-@app.callback(invoke_without_command=True)
-def main(ctx: typer.Context) -> None:
-    if ctx.invoked_subcommand is None:
-        typer.echo(ctx.get_help())
-        raise typer.Exit()
-
-
-@channels_app.callback(invoke_without_command=True)
-def channels_main(ctx: typer.Context) -> None:
-    if ctx.invoked_subcommand is None:
-        typer.echo(ctx.get_help())
-        raise typer.Exit()
-
-
-@sections_app.callback(invoke_without_command=True)
-def sections_main(ctx: typer.Context) -> None:
-    if ctx.invoked_subcommand is None:
-        typer.echo(ctx.get_help())
-        raise typer.Exit()
 
 
 @channels_app.command("list", help="List channels.")

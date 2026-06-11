@@ -3,6 +3,7 @@ from __future__ import annotations
 import discord
 
 from keep_up_with.integrations.base import SubscriptionContext, subscription
+from keep_up_with.integrations.messaging.discord.payloads import message_data
 
 
 @subscription("discord.messages")
@@ -19,7 +20,7 @@ def messages(ctx: SubscriptionContext) -> None:
     async def on_message(message) -> None:
         if message.author.bot or str(message.author.id) != user_id:
             return
-        data = _message_data(message)
+        data = message_data(message)
         data["reply_to"] = await _reply_context(message)
         text = " ".join(str(data.get("content") or "").split())
         if not text and data.get("attachments"):
@@ -43,7 +44,7 @@ def messages(ctx: SubscriptionContext) -> None:
         data = _reaction_data(payload)
         message = await _reaction_message(client, payload)
         if message is not None:
-            data["target_message"] = _message_data(message)
+            data["target_message"] = message_data(message)
         emoji = data.get("emoji") or data.get("emoji_name") or "reaction"
         ctx.emit(
             kind="reaction_add",
@@ -59,17 +60,6 @@ def messages(ctx: SubscriptionContext) -> None:
     client.run(token)
 
 
-def _message_data(message) -> dict:
-    return {
-        "message_id": str(message.id),
-        "channel_id": str(message.channel.id),
-        "author_id": str(message.author.id),
-        "author_name": str(message.author),
-        "content": message.content,
-        "attachments": [_attachment_data(attachment) for attachment in message.attachments],
-    }
-
-
 async def _reply_context(message) -> dict | None:
     reference = message.reference
     if reference is None or reference.message_id is None:
@@ -79,7 +69,7 @@ async def _reply_context(message) -> dict | None:
         "channel_id": str(reference.channel_id or message.channel.id),
     }
     if isinstance(reference.resolved, discord.Message):
-        context.update(_message_data(reference.resolved))
+        context.update(message_data(reference.resolved))
         return context
     fetch = getattr(message.channel, "fetch_message", None)
     if not callable(fetch):
@@ -88,7 +78,7 @@ async def _reply_context(message) -> dict | None:
         referenced = await fetch(int(reference.message_id))
     except (discord.Forbidden, discord.HTTPException, discord.NotFound):
         return context
-    context.update(_message_data(referenced))
+    context.update(message_data(referenced))
     return context
 
 
@@ -122,17 +112,3 @@ def _reaction_data(payload) -> dict:
     if payload.member is not None:
         data["user_name"] = str(payload.member)
     return data
-
-
-def _attachment_data(attachment) -> dict:
-    return {
-        "id": str(attachment.id),
-        "filename": attachment.filename,
-        "url": attachment.url,
-        "proxy_url": attachment.proxy_url,
-        "content_type": attachment.content_type,
-        "size": attachment.size,
-        "description": attachment.description,
-        "width": attachment.width,
-        "height": attachment.height,
-    }

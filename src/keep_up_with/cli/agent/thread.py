@@ -13,14 +13,8 @@ app = typer.Typer(
     add_completion=False,
     invoke_without_command=True,
     help="Create and update story threads.",
+    no_args_is_help=True,
 )
-
-
-@app.callback(invoke_without_command=True)
-def main(ctx: typer.Context) -> None:
-    if ctx.invoked_subcommand is None:
-        typer.echo(ctx.get_help())
-        raise typer.Exit()
 
 
 @app.command("create", help="Create a thread in a channel.")
@@ -68,7 +62,7 @@ def append_command(
     client = messaging_client(get_config())
     try:
         message = asyncio.run(
-            client.append_thread(
+            client.send_message(
                 thread_id=thread_id,
                 text=text,
                 attachments=attachment or [],

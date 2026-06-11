@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import os
 import signal
-import subprocess
 import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
 
+from keep_up_with.cli.user.codex_daemon import probe_codex_daemon
 from keep_up_with.core.config import KeepUpWithConfig
 
 STARTUP_CHECK_SECONDS = 0.5
@@ -58,17 +58,9 @@ def gateway_service(config: KeepUpWithConfig) -> Service:
 
 
 def require_codex_daemon() -> None:
-    result = subprocess.run(
-        ("codex", "app-server", "daemon", "version"),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        timeout=5,
-        check=False,
-    )
-    if result.returncode != 0:
-        detail = (result.stderr or result.stdout).strip()
-        suffix = f": {detail}" if detail else ""
+    probe = probe_codex_daemon()
+    if not probe.running:
+        suffix = f": {probe.detail}" if probe.detail else ""
         raise RuntimeError(
             "Codex app-server daemon is not running. "
             "Start it with `codex app-server daemon start`, then run `kuw start` again"

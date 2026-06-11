@@ -1,26 +1,25 @@
 from __future__ import annotations
 
 from keep_up_with.integrations.base import DataIntegration, IntegrationParameter
-from keep_up_with.integrations.data.youtube.subscription import videos as videos_subscription
-from keep_up_with.integrations.data.youtube.tools import (
-    channel,
-    clip,
-    download,
-    frames,
-    gif,
-    search,
-    transcript,
-    video,
-)
+from keep_up_with.integrations.data.youtube import subscription, tools
 
 
 def register(registry) -> None:
-    registry.data(
+    registry.add_data(
         DataIntegration(
             name="youtube",
             description="Search YouTube and fetch videos, transcripts, frames, and clips.",
-            subscriptions=(videos_subscription,),
-            tools=(search, channel, video, transcript, frames, download, clip, gif),
+            subscriptions=(subscription.videos,),
+            tools=(
+                tools.search,
+                tools.channel,
+                tools.video,
+                tools.transcript,
+                tools.frames,
+                tools.download,
+                tools.clip,
+                tools.gif,
+            ),
             required_env=("YOUTUBE_API_KEY",),
             parameters=(
                 IntegrationParameter(

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import cache
 from importlib import import_module
 from pkgutil import iter_modules
 
@@ -17,26 +18,26 @@ class IntegrationRegistry:
         self._data: dict[str, DataIntegration] = {}
         self._messaging: dict[str, MessagingIntegration] = {}
 
-    def data(self, integration: DataIntegration) -> None:
+    def add_data(self, integration: DataIntegration) -> None:
         if integration.name in self._data:
             raise ValueError(f"duplicate data integration: {integration.name}")
         self._data[integration.name] = integration
 
-    def messaging(self, integration: MessagingIntegration) -> None:
+    def add_messaging(self, integration: MessagingIntegration) -> None:
         if integration.name in self._messaging:
             raise ValueError(f"duplicate messaging integration: {integration.name}")
         self._messaging[integration.name] = integration
 
-    def data_values(self) -> tuple[DataIntegration, ...]:
+    def list_data(self) -> tuple[DataIntegration, ...]:
         return tuple(self._data.values())
 
-    def messaging_value(self, name: str) -> MessagingIntegration:
+    def get_messaging(self, name: str) -> MessagingIntegration:
         try:
             return self._messaging[name]
         except KeyError as error:
             raise ValueError(f"unknown messaging integration: {name}") from error
 
-    def messaging_values(self) -> tuple[MessagingIntegration, ...]:
+    def list_messaging(self) -> tuple[MessagingIntegration, ...]:
         return tuple(self._messaging.values())
 
 
@@ -58,21 +59,23 @@ def load_namespace(registry: IntegrationRegistry, package_name: str) -> None:
             register(registry)
 
 
-REGISTRY = build_registry()
+@cache
+def get_registry() -> IntegrationRegistry:
+    return build_registry()
 
 
 def available_data_integrations() -> tuple[DataIntegration, ...]:
-    return REGISTRY.data_values()
+    return get_registry().list_data()
 
 
 def available_messaging_integrations() -> tuple[MessagingIntegration, ...]:
-    return REGISTRY.messaging_values()
+    return get_registry().list_messaging()
 
 
 def data_integrations(config: KeepUpWithConfig) -> list[DataIntegration]:
     return [
         integration
-        for integration in REGISTRY.data_values()
+        for integration in get_registry().list_data()
         if config.integration_enabled(integration.name)
         and not missing_env(config, integration)
     ]
@@ -100,7 +103,7 @@ def messaging_integration(config: KeepUpWithConfig) -> MessagingIntegration:
 
 
 def configured_messaging_integration(config: KeepUpWithConfig) -> MessagingIntegration:
-    return REGISTRY.messaging_value(config.messaging().integration)
+    return get_registry().get_messaging(config.messaging().integration)
 
 
 def messaging_client(config: KeepUpWithConfig) -> MessagingClient:

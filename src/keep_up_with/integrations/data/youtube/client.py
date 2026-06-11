@@ -285,18 +285,7 @@ def frames(url: str, *, timestamps: list[str], output_dir: Path) -> list[dict[st
             "1",
             str(target),
         ]
-        try:
-            subprocess.run(
-                command,
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.PIPE,
-                text=True,
-            )
-        except subprocess.CalledProcessError as error:
-            lines = (error.stderr or "").strip().splitlines()
-            detail = lines[-1] if lines else "unknown ffmpeg error"
-            raise ValueError(f"ffmpeg failed at timestamp {timestamp}: {detail}") from error
+        run_ffmpeg(command, f"ffmpeg failed at timestamp {timestamp}")
         outputs.append({"timestamp": timestamp, "path": str(target)})
     return outputs
 

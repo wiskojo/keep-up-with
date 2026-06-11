@@ -13,14 +13,8 @@ app = typer.Typer(
     add_completion=False,
     invoke_without_command=True,
     help="Send and read messages.",
+    no_args_is_help=True,
 )
-
-
-@app.callback(invoke_without_command=True)
-def main(ctx: typer.Context) -> None:
-    if ctx.invoked_subcommand is None:
-        typer.echo(ctx.get_help())
-        raise typer.Exit()
 
 
 @app.command("send", help="Send a message. Defaults to DM.")
@@ -37,10 +31,6 @@ def send_command(
             help="File path to attach. Repeat for multiple files.",
         ),
     ] = None,
-    force: Annotated[
-        bool,
-        typer.Option(help="Send even when contention is detected."),
-    ] = False,
 ) -> None:
     client = messaging_client(get_config())
     try:
@@ -51,7 +41,6 @@ def send_command(
                 thread_id=thread_id,
                 reply_to=reply_to,
                 attachments=attachment or [],
-                force=force,
             )
         )
     except ValueError as error:

@@ -410,16 +410,8 @@ def space_sections(value: dict) -> list[SpaceSection]:
     sections = space.get("sections")
     if not isinstance(sections, list):
         return []
-    return [
-        SpaceSection(
-            key=str(section.get("key") or section.get("name") or "").strip(),
-            name=str(section.get("name") or section.get("key") or "").strip(),
-        )
-        for section in sections
-        if isinstance(section, dict)
-        and str(section.get("key") or section.get("name") or "").strip()
-        and str(section.get("name") or section.get("key") or "").strip()
-    ]
+    rows = [section_fields(section) for section in sections if isinstance(section, dict)]
+    return [SpaceSection(key=key, name=name) for key, name in rows if key and name]
 
 
 def space_channels(value: dict) -> list[SpaceChannel]:
@@ -429,19 +421,41 @@ def space_channels(value: dict) -> list[SpaceChannel]:
     channels = space.get("channels")
     if not isinstance(channels, list):
         return []
+    rows = [channel_fields(channel) for channel in channels if isinstance(channel, dict)]
     return [
         SpaceChannel(
-            key=str(channel.get("key") or channel.get("name") or "").strip(),
-            name=str(channel.get("name") or channel.get("key") or "").strip(),
-            section=str(channel.get("section") or "").strip(),
-            description=str(channel.get("description") or "").strip(),
+            key=key,
+            name=name,
+            section=section,
+            description=description,
         )
-        for channel in channels
-        if isinstance(channel, dict)
-        and str(channel.get("key") or channel.get("name") or "").strip()
-        and str(channel.get("name") or channel.get("key") or "").strip()
-        and str(channel.get("section") or "").strip()
+        for key, name, section, description in rows
+        if key and name and section
     ]
+
+
+def section_fields(section: dict) -> tuple[str, str]:
+    return (
+        text_field(section, "key", "name"),
+        text_field(section, "name", "key"),
+    )
+
+
+def channel_fields(channel: dict) -> tuple[str, str, str, str]:
+    return (
+        text_field(channel, "key", "name"),
+        text_field(channel, "name", "key"),
+        text_field(channel, "section"),
+        text_field(channel, "description"),
+    )
+
+
+def text_field(value: dict, *names: str) -> str:
+    for name in names:
+        text = str(value.get(name) or "").strip()
+        if text:
+            return text
+    return ""
 
 
 def preset_label(name: str) -> str:

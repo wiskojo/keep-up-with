@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +15,7 @@ from keep_up_with.integrations.base import (
     SpacePlan,
     ThreadRef,
 )
+from keep_up_with.integrations.messaging.discord.payloads import message_data
 
 DISCORD_MESSAGE_LIMIT = 2000
 
@@ -21,10 +24,20 @@ class DiscordMessagingClient:
     def __init__(self, context: MessagingContext) -> None:
         self.context = context
 
-    async def list_channels(self) -> list[ChannelRef]:
-        client = discord.Client(intents=discord.Intents.none())
+    @asynccontextmanager
+    async def _client(
+        self,
+        intents: discord.Intents | None = None,
+    ) -> AsyncIterator[discord.Client]:
+        client = discord.Client(intents=intents or discord.Intents.none())
         try:
             await client.login(self.context.env("DISCORD_BOT_TOKEN"))
+            yield client
+        finally:
+            await client.close()
+
+    async def list_channels(self) -> list[ChannelRef]:
+        async with self._client() as client:
             guild = await self._guild(client)
             channels = await guild.fetch_channels()
             sections_by_id = _sections_by_id(channels)
@@ -33,13 +46,9 @@ class DiscordMessagingClient:
                 for channel in channels
                 if isinstance(channel, discord.TextChannel)
             ]
-        finally:
-            await client.close()
 
     async def list_sections(self) -> list[SectionRef]:
-        client = discord.Client(intents=discord.Intents.none())
-        try:
-            await client.login(self.context.env("DISCORD_BOT_TOKEN"))
+        async with self._client() as client:
             guild = await self._guild(client)
             channels = await guild.fetch_channels()
             return [
@@ -47,8 +56,6 @@ class DiscordMessagingClient:
                 for channel in channels
                 if isinstance(channel, discord.CategoryChannel)
             ]
-        finally:
-            await client.close()
 
     async def create_channel(
         self,
@@ -59,9 +66,7 @@ class DiscordMessagingClient:
     ) -> ChannelRef:
         if not name.strip():
             raise ValueError("name is required")
-        client = discord.Client(intents=discord.Intents.none())
-        try:
-            await client.login(self.context.env("DISCORD_BOT_TOKEN"))
+        async with self._client() as client:
             guild = await self._guild(client)
             category = await self._section(guild, section, create=True) if section else None
             channel = await guild.create_text_channel(
@@ -71,13 +76,9 @@ class DiscordMessagingClient:
                 reason="Keep Up With space management",
             )
             return _channel_ref(channel, category=category)
-        finally:
-            await client.close()
 
     async def apply_space(self, plan: SpacePlan, *, reset: bool = False) -> None:
-        client = discord.Client(intents=discord.Intents.none())
-        try:
-            await client.login(self.context.env("DISCORD_BOT_TOKEN"))
+        async with self._client() as client:
             guild = await self._guild(client)
             channels = await guild.fetch_channels()
             if reset:
@@ -141,76 +142,11 @@ class DiscordMessagingClient:
                             updated if item.id == updated.id else item
                             for item in text_channels
                         ]
-        finally:
-            await client.close()
-
-    async def ensure_section(self, *, name: str) -> SectionRef:
-        client = discord.Client(intents=discord.Intents.none())
-        try:
-            await client.login(self.context.env("DISCORD_BOT_TOKEN"))
-            section = await self._section(await self._guild(client), name, create=True)
-            return _section_ref(section)
-        finally:
-            await client.close()
-
-    async def ensure_channel(
-        self,
-        *,
-        name: str,
-        section: str | None = None,
-        description: str | None = None,
-    ) -> ChannelRef:
-        if not name.strip():
-            raise ValueError("name is required")
-        client = discord.Client(intents=discord.Intents.none())
-        try:
-            await client.login(self.context.env("DISCORD_BOT_TOKEN"))
-            guild = await self._guild(client)
-            category = await self._section(guild, section, create=True) if section else None
-            channels = await guild.fetch_channels()
-            sections_by_id = _sections_by_id(channels)
-            text_channels = [
-                channel
-                for channel in channels
-                if isinstance(channel, discord.TextChannel)
-            ]
-            channel = _find_text_channel(text_channels, name, category=category)
-            if channel is None:
-                channel = _find_text_channel(text_channels, name)
-            if channel is None:
-                return await self._create_text_channel(
-                    guild,
-                    name=name,
-                    category=category,
-                    description=description,
-                )
-            changes: dict[str, Any] = {"reason": "Keep Up With space management"}
-            if category is not None and channel.category_id != category.id:
-                changes["category"] = category
-            if description and not (channel.topic or ""):
-                changes["topic"] = description[:1024] or None
-            if len(changes) > 1:
-                channel = await channel.edit(**changes) or channel
-            return _channel_ref(channel, sections_by_id, category=category)
-        finally:
-            await client.close()
-
-    async def reset_space(self) -> None:
-        client = discord.Client(intents=discord.Intents.none())
-        try:
-            await client.login(self.context.env("DISCORD_BOT_TOKEN"))
-            guild = await self._guild(client)
-            channels = await guild.fetch_channels()
-            await _delete_channels(channels)
-        finally:
-            await client.close()
 
     async def rename_channel(self, *, channel: str, name: str) -> ChannelRef:
         if not name.strip():
             raise ValueError("name is required")
-        client = discord.Client(intents=discord.Intents.none())
-        try:
-            await client.login(self.context.env("DISCORD_BOT_TOKEN"))
+        async with self._client() as client:
             target = await self._text_channel(client, channel)
             sections_by_id = _sections_by_id(await target.guild.fetch_channels())
             updated = await target.edit(
@@ -218,8 +154,6 @@ class DiscordMessagingClient:
                 reason="Keep Up With space management",
             )
             return _channel_ref(updated or target, sections_by_id)
-        finally:
-            await client.close()
 
     async def move_channel(
         self,
@@ -233,9 +167,7 @@ class DiscordMessagingClient:
             raise ValueError("use before or after, not both")
         if not section and not before and not after:
             raise ValueError("section, before, or after is required")
-        client = discord.Client(intents=discord.Intents.none())
-        try:
-            await client.login(self.context.env("DISCORD_BOT_TOKEN"))
+        async with self._client() as client:
             guild = await self._guild(client)
             target = await self._text_channel(client, channel)
             category = await self._section(guild, section, create=True) if section else None
@@ -257,38 +189,28 @@ class DiscordMessagingClient:
                 changes["position"] = position
             updated = await target.edit(**changes)
             return _channel_ref(updated or target, sections_by_id, category=category)
-        finally:
-            await client.close()
 
     async def create_section(self, *, name: str) -> SectionRef:
         if not name.strip():
             raise ValueError("name is required")
-        client = discord.Client(intents=discord.Intents.none())
-        try:
-            await client.login(self.context.env("DISCORD_BOT_TOKEN"))
+        async with self._client() as client:
             guild = await self._guild(client)
             section = await guild.create_category(
                 name=name[:100],
                 reason="Keep Up With space management",
             )
             return _section_ref(section)
-        finally:
-            await client.close()
 
     async def rename_section(self, *, section: str, name: str) -> SectionRef:
         if not name.strip():
             raise ValueError("name is required")
-        client = discord.Client(intents=discord.Intents.none())
-        try:
-            await client.login(self.context.env("DISCORD_BOT_TOKEN"))
+        async with self._client() as client:
             category = await self._section(await self._guild(client), section)
             updated = await category.edit(
                 name=name[:100],
                 reason="Keep Up With space management",
             )
             return _section_ref(updated or category)
-        finally:
-            await client.close()
 
     async def move_section(
         self,
@@ -301,9 +223,7 @@ class DiscordMessagingClient:
             raise ValueError("use before or after, not both")
         if not before and not after:
             raise ValueError("before or after is required")
-        client = discord.Client(intents=discord.Intents.none())
-        try:
-            await client.login(self.context.env("DISCORD_BOT_TOKEN"))
+        async with self._client() as client:
             guild = await self._guild(client)
             target = await self._section(guild, section)
             anchor = await self._section(guild, before or after or "")
@@ -313,8 +233,6 @@ class DiscordMessagingClient:
                 reason="Keep Up With space management",
             )
             return _section_ref(updated or target)
-        finally:
-            await client.close()
 
     async def list_messages(
         self,
@@ -325,13 +243,11 @@ class DiscordMessagingClient:
         query: str | None = None,
         author: str | None = None,
     ) -> list[dict[str, Any]]:
-        client = discord.Client(intents=_message_intents())
-        try:
-            await client.login(self.context.env("DISCORD_BOT_TOKEN"))
+        async with self._client(_message_intents()) as client:
             target = await self._message_target(client, channel=channel, thread_id=thread_id)
             messages = []
             async for message in target.history(limit=limit):
-                data = _message_data(message)
+                data = message_data(message)
                 if query and query.lower() not in data["content"].lower():
                     continue
                 if author:
@@ -343,8 +259,6 @@ class DiscordMessagingClient:
                         continue
                 messages.append(data)
             return list(reversed(messages))
-        finally:
-            await client.close()
 
     async def send_message(
         self,
@@ -354,32 +268,32 @@ class DiscordMessagingClient:
         thread_id: str | None = None,
         reply_to: str | None = None,
         attachments: list[str] | None = None,
-        force: bool = False,
     ) -> MessageRef:
-        del force
         if not text and not attachments:
             raise ValueError("text or attachment is required")
         _validate_message_text(text)
-        client = discord.Client(intents=discord.Intents.none())
         files = [_file(path) for path in attachments or []]
         try:
-            await client.login(self.context.env("DISCORD_BOT_TOKEN"))
-            target = await self._message_target(client, channel=channel, thread_id=thread_id)
-            reference = await _fetch_message(target, reply_to) if reply_to else None
-            try:
-                message = await target.send(
-                    content=text or None,
-                    files=files or None,
-                    reference=reference,
-                    mention_author=False,
+            async with self._client() as client:
+                target = await self._message_target(
+                    client,
+                    channel=channel,
+                    thread_id=thread_id,
                 )
-            except discord.HTTPException as error:
-                raise ValueError(_discord_error(error)) from error
-            return _message_ref(message)
+                reference = await _fetch_message(target, reply_to) if reply_to else None
+                try:
+                    message = await target.send(
+                        content=text or None,
+                        files=files or None,
+                        reference=reference,
+                        mention_author=False,
+                    )
+                except discord.HTTPException as error:
+                    raise ValueError(_discord_error(error)) from error
+                return _message_ref(message)
         finally:
             for file in files:
                 file.close()
-            await client.close()
 
     async def create_thread(
         self,
@@ -394,52 +308,35 @@ class DiscordMessagingClient:
         user_id = str(self.context.settings()["user_id"])
         content = _with_user_mention(text, user_id)
         _validate_message_text(content)
-        client = discord.Client(intents=discord.Intents.none())
         files = [_file(path) for path in attachments or []]
         try:
-            await client.login(self.context.env("DISCORD_BOT_TOKEN"))
-            parent = await self._text_channel(client, channel)
-            thread = await parent.create_thread(
-                name=title[:100],
-                type=discord.ChannelType.public_thread,
-                reason="Keep Up With thread",
-            )
-            try:
-                await thread.send(
-                    content=content,
-                    files=files or None,
-                    allowed_mentions=_user_allowed_mentions(user_id),
+            async with self._client() as client:
+                parent = await self._text_channel(client, channel)
+                thread = await parent.create_thread(
+                    name=title[:100],
+                    type=discord.ChannelType.public_thread,
+                    reason="Keep Up With thread",
                 )
-            except discord.HTTPException as error:
-                raise ValueError(_discord_error(error)) from error
-            return ThreadRef(
-                id=str(thread.id),
-                name=thread.name,
-                channel_id=str(parent.id),
-                url=f"https://discord.com/channels/{parent.guild.id}/{thread.id}",
-            )
+                try:
+                    await thread.send(
+                        content=content,
+                        files=files or None,
+                        allowed_mentions=_user_allowed_mentions(user_id),
+                    )
+                except discord.HTTPException as error:
+                    raise ValueError(_discord_error(error)) from error
+                return ThreadRef(
+                    id=str(thread.id),
+                    name=thread.name,
+                    channel_id=str(parent.id),
+                    url=f"https://discord.com/channels/{parent.guild.id}/{thread.id}",
+                )
         finally:
             for file in files:
                 file.close()
-            await client.close()
-
-    async def append_thread(
-        self,
-        *,
-        thread_id: str,
-        text: str,
-        attachments: list[str] | None = None,
-    ) -> MessageRef:
-        return await self.send_message(
-            text=text,
-            thread_id=thread_id,
-            attachments=attachments,
-        )
 
     async def list_threads(self, *, channel: str) -> list[ThreadRef]:
-        client = discord.Client(intents=discord.Intents.none())
-        try:
-            await client.login(self.context.env("DISCORD_BOT_TOKEN"))
+        async with self._client() as client:
             parent = await self._text_channel(client, channel)
             threads = [
                 thread
@@ -461,13 +358,9 @@ class DiscordMessagingClient:
                 )
                 for thread in unique_threads.values()
             ]
-        finally:
-            await client.close()
 
     async def show_thread(self, *, thread_id: str, limit: int) -> dict[str, Any]:
-        client = discord.Client(intents=_message_intents())
-        try:
-            await client.login(self.context.env("DISCORD_BOT_TOKEN"))
+        async with self._client(_message_intents()) as client:
             try:
                 channel = await client.fetch_channel(int(thread_id))
             except discord.NotFound as error:
@@ -476,15 +369,13 @@ class DiscordMessagingClient:
                 raise ValueError(f"not a Discord thread: {thread_id}")
             messages = []
             async for message in channel.history(limit=limit):
-                messages.append(_message_data(message))
+                messages.append(message_data(message))
             return {
                 "id": str(channel.id),
                 "name": channel.name,
                 "parent_id": str(channel.parent_id or ""),
                 "messages": list(reversed(messages)),
             }
-        finally:
-            await client.close()
 
     async def _message_target(
         self,
@@ -678,19 +569,6 @@ def _section_ref(section: discord.CategoryChannel) -> SectionRef:
     )
 
 
-def _message_data(message: discord.Message) -> dict[str, Any]:
-    return {
-        "message_id": str(message.id),
-        "channel_id": str(message.channel.id),
-        "author_id": str(message.author.id),
-        "author_name": str(message.author),
-        "content": message.content,
-        "url": message.jump_url,
-        "attachments": [_attachment_data(item) for item in message.attachments],
-        "created_at": message.created_at.isoformat(),
-    }
-
-
 def _with_user_mention(text: str, user_id: str) -> str:
     mention = f"<@{user_id}>"
     if mention in text or f"<@!{user_id}>" in text:
@@ -707,20 +585,6 @@ def _user_allowed_mentions(user_id: str) -> discord.AllowedMentions:
         everyone=False,
         replied_user=False,
     )
-
-
-def _attachment_data(attachment: discord.Attachment) -> dict[str, Any]:
-    return {
-        "id": str(attachment.id),
-        "filename": attachment.filename,
-        "url": attachment.url,
-        "proxy_url": attachment.proxy_url,
-        "content_type": attachment.content_type,
-        "size": attachment.size,
-        "description": attachment.description,
-        "width": attachment.width,
-        "height": attachment.height,
-    }
 
 
 def _validate_message_text(text: str) -> None:

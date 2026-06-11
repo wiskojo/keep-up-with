@@ -2,15 +2,15 @@ from __future__ import annotations
 
 import getpass
 import os
+import re
 import select as select_api
 import shutil
 import sys
 import termios
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import TypeVar
 
-T = TypeVar("T")
+ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 
 
 @dataclass(frozen=True)
@@ -98,7 +98,7 @@ def pause(message: str = "Press Enter to continue") -> None:
     input(f"{dim(_symbol('line'))} {dim(message)}")
 
 
-def select(title: str, choices: Sequence[Choice[T]], default: T | None = None) -> T:
+def select[T](title: str, choices: Sequence[Choice[T]], default: T | None = None) -> T:
     if not choices:
         raise ValueError("select requires at least one choice")
     if _interactive_enabled():
@@ -106,7 +106,7 @@ def select(title: str, choices: Sequence[Choice[T]], default: T | None = None) -
     return _numbered_select(title, choices, default)
 
 
-def multiselect(
+def multiselect[T](
     title: str,
     choices: Sequence[Choice[T]],
     selected: set[T] | None = None,
@@ -285,7 +285,7 @@ def _interactive_enabled() -> bool:
     )
 
 
-def _interactive_select(
+def _interactive_select[T](
     title: str,
     choices: Sequence[Choice[T]],
     default: T | None,
@@ -328,7 +328,7 @@ def _interactive_select(
     return chosen if chosen is not None else choices[index].value
 
 
-def _interactive_multiselect(
+def _interactive_multiselect[T](
     title: str,
     choices: Sequence[Choice[T]],
     selected: set[T],
@@ -375,7 +375,7 @@ def _interactive_multiselect(
     return values
 
 
-def _default_index(choices: Sequence[Choice[T]], default: T | None) -> int:
+def _default_index[T](choices: Sequence[Choice[T]], default: T | None) -> int:
     return next(
         (i for i, item in enumerate(choices) if item.value == default),
         0,
@@ -391,7 +391,7 @@ def _enter_raw_mode(fd: int, current: list) -> None:
     termios.tcsetattr(fd, termios.TCSADRAIN, new)
 
 
-def _render_select(
+def _render_select[T](
     title: str,
     choices: Sequence[Choice[T]],
     active: int,
@@ -405,7 +405,7 @@ def _render_select(
     return _render_lines(lines, previous_lines)
 
 
-def _render_multiselect(
+def _render_multiselect[T](
     title: str,
     choices: Sequence[Choice[T]],
     selected: set[T],
@@ -425,7 +425,7 @@ def _render_multiselect(
     return _render_lines(lines, previous_lines)
 
 
-def _choice_lines(choices: Sequence[Choice[T]], active: int) -> list[str]:
+def _choice_lines[T](choices: Sequence[Choice[T]], active: int) -> list[str]:
     lines = []
     for index, choice in enumerate(choices):
         pointer = accent("❯") if index == active else " "
@@ -464,12 +464,31 @@ def _clear_rendered_lines(line_count: int) -> None:
 
 
 def _truncate(line: str, width: int) -> str:
-    if len(line) <= width:
+    if width <= 0:
+        return ""
+    if len(ANSI_ESCAPE_RE.sub("", line)) <= width:
         return line
-    return line[: max(0, width - 1)]
+    parts: list[str] = []
+    visible = 0
+    position = 0
+    for match in ANSI_ESCAPE_RE.finditer(line):
+        if match.start() > position:
+            text = line[position : match.start()]
+            remaining = width - visible
+            if remaining <= 0:
+                break
+            parts.append(text[:remaining])
+            visible += min(len(text), remaining)
+            if len(text) >= remaining:
+                break
+        parts.append(match.group())
+        position = match.end()
+    if visible < width and position < len(line):
+        parts.append(line[position : position + width - visible])
+    return "".join(parts)
 
 
-def _toggle(values: set[T], value: T) -> None:
+def _toggle[T](values: set[T], value: T) -> None:
     if value in values:
         values.remove(value)
     else:
@@ -502,7 +521,11 @@ def _stdin_ready(fd: int, timeout: float) -> bool:
     return bool(ready)
 
 
-def _numbered_select(title: str, choices: Sequence[Choice[T]], default: T | None) -> T:
+def _numbered_select[T](
+    title: str,
+    choices: Sequence[Choice[T]],
+    default: T | None,
+) -> T:
     header(title)
     default_index = next(
         (i + 1 for i, item in enumerate(choices) if item.value == default),
@@ -526,7 +549,7 @@ def _numbered_select(title: str, choices: Sequence[Choice[T]], default: T | None
         warning("Enter a number from the list.")
 
 
-def _numbered_multiselect(
+def _numbered_multiselect[T](
     title: str,
     choices: Sequence[Choice[T]],
     selected: set[T],

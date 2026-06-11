@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import json
 import sqlite3
-import subprocess
 
 from keep_up_with.cli.user import ui
+from keep_up_with.cli.user.codex_daemon import probe_codex_daemon
 from keep_up_with.cli.user.start import Service, is_running, pid_path, services
 from keep_up_with.core.config import KeepUpWithConfig
 from keep_up_with.integrations.registry import (
@@ -13,10 +13,6 @@ from keep_up_with.integrations.registry import (
     missing_env,
 )
 
-SERVICE_LABELS = {
-    "gateway": "gateway",
-}
-
 
 def run_status(config: KeepUpWithConfig) -> None:
     ui.header("Runtime")
@@ -24,7 +20,7 @@ def run_status(config: KeepUpWithConfig) -> None:
     for service in services(config):
         pid = read_running_pid(config, service)
         state = f"running pid={pid}" if pid is not None else "stopped"
-        ui.info(f"{SERVICE_LABELS.get(service.name, service.name)}: {state}")
+        ui.info(f"{service.name}: {state}")
     ui.info(f"thread: {thread_status(config)}")
     ui.info(f"events: {event_status(config)}")
 
@@ -65,26 +61,10 @@ def connector_details(config: KeepUpWithConfig, integration) -> str:
 
 
 def codex_daemon_status() -> str:
-    try:
-        result = subprocess.run(
-            ("codex", "app-server", "daemon", "version"),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            timeout=5,
-            check=False,
-        )
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        return "unreachable"
-    if result.returncode != 0:
-        detail = (result.stderr or result.stdout).strip()
-        return f"unreachable ({detail})" if detail else "unreachable"
-    try:
-        data = json.loads(result.stdout)
-    except json.JSONDecodeError:
-        return "running"
-    version = data.get("serverVersion") or data.get("version") or ""
-    return f"running {version}".strip()
+    probe = probe_codex_daemon()
+    if not probe.running:
+        return f"unreachable ({probe.detail})" if probe.detail else "unreachable"
+    return f"running {probe.version}".strip()
 
 
 def thread_status(config: KeepUpWithConfig) -> str:

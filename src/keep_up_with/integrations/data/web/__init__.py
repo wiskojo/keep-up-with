@@ -5,7 +5,7 @@ from keep_up_with.integrations.data.web.subscription import items
 
 
 def register(registry) -> None:
-    registry.data(
+    registry.add_data(
         DataIntegration(
             name="web",
             description="Watch RSS feeds and web pages.",

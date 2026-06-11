@@ -14,14 +14,8 @@ app = typer.Typer(
     add_completion=False,
     invoke_without_command=True,
     help="Read the durable event history.",
+    no_args_is_help=True,
 )
-
-
-@app.callback(invoke_without_command=True)
-def main(ctx: typer.Context) -> None:
-    if ctx.invoked_subcommand is None:
-        typer.echo(ctx.get_help())
-        raise typer.Exit()
 
 
 @app.command("list", help="Print events as JSONL, oldest first.")
