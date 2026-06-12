@@ -5,7 +5,7 @@ import socket
 import sys
 import time
 import traceback
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
 from textwrap import dedent
@@ -28,6 +28,7 @@ ERROR_EVENT_SECONDS = 6 * 60 * 60
 CONFIG_CHECK_SECONDS = 3.0
 HIGH_WAKE_DELAY_SECONDS = 5.0
 LOW_WAKE_DELAY_SECONDS = 30.0
+ROTATE_CONTEXT_USED_FRACTION = 0.75
 DEFAULT_WAKE_SUMMARY_LIMIT = 700
 WAKE_SUMMARY_LIMITS = {
     ("discord", "message"): 1200,
@@ -56,6 +57,8 @@ class CodexState:
     active_turn_id: str | None = None
     high_queued_at: float | None = None
     low_queued_at: float | None = None
+    context_used: float = 0.0
+    previous_thread_ids: list[str] = field(default_factory=list)
 
 
 def main() -> None:
@@ -76,16 +79,17 @@ def run_gateway(config: KeepUpWithConfig) -> None:
     client.connect()
     try:
         initialize(client)
-        state.thread_id, created = ensure_thread(config, client, state.thread_id)
+        first_message = ensure_thread(config, client, state)
         write_thread_state(config.paths.thread, state, config.settings.app.thread_name)
-        if created:
-            start_turn(client, state, initial_turn_message(config))
+        if first_message:
+            start_turn(client, state, first_message)
 
         start_messaging(config, store)
         reconcile_data(config, store, running)
         while True:
             drain(client, state)
             wake_on_inbox(
+                config,
                 client,
                 state,
                 store,
@@ -128,26 +132,104 @@ def initialize(client: JsonRpcClient) -> None:
 def ensure_thread(
     config: KeepUpWithConfig,
     client: JsonRpcClient,
-    thread_id: str | None,
-) -> tuple[str, bool]:
+    state: CodexState,
+) -> str | None:
+    """Resume or create the main thread; returns the first turn message, if any.
+
+    The main thread is a chain: each rotation or recovery starts a fresh thread
+    that points back at the previous one. The startup greeting is sent only
+    when the workspace has no threads at all (fresh install or after reset).
+    """
     params = thread_params(config)
-    if thread_id:
+    candidate = state.thread_id or latest_workspace_thread_id(config, client)
+    if candidate:
         try:
-            result = client.request("thread/resume", {"threadId": thread_id, **params})
-            current_thread_id = str(result["thread"]["id"])
-            archive_workspace_threads(config, client, keep_thread_id=current_thread_id)
-            return current_thread_id, False
+            result = client.request("thread/resume", {"threadId": candidate, **params})
+            state.thread_id = str(result["thread"]["id"])
+            archive_stray_threads(config, client, state)
+            return None
         except RuntimeError as error:
             print(
-                f"gateway could not resume thread {thread_id}: {error}",
+                f"gateway could not resume thread {candidate}: {error}",
                 file=sys.stderr,
                 flush=True,
             )
-    archive_workspace_threads(config, client)
     result = client.request("thread/start", params)
-    current_thread_id = str(result["thread"]["id"])
-    archive_workspace_threads(config, client, keep_thread_id=current_thread_id)
-    return current_thread_id, True
+    state.thread_id = str(result["thread"]["id"])
+    if candidate:
+        state.previous_thread_ids.append(candidate)
+    state.context_used = 0.0
+    name_thread(client, state.thread_id)
+    archive_stray_threads(config, client, state)
+    if candidate is None:
+        return initial_turn_message(config)
+    return continuation_turn_message(candidate)
+
+
+def rotate_thread_if_due(
+    config: KeepUpWithConfig,
+    client: JsonRpcClient,
+    state: CodexState,
+) -> str | None:
+    """Rotate to a fresh thread before codex compacts the current one.
+
+    Called on the wake path right before a turn starts, so the next wake lands
+    on the new thread with the continuation pointer prepended. Returns the
+    continuation message to prepend, or None when no rotation was needed.
+    """
+    # Codex auto-compacts somewhere around 80-95% of the context window; rotate to
+    # a fresh thread comfortably before that so compaction never gets a chance to
+    # replay stale history into the model's context.
+    if state.thread_id is None or state.context_used < ROTATE_CONTEXT_USED_FRACTION:
+        return None
+
+    previous_thread_id = state.thread_id
+    result = client.request("thread/start", thread_params(config))
+    state.thread_id = str(result["thread"]["id"])
+    state.previous_thread_ids.append(previous_thread_id)
+    state.context_used = 0.0
+    name_thread(client, state.thread_id)
+    write_thread_state(config.paths.thread, state, config.settings.app.thread_name)
+    print(
+        f"gateway rotated thread {previous_thread_id} -> {state.thread_id}",
+        file=sys.stderr,
+        flush=True,
+    )
+    return continuation_turn_message(previous_thread_id)
+
+
+def latest_workspace_thread_id(
+    config: KeepUpWithConfig,
+    client: JsonRpcClient,
+) -> str | None:
+    threads = workspace_threads(config, client)
+    if not threads:
+        return None
+    threads.sort(key=lambda thread: str(thread.get("updatedAt") or ""), reverse=True)
+    thread_id = str(threads[0].get("id") or "")
+    return thread_id or None
+
+
+def name_thread(client: JsonRpcClient, thread_id: str) -> None:
+    try:
+        client.request(
+            "thread/name/set",
+            {"threadId": thread_id, "name": time.strftime("%Y-%m-%d %H:%M")},
+        )
+    except RuntimeError as error:
+        print(f"gateway could not name thread: {error}", file=sys.stderr, flush=True)
+
+
+def archive_stray_threads(
+    config: KeepUpWithConfig,
+    client: JsonRpcClient,
+    state: CodexState,
+) -> None:
+    keep = {state.thread_id, *state.previous_thread_ids}
+    for thread in workspace_threads(config, client):
+        thread_id = str(thread.get("id") or "")
+        if thread_id and thread_id not in keep:
+            client.request("thread/archive", {"threadId": thread_id})
 
 
 def archive_workspace_threads(
@@ -219,6 +301,10 @@ def initial_turn_message(config: KeepUpWithConfig) -> str:
 
         If notifications arrive while you are getting situated, finish situating first."""
     ).strip()
+
+
+def continuation_turn_message(previous_thread_id: str) -> str:
+    return f"This thread continues your previous conversation thread `{previous_thread_id}`."
 
 
 def start_messaging(config: KeepUpWithConfig, store: EventStore) -> None:
@@ -375,11 +461,22 @@ def drain(client: JsonRpcClient, state: CodexState) -> None:
             turn = params.get("turn", {})
             if turn.get("id") == state.active_turn_id:
                 state.active_turn_id = None
+        elif method == "thread/tokenUsage/updated":
+            if params.get("threadId") == state.thread_id:
+                state.context_used = context_used_fraction(params) or state.context_used
+        elif method == "thread/compacted":
+            if params.get("threadId") == state.thread_id:
+                print(
+                    "gateway: codex compacted the main thread before rotation",
+                    file=sys.stderr,
+                    flush=True,
+                )
         elif method == "error":
             print(f"gateway app-server error: {params}", file=sys.stderr, flush=True)
 
 
 def wake_on_inbox(
+    config: KeepUpWithConfig,
     client: JsonRpcClient,
     state: CodexState,
     store: EventStore,
@@ -404,16 +501,17 @@ def wake_on_inbox(
         state.low_queued_at = now
 
     if high_items and due(state.high_queued_at, now, high_delay_seconds):
-        send_wake(client, state, store, high_items)
+        send_wake(config, client, state, store, high_items)
         state.high_queued_at = None
         return
 
     if low_items and due(state.low_queued_at, now, low_delay_seconds):
-        send_wake(client, state, store, low_items)
+        send_wake(config, client, state, store, low_items)
         state.low_queued_at = None
 
 
 def send_wake(
+    config: KeepUpWithConfig,
     client: JsonRpcClient,
     state: CodexState,
     store: EventStore,
@@ -422,6 +520,9 @@ def send_wake(
     if state.thread_id is None:
         raise RuntimeError("cannot wake without thread id")
     text = render_wake(items, len(store.list_inbox()))
+    continuation = rotate_thread_if_due(config, client, state)
+    if continuation:
+        text = f"{continuation}\n\n{text}"
     start_turn(client, state, text)
     store.mark_notified([item.event.id for item in items])
 
@@ -461,12 +562,32 @@ def due(queued_at: float | None, now: float, delay: float) -> bool:
     return queued_at is not None and now - queued_at >= delay
 
 
+def context_used_fraction(params: dict[str, Any]) -> float | None:
+    usage = params.get("tokenUsage")
+    if not isinstance(usage, dict):
+        return None
+    window = usage.get("modelContextWindow")
+    last = usage.get("last")
+    if not window or not isinstance(last, dict):
+        return None
+    used = last.get("inputTokens")
+    if not used:
+        return None
+    return float(used) / float(window)
+
+
 def read_thread_state(path: Path) -> CodexState:
     try:
         data = json.loads(path.read_text())
     except (FileNotFoundError, json.JSONDecodeError):
         return CodexState()
-    return CodexState(thread_id=data.get("thread_id"))
+    previous = data.get("previous_thread_ids")
+    return CodexState(
+        thread_id=data.get("thread_id"),
+        previous_thread_ids=[str(item) for item in previous]
+        if isinstance(previous, list)
+        else [],
+    )
 
 
 def write_thread_state(path: Path, state: CodexState, name: str) -> None:
@@ -475,6 +596,7 @@ def write_thread_state(path: Path, state: CodexState, name: str) -> None:
         json.dumps(
             {
                 "thread_id": state.thread_id,
+                "previous_thread_ids": state.previous_thread_ids,
                 "name": name,
             },
             indent=2,
