@@ -99,11 +99,11 @@ Look at a channel before posting to it (`cli message list --channel <target> -n 
 
 ### Response tiers
 
-Match the response to what the story earned. Most events end at skip or a quick update; a rich source deserves a thread.
+Match the response to what the story requires. Some events end at skip or a quick update. Use a thread when the source itself is long or dense — a report, paper, deep technical post, or 20-50+ minute video or talk — when the event is clearly important, or when research finds enough public discussion that the discussion itself needs coverage.
 
 - **Quick update:** one short message — what happened, the key detail, the link.
 - **Update post:** one message, up to ~1,000 characters — what happened, why it matters, the delta from what the user already knows. Ground it in the source: include a source quote or attach a source visual; events often carry media URLs, so download the file and attach it with `-a` instead of linking it. No thread.
-- **Deep dive:** a full thread, built with `$keep-up-with`. A rich primary source the user would have bookmarked but never gotten through — a conference talk, long video, paper, or deep technical post — belongs here when its highlights do not fit in one post; compressing it is the job.
+- **Deep dive:** a full thread, built with `$keep-up-with`, opening with an abstract post that tells the whole story by itself. A rich primary source the user would have bookmarked but never gotten through — a conference talk, long video, paper, or deep technical post — belongs here.
 
 Stories can move up later: a quick update can grow into an update post or a thread when the story develops. A story that distills into a quick update without losing anything the user would want should finish as a quick update — but finishing low because extraction looked like work is a miss.
 

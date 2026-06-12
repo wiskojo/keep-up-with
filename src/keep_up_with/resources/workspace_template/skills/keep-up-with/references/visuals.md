@@ -6,7 +6,9 @@ Use visuals extracted from source material only.
 
 A visual should help verify, explain, or make a specific highlight easier to scan. It should come from the event itself or from material discovered during research: source pages, papers, repos, docs, dashboards, posts, comments, videos, demos, slides, screenshots, charts, tables, diagrams, thumbnails, GIFs, or frames.
 
-Do not create custom graphics for now. Do not make generated images, synthetic charts, SVG summaries, new diagrams, timelines, maps, tables, or visual reinterpretations. If the sources do not contain a useful visual, write the post without a visual.
+Default to inclusion. Every useful visual in the source material belongs in the output — if a source offers ten useful figures, use all ten. The bar is per-visual quality: readable, relevant, tied to a specific claim. Never ration by count.
+
+Do not create custom graphics for now. Do not make generated images, synthetic charts, SVG summaries, new diagrams, timelines, maps, tables, or visual reinterpretations. If the sources do not contain a useful visual, ground the post in source quotes instead — one or many, interleaved with the commentary the way visuals would be.
 
 ## Inventory
 
@@ -102,3 +104,5 @@ Final assets should be direct source extracts or crops:
 - paper figures, leaderboard crops, screenshots of comments, or issue excerpts
 
 Before using a visual, inspect it at full size and thumbnail size. It should be readable, relevant, and connected to the surrounding text. If it is only decorative, cut it.
+
+Attach each visual to the post whose claim it supports.
