@@ -298,11 +298,7 @@ class DiscordMessagingClient:
         thread_id: str | None = None,
         reply_to: str | None = None,
         attachments: list[str] | None = None,
-        mention_user: bool = False,
     ) -> MessageRef:
-        user_id = str(self.context.settings()["user_id"]) if mention_user else None
-        if user_id:
-            text = _with_user_mention(text, user_id)
         if not text and not attachments:
             raise ValueError("text or attachment is required")
         _validate_message_text(text)
@@ -321,9 +317,7 @@ class DiscordMessagingClient:
                         files=files or None,
                         reference=reference,
                         mention_author=False,
-                        allowed_mentions=_user_allowed_mentions(user_id)
-                        if user_id
-                        else discord.utils.MISSING,
+                        allowed_mentions=discord.AllowedMentions.none(),
                     )
                 except discord.HTTPException as error:
                     raise ValueError(_discord_error(error)) from error
@@ -386,13 +380,14 @@ class DiscordMessagingClient:
         async with self._client() as client:
             parent = await self._text_channel(client, channel)
             try:
+                user_id = str(self.context.settings()["user_id"])
                 if from_message:
                     starter = await _fetch_message(parent, from_message)
                     existing = getattr(starter, "thread", None)
                     if existing is not None:
                         raise ValueError(
                             f"message already has a thread: {existing.id}; use thread append"
-                        )
+                    )
                     thread_posts = list(posts)
                 else:
                     first_post = posts[0]
@@ -413,26 +408,21 @@ class DiscordMessagingClient:
                     reason="keep-up-with thread",
                 )
 
-                # The plain create is announced by its starter message in the
-                # channel; a conversion adds no channel message, so the user is
-                # mentioned on the last post to get pinged.
-                user_id = str(self.context.settings()["user_id"])
-                for index, post in enumerate(thread_posts, start=1):
-                    text = post.text
-                    allowed_mentions = discord.AllowedMentions.none()
-                    if from_message and index == len(thread_posts):
-                        text = _with_user_mention(text, user_id)
-                        allowed_mentions = _user_allowed_mentions(user_id)
+                for post in thread_posts:
                     files = [_file(path) for path in post.attachments]
                     try:
                         await thread.send(
-                            content=text or None,
+                            content=post.text or None,
                             files=files or None,
-                            allowed_mentions=allowed_mentions,
+                            allowed_mentions=discord.AllowedMentions.none(),
                         )
                     finally:
                         for file in files:
                             file.close()
+                await thread.send(
+                    content=f"<@{user_id}>",
+                    allowed_mentions=_user_allowed_mentions(user_id),
+                )
             except discord.HTTPException as error:
                 raise ValueError(_discord_error(error)) from error
             return ThreadRef(
@@ -845,15 +835,6 @@ def _section_ref(section: discord.CategoryChannel) -> SectionRef:
         name=section.name,
         position=section.position,
     )
-
-
-def _with_user_mention(text: str, user_id: str) -> str:
-    mention = f"<@{user_id}>"
-    if mention in text or f"<@!{user_id}>" in text:
-        return text
-    if not text.strip():
-        return mention
-    return f"{text.rstrip()}\n\n{mention}"
 
 
 def _user_allowed_mentions(user_id: str) -> discord.AllowedMentions:

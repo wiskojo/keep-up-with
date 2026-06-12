@@ -118,7 +118,7 @@ def build_posts(texts: list[str], attachments: list[str]) -> list[ThreadPost]:
     ]
 
 
-@app.command("append", help="Append a message to a thread; mentions the user so they get pinged")
+@app.command("append", help="Append a message to a thread")
 def append_command(
     thread_id: Annotated[str, typer.Option(help="Thread id")],
     text: Annotated[str, typer.Option("--text", "-t", help="Message text")] = "",
@@ -130,13 +130,6 @@ def append_command(
             help="File path to attach, repeat for multiple files",
         ),
     ] = None,
-    no_mention: Annotated[
-        bool,
-        typer.Option(
-            "--no-mention",
-            help="Skip the automatic user mention; use on all but the last post of a multi-post update",
-        ),
-    ] = False,
 ) -> None:
     client = messaging_client(get_config())
     try:
@@ -145,7 +138,6 @@ def append_command(
                 thread_id=thread_id,
                 text=text,
                 attachments=attachment or [],
-                mention_user=not no_mention,
             )
         )
     except ValueError as error:

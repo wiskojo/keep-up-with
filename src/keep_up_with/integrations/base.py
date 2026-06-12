@@ -305,6 +305,7 @@ class MessagingClient(Protocol):
         channel: str,
         title: str,
         posts: Sequence[ThreadPost],
+        from_message: str | None = None,
     ) -> ThreadRef: ...
 
     async def delete_thread(self, *, thread_id: str) -> None: ...
