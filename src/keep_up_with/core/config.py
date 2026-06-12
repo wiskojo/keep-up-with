@@ -53,7 +53,7 @@ class KeepUpWithConfig:
 class MessagingSettings(BaseModel):
     model_config = ConfigDict(extra="allow", str_strip_whitespace=True)
 
-    integration: str = Field(default="discord", min_length=1)
+    integration: str = Field(min_length=1)
 
 
 class AppSettings(BaseModel):

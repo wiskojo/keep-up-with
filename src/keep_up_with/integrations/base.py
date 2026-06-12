@@ -353,6 +353,7 @@ class SubscriptionContext(IntegrationContext):
         refs: dict[str, Any] | None = None,
         data: dict[str, Any] | None = None,
         high_priority: bool = False,
+        summary_limit: int | None = None,
     ) -> Event | None:
         return self._record_event(
             integration=self.integration,
@@ -362,4 +363,5 @@ class SubscriptionContext(IntegrationContext):
             refs=refs,
             data=data,
             high_priority=high_priority,
+            summary_limit=summary_limit,
         )

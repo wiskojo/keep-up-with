@@ -29,6 +29,7 @@ def messages(ctx: SubscriptionContext) -> None:
             kind="message",
             external_id=data["message_id"],
             summary=f"{data.get('author_name') or data.get('author_id')}: {text}",
+            summary_limit=1200,
             high_priority=True,
             refs={
                 "channel_id": data.get("channel_id", ""),

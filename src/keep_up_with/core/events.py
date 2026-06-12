@@ -48,12 +48,13 @@ class EventStore:
         data: dict[str, Any] | None = None,
         high_priority: bool = False,
         pending: bool = True,
+        summary_limit: int | None = None,
     ) -> Event | None:
         event = Event(
             id=event_id(integration, kind, external_id),
             integration=integration,
             kind=kind,
-            summary=" ".join(summary.split()),
+            summary=truncate_summary(summary, summary_limit or 700),
             refs=_string_refs(refs or {}),
             data=data or {},
             high_priority=high_priority,
@@ -166,7 +167,9 @@ class EventStore:
             join events on events.id = inbox.event_id
         """
         clauses = [
-            "inbox.dismissed_at is not null" if dismissed else "inbox.dismissed_at is null"
+            "inbox.dismissed_at is not null"
+            if dismissed
+            else "inbox.dismissed_at is null"
         ]
         if only_unnotified:
             clauses.append("inbox.notified_at is null")
@@ -251,6 +254,13 @@ class EventStore:
             db.commit()
         finally:
             db.close()
+
+
+def truncate_summary(value: str, limit: int) -> str:
+    value = " ".join(value.split())
+    if len(value) <= limit:
+        return value
+    return value[: limit - 1].rstrip() + "…"
 
 
 def event_id(integration: str, kind: str, external_id: str) -> str:

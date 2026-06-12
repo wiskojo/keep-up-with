@@ -42,6 +42,7 @@ def posts(ctx: SubscriptionContext) -> None:
                     kind="headline",
                     external_id=item_id,
                     summary=post_summary(actor, item),
+                    summary_limit=1000,
                     refs={
                         "post_id": item.get("id", ""),
                         "url": item.get("permalink") or item.get("url") or "",

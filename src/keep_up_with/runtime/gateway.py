@@ -19,7 +19,7 @@ from keep_up_with.core.config import (
     get_config,
     load_config,
 )
-from keep_up_with.core.events import Event, EventStore, InboxItem
+from keep_up_with.core.events import EventStore, InboxItem
 from keep_up_with.integrations.base import Subscription, SubscriptionContext
 from keep_up_with.integrations.registry import data_integrations, messaging_integration
 from keep_up_with.runtime.codex import JsonRpcClient
@@ -29,12 +29,6 @@ CONFIG_CHECK_SECONDS = 3.0
 HIGH_WAKE_DELAY_SECONDS = 5.0
 LOW_WAKE_DELAY_SECONDS = 30.0
 ROTATE_CONTEXT_USED_FRACTION = 0.75
-DEFAULT_WAKE_SUMMARY_LIMIT = 700
-WAKE_SUMMARY_LIMITS = {
-    ("discord", "message"): 1200,
-    ("reddit", "headline"): 1000,
-    ("x", "post"): 1200,
-}
 
 
 @dataclass(frozen=True)
@@ -546,7 +540,7 @@ def render_wake(items: list[InboxItem], inbox_count: int) -> str:
         event = item.event
         lines.append(
             f"{index}. [{event.integration}.{event.kind} {event.id[:6]}] "
-            f"{wake_summary(event)}"
+            f"{event.summary}"
         )
         refs = " ".join(f"{key}={value}" for key, value in event.refs.items())
         if refs:
@@ -671,23 +665,6 @@ def emit_error(
             "consecutive_failures": consecutive_failures,
         },
     )
-
-
-def wake_summary(event: Event) -> str:
-    return truncate(
-        event.summary,
-        limit=WAKE_SUMMARY_LIMITS.get(
-            (event.integration, event.kind),
-            DEFAULT_WAKE_SUMMARY_LIMIT,
-        ),
-    )
-
-
-def truncate(value: str, limit: int) -> str:
-    value = " ".join(value.split())
-    if len(value) <= limit:
-        return value
-    return value[: limit - 1].rstrip() + "…"
 
 
 if __name__ == "__main__":

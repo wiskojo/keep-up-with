@@ -24,6 +24,7 @@ def posts(ctx: SubscriptionContext) -> None:
             kind="post",
             external_id=str(post_id),
             summary=f"@{username}: {item.get('text') or 'post'}",
+            summary_limit=1200,
             refs={"post_id": post_id, "url": item.get("url", "")},
             data=item,
         )
