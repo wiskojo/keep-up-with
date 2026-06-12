@@ -298,7 +298,11 @@ class DiscordMessagingClient:
         thread_id: str | None = None,
         reply_to: str | None = None,
         attachments: list[str] | None = None,
+        mention_user: bool = False,
     ) -> MessageRef:
+        user_id = str(self.context.settings()["user_id"]) if mention_user else None
+        if user_id:
+            text = _with_user_mention(text, user_id)
         if not text and not attachments:
             raise ValueError("text or attachment is required")
         _validate_message_text(text)
@@ -317,6 +321,9 @@ class DiscordMessagingClient:
                         files=files or None,
                         reference=reference,
                         mention_author=False,
+                        allowed_mentions=_user_allowed_mentions(user_id)
+                        if user_id
+                        else discord.utils.MISSING,
                     )
                 except discord.HTTPException as error:
                     raise ValueError(_discord_error(error)) from error
@@ -363,6 +370,7 @@ class DiscordMessagingClient:
         channel: str,
         title: str,
         posts: Sequence[ThreadPost],
+        from_message: str | None = None,
     ) -> ThreadRef:
         if not title.strip():
             raise ValueError("title is required")
@@ -378,30 +386,49 @@ class DiscordMessagingClient:
         async with self._client() as client:
             parent = await self._text_channel(client, channel)
             try:
-                first_post = posts[0]
-                files = [_file(path) for path in first_post.attachments]
-                try:
-                    starter = await parent.send(
-                        content=first_post.text or None,
-                        files=files or None,
-                        allowed_mentions=discord.AllowedMentions.none(),
-                    )
-                finally:
-                    for file in files:
-                        file.close()
+                if from_message:
+                    starter = await _fetch_message(parent, from_message)
+                    existing = getattr(starter, "thread", None)
+                    if existing is not None:
+                        raise ValueError(
+                            f"message already has a thread: {existing.id}; use thread append"
+                        )
+                    thread_posts = list(posts)
+                else:
+                    first_post = posts[0]
+                    files = [_file(path) for path in first_post.attachments]
+                    try:
+                        starter = await parent.send(
+                            content=first_post.text or None,
+                            files=files or None,
+                            allowed_mentions=discord.AllowedMentions.none(),
+                        )
+                    finally:
+                        for file in files:
+                            file.close()
+                    thread_posts = list(posts[1:])
 
                 thread = await starter.create_thread(
                     name=title[:100],
                     reason="keep-up-with thread",
                 )
 
-                for post in posts[1:]:
+                # The plain create is announced by its starter message in the
+                # channel; a conversion adds no channel message, so the user is
+                # mentioned on the last post to get pinged.
+                user_id = str(self.context.settings()["user_id"])
+                for index, post in enumerate(thread_posts, start=1):
+                    text = post.text
+                    allowed_mentions = discord.AllowedMentions.none()
+                    if from_message and index == len(thread_posts):
+                        text = _with_user_mention(text, user_id)
+                        allowed_mentions = _user_allowed_mentions(user_id)
                     files = [_file(path) for path in post.attachments]
                     try:
                         await thread.send(
-                            content=post.text or None,
+                            content=text or None,
                             files=files or None,
-                            allowed_mentions=discord.AllowedMentions.none(),
+                            allowed_mentions=allowed_mentions,
                         )
                     finally:
                         for file in files:
@@ -817,6 +844,24 @@ def _section_ref(section: discord.CategoryChannel) -> SectionRef:
         id=str(section.id),
         name=section.name,
         position=section.position,
+    )
+
+
+def _with_user_mention(text: str, user_id: str) -> str:
+    mention = f"<@{user_id}>"
+    if mention in text or f"<@!{user_id}>" in text:
+        return text
+    if not text.strip():
+        return mention
+    return f"{text.rstrip()}\n\n{mention}"
+
+
+def _user_allowed_mentions(user_id: str) -> discord.AllowedMentions:
+    return discord.AllowedMentions(
+        users=[discord.Object(id=int(user_id))],
+        roles=False,
+        everyone=False,
+        replied_user=False,
     )
 
 

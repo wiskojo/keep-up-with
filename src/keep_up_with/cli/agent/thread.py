@@ -47,6 +47,13 @@ def create_command(
             help="File to attach: a path attaches to post 1, N:path to post N",
         ),
     ] = None,
+    from_message: Annotated[
+        str | None,
+        typer.Option(
+            "--from-message",
+            help="Convert an existing channel message into the thread opener; every post then goes inside the thread",
+        ),
+    ] = None,
 ) -> None:
     if file and (post or attachment):
         fail("use --file or --post/--attachment, not both")
@@ -63,6 +70,7 @@ def create_command(
                 channel=channel,
                 title=title,
                 posts=posts,
+                from_message=from_message,
             )
         )
     except ValueError as error:
@@ -110,7 +118,7 @@ def build_posts(texts: list[str], attachments: list[str]) -> list[ThreadPost]:
     ]
 
 
-@app.command("append", help="Append a message to a thread")
+@app.command("append", help="Append a message to a thread; mentions the user so they get pinged")
 def append_command(
     thread_id: Annotated[str, typer.Option(help="Thread id")],
     text: Annotated[str, typer.Option("--text", "-t", help="Message text")] = "",
@@ -122,6 +130,13 @@ def append_command(
             help="File path to attach, repeat for multiple files",
         ),
     ] = None,
+    no_mention: Annotated[
+        bool,
+        typer.Option(
+            "--no-mention",
+            help="Skip the automatic user mention; use on all but the last post of a multi-post update",
+        ),
+    ] = False,
 ) -> None:
     client = messaging_client(get_config())
     try:
@@ -130,6 +145,7 @@ def append_command(
                 thread_id=thread_id,
                 text=text,
                 attachments=attachment or [],
+                mention_user=not no_mention,
             )
         )
     except ValueError as error:

@@ -11,7 +11,7 @@ To interact with the user or share information with them, you must use `cli`.
 | Message | `cli message send/list` | Chat item in the DM or a channel. | Direct replies, quick updates, and update posts. |
 | Channel | `cli message channels`, `cli space channels list/create/rename/move` | Topic or project area. | Put messages and threads in the right place. Create or move channels only for reused structure. |
 | Section | `cli space sections list/create/rename/move` | Group of channels. | Persistent layout. |
-| Thread | `cli thread create/append/list/show` | Focused story or research path inside a channel. | Deep-dive stories and connected updates over time. `create` publishes all posts at once and alerts the user at the end; draft the full thread first. |
+| Thread | `cli thread create/append/list/show` | Focused story or research path inside a channel. | Deep-dive stories and connected updates over time. `create` publishes all posts at once and pings the user; draft the full thread first. `create --from-message` converts an existing post into a thread. |
 
 Story updates go to the topic channel when one fits; the DM is for direct replies and quick FYIs. Deep dives belong in threads. If there is no suitable channel after a reset, create or reuse a simple topic channel; do not downgrade a thread-worthy story to a DM just because the channel layout is empty.
 
@@ -87,9 +87,9 @@ Subscriptions fill your inbox with events. The inbox dedupes identical events, n
 
 Triage is cheap, bounded, and runs before anything user-facing:
 
-1. **Search for prior coverage, like a human would before posting.** Search the main link or a distinctive keyword: `cli message list -q "<link or keyword>" --limit 100` searches every channel and the DM, `cli thread list -q "<keyword>"` finds existing story threads, and `cli events list -q "<link or keyword>"` shows whether the same item already arrived from another source. Check `stories/` for an existing story folder.
+1. **Search for prior coverage, like a human would before posting.** Search the main link or a distinctive keyword: `cli message list -q "<link or keyword>" --limit 100` searches every channel and the DM, `cli thread list -q "<keyword>"` finds existing story threads, and `cli events list -q "<link or keyword>"` shows whether the same item already arrived from another source. The same story often hides behind different links — a short cut from a longer video, a crosspost, a re-upload — so search the creator and topic too, not only the URL. Check `stories/` for an existing story folder.
 2. **Skip** anything stale, duplicate, already handled, low-signal, or without a useful delta.
-3. **Append the delta** if the story already has a thread. Do not start a second thread or repeat background.
+3. **Route the delta to existing coverage.** If the story already has a thread, read the entire thread first — the delta is defined by everything already sent — then append. If the prior coverage is a standalone channel message, convert it into a thread with `cli thread create --from-message <message_id>` and append there; never stack a second standalone message about the same story in a channel.
 4. **Send a quick update now** if the event alone is clearly enough for the user.
 5. **Investigate** everything else with `$keep-up-with`, preferably in a subagent. The response depth is decided by what research finds, not at triage.
 
