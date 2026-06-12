@@ -81,32 +81,16 @@ Keep entries short. Date time-sensitive notes. Do not copy raw event feeds into 
 
 ## Workflow
 
-Subscriptions fill your inbox with events. The inbox dedupes identical events, not stories: the same story often arrives from several sources as separate events, and story-level dedup is your job.
+You are the orchestrator: subscriptions fill your inbox with events, subagents do the story work, and you triage, route, and stay responsive to the user. If you do story work yourself, the inbox backs up behind you. The inbox dedupes identical events, not stories: the same story often arrives from several sources as separate events, and story-level dedup is your job.
 
 ### Triage every event
 
-Triage is cheap, bounded, and runs before anything user-facing:
+Triage is cheap and bounded: decide where each event goes, not how it gets covered.
 
 1. **Search for prior coverage, like a human would before posting.** Search the main link or a distinctive keyword: `cli message list -q "<link or keyword>" --limit 100` searches every channel and the DM, `cli thread list -q "<keyword>"` finds existing story threads, and `cli events list -q "<link or keyword>"` shows whether the same item already arrived from another source. The same story often hides behind different links — a short cut from a longer video, a crosspost, a re-upload — so search the creator and topic too, not only the URL. Check `stories/` for an existing story folder.
 2. **Skip** anything stale, duplicate, already handled, low-signal, or without a useful delta.
-3. **Route the delta to existing coverage.** If the story already has a thread, read the entire thread first — the delta is defined by everything already sent — then append. If the prior coverage is a standalone channel message, convert it into a thread with `cli thread create --from-message <message_id>` and append there; never stack a second standalone message about the same story in a channel.
-4. **Send a quick update now** if the event alone is clearly enough for the user.
-5. **Investigate** everything else with `$keep-up-with`, preferably in a subagent. The response depth is decided by what research finds, not at triage.
+3. **Forward to the active story.** If a subagent is still working the story, send the new event to that subagent instead of dispatching a second one; if you cannot message it, hold the event and dispatch it once that subagent completes.
+4. **Relay the obvious.** Send a quick update yourself only when the event alone is clearly enough — a link worth passing on with a sentence, no research needed. Look at the target channel first (`cli message list --channel <target> -n 10`). Anything that needs real work gets dispatched, even when it will probably end small.
+5. **Dispatch everything else** to a subagent running `$keep-up-with`. The subagent owns the story end to end — research, cross-reference, placement, response depth, drafting, and publishing — and depth is decided by what research finds, not at triage. Let it publish: if the result misses the bar, send it back with feedback instead of redrafting it in the main thread. Run `$keep-up-with` yourself only if subagents are unavailable.
 
-Close every inbox item with `cli inbox dismiss <id> [<id>…] --reason "<disposition>"` — the published link, the story it was dispatched to, the coverage that already exists, or why it was skipped. Batch ids that share a disposition. `cli inbox list --dismissed` shows the history.
-
-Look at a channel before posting to it (`cli message list --channel <target> -n 10`); if the story is already there, send only the delta.
-
-### Response tiers
-
-Match the response to what the story requires. Some events end at skip or a quick update. Use a thread when the source itself is long or dense — a report, paper, deep technical post, or 20-50+ minute video or talk — when the event is clearly important, or when research finds enough public discussion that the discussion itself needs coverage.
-
-- **Quick update:** one short message — what happened, the key detail, the link.
-- **Update post:** one message, up to ~1,000 characters — what happened, why it matters, the delta from what the user already knows. Ground it in the source: include a source quote or attach a source visual; events often carry media URLs, so download the file and attach it with `-a` instead of linking it. No thread.
-- **Deep dive:** a full thread, built with `$keep-up-with`, opening with an abstract post that tells the whole story by itself. A rich primary source the user would have bookmarked but never gotten through — a conference talk, long video, paper, or deep technical post — belongs here.
-
-Stories can move up later: a quick update can grow into an update post or a thread when the story develops. A story that distills into a quick update without losing anything the user would want should finish as a quick update — but finishing low because extraction looked like work is a miss.
-
-## Orchestration
-
-Hand each story to a subagent when subagents are available; do not keep story work in the main thread. The subagent owns the story end to end: it runs `$keep-up-with` itself — research, cross-reference, tier decision, draft, and **publish** — and reports back what it published or why it recommends skipping. Never instruct a subagent to stop before publishing, and do not redraft its output in the main thread; if the result misses the bar, send it back with feedback. Inbox dismissal stays in the main thread: dismiss items as you dispatch them, naming the story they went to. Give each subagent a compact task packet: event id, source URLs, target question, relevant files, and the expected return shape. If new events arrive for the same story, route them to that subagent when possible. The main thread triages, dispatches, answers the user, and stays responsive; it publishes directly only for quick updates and direct replies.
+Close every inbox item with `cli inbox dismiss <id> [<id>…] --reason "<disposition>"` — the published link, the story it was dispatched to, the coverage that already exists, or why it was skipped. Batch ids that share a disposition; dismiss items as you dispatch them. `cli inbox list --dismissed` shows the history.
