@@ -85,14 +85,14 @@ Use the percentage labels and guide lines to choose the normalized `x,y,w,h` val
 
 ## Video Frames And Clips
 
-When dealing with videos, extract useful frames, videos, or GIFs from the source:
+The `video` tools take any video URL (YouTube, X, Reddit, direct media links) or a local file. They extract without saving the raw video — only the frames, clips, and GIFs you request are written; never persist raw video files:
 
 ```sh
-cli tools youtube frames "VIDEO_URL" 00:01:23 00:02:10 --output-dir research/artifacts/video
-cli tools youtube download "VIDEO_URL" --output-dir research/artifacts/video
-cli tools youtube clip "VIDEO_URL" 00:01:23 6 outputs/assets/post-2-clip.mp4
-cli tools youtube clip "VIDEO_URL" 00:01:23 6 outputs/assets/post-2-crop.mp4 --crop 960:540:160:90
-cli tools youtube gif "VIDEO_URL" 00:01:23 4 outputs/assets/post-2.gif
+cli tools video info "VIDEO_URL"
+cli tools video frames "VIDEO_URL" 00:01:23 00:02:10 --output-dir research/artifacts/video
+cli tools video clip "VIDEO_URL" 00:01:23 6 outputs/assets/post-2-clip.mp4
+cli tools video clip "VIDEO_URL" 00:01:23 6 outputs/assets/post-2-crop.mp4 --crop 960:540:160:90
+cli tools video gif "VIDEO_URL" 00:01:23 4 outputs/assets/post-2.gif
 ```
 
 ## Final Assets

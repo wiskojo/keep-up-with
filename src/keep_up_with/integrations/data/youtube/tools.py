@@ -3,14 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from keep_up_with.integrations.base import ToolContext, tool
-from keep_up_with.integrations.data.common import resolve_path
 from keep_up_with.integrations.data.youtube import client
-
-
-@tool("Show video metadata")
-def video(ctx: ToolContext, url: str) -> dict[str, Any]:
-    del ctx
-    return client.video(url)
 
 
 @tool("Search YouTube")
@@ -42,77 +35,4 @@ def channel(ctx: ToolContext, channel: str, limit: int = 10) -> dict[str, Any]:
         ctx.env("YOUTUBE_API_KEY"),
         channel,
         limit=limit,
-    )
-
-
-@tool("Show a transcript")
-def transcript(ctx: ToolContext, url: str, language: str = "en") -> dict[str, Any]:
-    del ctx
-    return client.transcript(url, language=language)
-
-
-@tool("Extract video frames")
-def frames(
-    ctx: ToolContext,
-    url: str,
-    timestamps: list[str],
-    output_dir: str = ".",
-) -> list[dict[str, Any]]:
-    del ctx
-    return client.frames(url, timestamps=timestamps, output_dir=resolve_path(output_dir))
-
-
-@tool("Download source video")
-def download(
-    ctx: ToolContext,
-    url: str,
-    output_dir: str = ".",
-) -> dict[str, Any]:
-    del ctx
-    return client.download(url, output_dir=resolve_path(output_dir))
-
-
-@tool("Export a video clip")
-def clip(
-    ctx: ToolContext,
-    url: str,
-    start: str,
-    duration: float,
-    output: str,
-    crop: str = "",
-    scale: str = "1280:-2",
-    audio: bool = False,
-) -> dict[str, Any]:
-    del ctx
-    return client.clip(
-        url,
-        start=start,
-        duration=duration,
-        output=resolve_path(output),
-        crop=crop,
-        scale=scale,
-        audio=audio,
-    )
-
-
-@tool("Export a GIF")
-def gif(
-    ctx: ToolContext,
-    url: str,
-    start: str,
-    duration: float,
-    output: str,
-    crop: str = "",
-    width: int = 640,
-    fps: int = 12,
-) -> dict[str, Any]:
-    del ctx
-    return client.gif(
-        url,
-        start=start,
-        duration=duration,
-        output=resolve_path(output),
-        crop=crop,
-        width=width,
-        fps=fps,
     )
