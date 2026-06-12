@@ -375,16 +375,27 @@ class DiscordMessagingClient:
             for path in post.attachments:
                 if not Path(path).expanduser().exists():
                     raise ValueError(f"attachment not found: {path}")
-        user_id = str(self.context.settings()["user_id"])
         async with self._client() as client:
             parent = await self._text_channel(client, channel)
-            thread = await parent.create_thread(
-                name=title[:100],
-                type=discord.ChannelType.public_thread,
-                reason="keep-up-with thread",
-            )
             try:
-                for post in posts:
+                first_post = posts[0]
+                files = [_file(path) for path in first_post.attachments]
+                try:
+                    starter = await parent.send(
+                        content=first_post.text or None,
+                        files=files or None,
+                        allowed_mentions=discord.AllowedMentions.none(),
+                    )
+                finally:
+                    for file in files:
+                        file.close()
+
+                thread = await starter.create_thread(
+                    name=title[:100],
+                    reason="keep-up-with thread",
+                )
+
+                for post in posts[1:]:
                     files = [_file(path) for path in post.attachments]
                     try:
                         await thread.send(
@@ -395,10 +406,6 @@ class DiscordMessagingClient:
                     finally:
                         for file in files:
                             file.close()
-                await thread.send(
-                    content=f"<@{user_id}>",
-                    allowed_mentions=_user_allowed_mentions(user_id),
-                )
             except discord.HTTPException as error:
                 raise ValueError(_discord_error(error)) from error
             return ThreadRef(
@@ -418,7 +425,13 @@ class DiscordMessagingClient:
                 raise ValueError(f"not a Discord thread: {thread_id}")
             if client.user is None or target.owner_id != client.user.id:
                 raise ValueError("can only delete threads created by keep-up-with")
+            starter = await _thread_starter_message(client, target)
             await target.delete()
+            if starter is not None and starter.author.id == client.user.id:
+                try:
+                    await starter.delete()
+                except discord.NotFound:
+                    pass
 
     async def list_threads(
         self,
@@ -472,13 +485,20 @@ class DiscordMessagingClient:
             if not isinstance(channel, discord.Thread):
                 raise ValueError(f"not a Discord thread: {thread_id}")
             messages = []
+            starter = await _thread_starter_message(client, channel)
+            if starter is not None:
+                messages.append(message_data(starter))
+            history = []
             async for message in channel.history(limit=limit):
-                messages.append(message_data(message))
+                if _is_thread_starter_placeholder(message):
+                    continue
+                history.append(message_data(message))
+            messages.extend(reversed(history))
             return {
                 "id": str(channel.id),
                 "name": channel.name,
                 "parent_id": str(channel.parent_id or ""),
-                "messages": list(reversed(messages)),
+                "messages": messages[:limit],
             }
 
     async def _message_target(
@@ -739,6 +759,29 @@ async def _own_message(
     return message
 
 
+async def _thread_starter_message(
+    client: discord.Client,
+    thread: discord.Thread,
+) -> discord.Message | None:
+    if thread.parent_id is None:
+        return None
+    try:
+        parent = await client.fetch_channel(thread.parent_id)
+    except (discord.Forbidden, discord.NotFound):
+        return None
+    fetch = getattr(parent, "fetch_message", None)
+    if not callable(fetch):
+        return None
+    try:
+        return await fetch(thread.id)
+    except (discord.Forbidden, discord.NotFound):
+        return None
+
+
+def _is_thread_starter_placeholder(message: discord.Message) -> bool:
+    return getattr(message.type, "name", "") == "thread_starter_message"
+
+
 def _message_ref(message: discord.Message) -> MessageRef:
     return MessageRef(
         channel_id=str(message.channel.id),
@@ -774,15 +817,6 @@ def _section_ref(section: discord.CategoryChannel) -> SectionRef:
         id=str(section.id),
         name=section.name,
         position=section.position,
-    )
-
-
-def _user_allowed_mentions(user_id: str) -> discord.AllowedMentions:
-    return discord.AllowedMentions(
-        users=[discord.Object(id=int(user_id))],
-        roles=False,
-        everyone=False,
-        replied_user=False,
     )
 
 
