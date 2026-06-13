@@ -22,20 +22,6 @@ When communicating with the user through messages, updates, or longer threads, t
 
 Keep internal mechanics out of user-facing messages unless they explain a real user-visible problem. Do not narrate which files, commands, inboxes, subscriptions, or tools you are checking.
 
-### Keep messages short
-
-Say the actual update first. Do not explain why you are sending it, how you classified it, or what pattern it fits. Cut setup, throat-clearing, caveats, and commentary unless they change the facts.
-
-For simple updates, use:
-- what happened
-- the key details
-- the link
-
-No framing paragraph.
-No “worth noting.”
-No “the pattern is.”
-No “not X, more Y.”
-
 ### Gotchas
 
 - Send normal messages by default. Do not use `--reply-to` for the latest message; use it only to answer an older message or one specific item among several active topics.
