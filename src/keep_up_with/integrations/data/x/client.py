@@ -17,6 +17,10 @@ POST_FIELDS = (
 USER_FIELDS = "created_at,description,public_metrics,verified,verified_type"
 EXPANSIONS = "author_id"
 POST_EXPANSIONS = "author_id,attachments.media_keys"
+DOWNLOAD_POST_FIELDS = f"article,entities,{POST_FIELDS}"
+DOWNLOAD_POST_EXPANSIONS = (
+    "author_id,attachments.media_keys,article.cover_media,article.media_entities"
+)
 MEDIA_FIELDS = (
     "alt_text,duration_ms,height,media_key,preview_image_url,public_metrics,type,url,"
     "variants,width"
@@ -51,10 +55,10 @@ class XClient:
             self.get(
                 f"/2/tweets/{clean_id}",
                 {
-                    "tweet.fields": POST_FIELDS,
+                    "tweet.fields": DOWNLOAD_POST_FIELDS,
                     "user.fields": USER_FIELDS,
                     "media.fields": MEDIA_FIELDS,
-                    "expansions": POST_EXPANSIONS,
+                    "expansions": DOWNLOAD_POST_EXPANSIONS,
                 },
             ),
             include_media=True,
@@ -126,10 +130,10 @@ class XClient:
                 {
                     "query": f"conversation_id:{conversation_id} from:{author_id} -is:retweet",
                     "max_results": 100,
-                    "tweet.fields": POST_FIELDS,
+                    "tweet.fields": DOWNLOAD_POST_FIELDS,
                     "user.fields": USER_FIELDS,
                     "media.fields": MEDIA_FIELDS,
-                    "expansions": POST_EXPANSIONS,
+                    "expansions": DOWNLOAD_POST_EXPANSIONS,
                 },
             ),
             include_media=True,
@@ -365,6 +369,12 @@ def posts(data: dict[str, Any], *, include_media: bool = False) -> list[dict[str
             "referenced_tweets": item.get("referenced_tweets") or [],
             "url": post_url(author, item),
         }
+        entities = item.get("entities") or {}
+        if entities:
+            row["entities"] = entities
+        article = post_article(item, media_by_key)
+        if article:
+            row["article"] = article
         if include_media:
             row["media"] = post_media(item, media_by_key)
         rows.append(row)
@@ -393,6 +403,45 @@ def post_media(
         for key in keys
         if isinstance(key, str) and key in media_by_key
     ]
+
+
+def post_article(
+    post: dict[str, Any],
+    media_by_key: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    raw_article = post.get("article")
+    if not isinstance(raw_article, dict):
+        return {}
+    return {
+        "title": raw_article.get("title") or "",
+        "plain_text": unescape(raw_article.get("plain_text") or ""),
+        "preview_text": unescape(raw_article.get("preview_text") or ""),
+        "entities": raw_article.get("entities") or {},
+        "cover_media": raw_article.get("cover_media") or "",
+        "media_entities": raw_article.get("media_entities") or [],
+        "media": article_media(raw_article, media_by_key),
+    }
+
+
+def article_media(
+    article: dict[str, Any],
+    media_by_key: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    keys: list[str] = []
+    cover_media = article.get("cover_media")
+    if isinstance(cover_media, str):
+        keys.append(cover_media)
+    media_entities = article.get("media_entities") or []
+    if isinstance(media_entities, list):
+        keys.extend(key for key in media_entities if isinstance(key, str))
+    seen: set[str] = set()
+    rows: list[dict[str, Any]] = []
+    for key in keys:
+        if key in seen or key not in media_by_key:
+            continue
+        seen.add(key)
+        rows.append(media_by_key[key])
+    return rows
 
 
 def media(data: dict[str, Any]) -> dict[str, Any]:
@@ -507,6 +556,7 @@ def post_markdown(
             ]
         )
         lines.extend(quoted_post_markdown_lines(row))
+        lines.extend(article_markdown_lines(row))
         media_rows = media_by_post.get(str(row.get("id") or ""), [])
         if media_rows:
             lines.extend(
@@ -517,6 +567,20 @@ def post_markdown(
                 )
             )
     return "\n".join(lines).rstrip() + "\n"
+
+
+def article_markdown_lines(row: dict[str, Any]) -> list[str]:
+    article = row.get("article") or {}
+    if not article:
+        return []
+    lines = ["Article:", ""]
+    title = str(article.get("title") or "").strip()
+    if title:
+        lines.extend([f"### {title}", ""])
+    text = str(article.get("plain_text") or "").strip()
+    if text:
+        lines.extend([text, ""])
+    return lines
 
 
 def quoted_post_markdown_lines(row: dict[str, Any]) -> list[str]:
@@ -583,7 +647,7 @@ def download_media(rows: list[dict[str, Any]], output_dir: Path) -> list[dict[st
     seen: set[str] = set()
     counter = 1
     for row in rows:
-        for item in row.get("media") or []:
+        for item in row_media(row):
             if not isinstance(item, dict):
                 continue
             candidate = media_download_candidate(item)
@@ -631,6 +695,14 @@ def download_media(rows: list[dict[str, Any]], output_dir: Path) -> list[dict[st
                     result["error"] = f"{type(error).__name__}: {error}"
             results.append(result)
     return results
+
+
+def row_media(row: dict[str, Any]) -> list[dict[str, Any]]:
+    media_rows = list(row.get("media") or [])
+    article = row.get("article") or {}
+    if isinstance(article, dict):
+        media_rows.extend(article.get("media") or [])
+    return media_rows
 
 
 def media_download_candidate(item: dict[str, Any]) -> dict[str, str]:

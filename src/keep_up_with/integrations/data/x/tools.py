@@ -16,7 +16,7 @@ def search(ctx: ToolContext, query: str, limit: int = 10) -> list[dict[str, Any]
     return client(ctx).search(query, limit=limit)
 
 
-@tool("Download an X post")
+@tool("Download an X post, thread, or article")
 def download(
     ctx: ToolContext,
     post_id: str,
