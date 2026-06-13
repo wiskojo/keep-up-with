@@ -74,8 +74,7 @@ def main() -> None:
     process = start_gateway(context)
     try:
         wait_for_thread(context, process, timeout_seconds=60)
-        wait_until_idle(context, process, timeout_seconds=context.timeout_seconds)
-        clear_startup_messages(context)
+        wait_until_caught_up(context, process, timeout_seconds=context.timeout_seconds)
         run_batches(context, process)
     finally:
         stop_process(process)
@@ -249,6 +248,40 @@ def run_batches(context: RunContext, process: subprocess.Popen) -> None:
         ))
 
 
+def wait_until_caught_up(
+    context: RunContext,
+    process: subprocess.Popen,
+    *,
+    timeout_seconds: int,
+) -> None:
+    print("gateway: waiting to catch up", flush=True)
+    deadline = time.monotonic() + timeout_seconds
+    while time.monotonic() < deadline:
+        ensure_running(process, context)
+        if unnotified_inbox_count(context) == 0:
+            wait_until_idle(
+                context,
+                process,
+                timeout_seconds=max(1, int(deadline - time.monotonic())),
+            )
+            if unnotified_inbox_count(context) == 0:
+                wait_for_output_settle(context, seconds=context.settle_seconds)
+                return
+        time.sleep(0.5)
+    raise RuntimeError(f"gateway did not catch up within {timeout_seconds}s")
+
+
+def unnotified_inbox_count(context: RunContext) -> int:
+    try:
+        with sqlite3.connect(context.paths.events_db) as db:
+            row = db.execute(
+                "select count(*) from inbox where notified_at is null"
+            ).fetchone()
+    except sqlite3.OperationalError:
+        return 0
+    return int(row[0]) if row else 0
+
+
 def inject_events(context: RunContext, rows: list[dict[str, Any]]) -> list[str]:
     store = EventStore(load_config(context.paths))
     event_ids: list[str] = []
@@ -375,23 +408,6 @@ def output_fingerprint(path: Path) -> tuple[tuple[str, int, int], ...]:
             stat = item.stat()
             rows.append((item.relative_to(path).as_posix(), stat.st_size, stat.st_mtime_ns))
     return tuple(rows)
-
-
-def clear_startup_messages(context: RunContext) -> None:
-    state_path = context.paths.run / "file-messaging" / "state.json"
-    try:
-        state = json.loads(state_path.read_text())
-    except (FileNotFoundError, json.JSONDecodeError):
-        return
-    state["messages"] = {key: [] for key in state.get("messages", {"dm": []})}
-    state["threads"] = []
-    state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
-    config = load_config(context.paths)
-    client = messaging_client(config)
-    asyncio.run(client.apply_space(space_plan([keep_up_with_presets()["ai"]]), reset=False))
-    store = EventStore(config)
-    for item in store.list_inbox():
-        store.dismiss_inbox(item.event.id, reason="eval startup cleared")
 
 
 def ensure_running(process: subprocess.Popen, context: RunContext) -> None:

@@ -159,9 +159,6 @@ def ensure_thread(
     name_thread(client, state.thread_id)
     archive_stray_threads(config, client, state)
 
-    if config.settings.app.eval_mode:
-        return
-
     if candidate is None:
         record_startup_event(config, store)
     else:
