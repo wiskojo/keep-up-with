@@ -45,6 +45,8 @@ accounts = [
 
 [web]
 feeds = [
+  "https://mshibanami.github.io/GitHubTrendingRSS/daily/all.xml",
+  "https://mshibanami.github.io/GitHubTrendingRSS/weekly/all.xml",
   "https://openai.com/news/rss.xml",
   "https://developers.openai.com/rss.xml",
   "https://blog.google/innovation-and-ai/technology/ai/rss/",
@@ -88,13 +90,19 @@ description = "Practical ways to use AI better. Use for prompting tricks, Claude
 key = "ai.rumors"
 name = "👀・rumors"
 section = "ai"
-description = "Unconfirmed AI chatter. Use for leaks, launch speculation, model sightings, screenshots, credible rumors, and claims that need verification. Keep attribution and uncertainty clear."
+description = "Unconfirmed AI chatter. Use for leaks, launch speculation, model sightings, screenshots, credible rumors, and claims that need verification."
 
 [[space.channels]]
 key = "ai.evals"
 name = "📊・evals"
 section = "ai"
 description = "Measurement, benchmarks, leaderboards, comparisons, and claim-checking. Use when the main point is whether a model, product, agent, or method actually works."
+
+[[space.channels]]
+key = "ai.models"
+name = "🤖・models"
+section = "ai"
+description = "Significant non-frontier model releases. Use only when the model has a meaningful new capability, adoption signal, benchmark result, technical angle, or ecosystem relevance, and the main news is the model itself rather than a frontier shift."
 
 [[space.channels]]
 key = "ai.engineering"
