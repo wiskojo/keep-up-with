@@ -17,7 +17,7 @@ app = typer.Typer(
 )
 
 
-@app.command("send", help="Send a message to a channel or the DM (default); use `thread append` for threads")
+@app.command("send", help="Send a message")
 def send_command(
     text: Annotated[str, typer.Option("--text", "-t", help="Message text")] = "",
     channel: Annotated[str | None, typer.Option(help="Channel name or id")] = None,
@@ -46,20 +46,22 @@ def send_command(
     echo_json(result)
 
 
-@app.command("list", help="List recent messages, defaults to DM")
+@app.command("list", help="List recent messages")
 def list_command(
     channel: Annotated[str | None, typer.Option(help="Channel name or id")] = None,
     thread_id: Annotated[str | None, typer.Option(help="Thread id")] = None,
     limit: Annotated[
         int,
-        typer.Option("--limit", "-n", help="Maximum recent messages to scan per channel"),
+        typer.Option(
+            "--limit", "-n", help="Maximum recent messages to scan per channel"
+        ),
     ] = 25,
     query: Annotated[
         str | None,
         typer.Option(
             "--query",
             "-q",
-            help="Only include messages containing text; without --channel this searches every channel and the DM",
+            help="Only include messages containing text; without --channel or --thread-id this searches every channel and the DM",
         ),
     ] = None,
     author: Annotated[
@@ -107,7 +109,7 @@ def around_command(
     echo_jsonl(messages)
 
 
-@app.command("edit", help="Edit one of keep-up-with's own messages")
+@app.command("edit", help="Edit a message")
 def edit_command(
     message_id: Annotated[str, typer.Argument(help="Message id")],
     text: Annotated[str, typer.Option("--text", "-t", help="Replacement text")],
@@ -129,7 +131,7 @@ def edit_command(
     echo_json(result)
 
 
-@app.command("delete", help="Delete one of keep-up-with's own messages")
+@app.command("delete", help="Delete a message")
 def delete_command(
     message_id: Annotated[str, typer.Argument(help="Message id")],
     channel: Annotated[str | None, typer.Option(help="Channel name or id")] = None,
