@@ -49,6 +49,7 @@ class RunContext:
     run_dir: Path
     paths: KeepUpWithPaths
     output: Path
+    trace: Path
     timeout_seconds: int
     settle_seconds: int
 
@@ -77,6 +78,7 @@ def main() -> None:
         wait_until_caught_up(context, process, timeout_seconds=context.timeout_seconds)
         run_batches(context, process)
     finally:
+        snapshot_thread_trace(context)
         stop_process(process)
     print(f"output: {context.output}", flush=True)
 
@@ -98,6 +100,7 @@ def create_run(case_dir: Path, runs_dir: Path) -> RunContext:
     run_dir = runs_dir / run_name
     home = run_dir / "home"
     output = run_dir / "output"
+    trace = run_dir / "trace"
     paths = KeepUpWithPaths(
         home=home,
         config=home / "config.toml",
@@ -108,7 +111,7 @@ def create_run(case_dir: Path, runs_dir: Path) -> RunContext:
         events_db=home / "events.sqlite",
         thread=home / "run" / "thread.json",
     )
-    for path in (paths.home, paths.workspace, paths.logs, paths.run, output):
+    for path in (paths.home, paths.workspace, paths.logs, paths.run, output, trace):
         path.mkdir(parents=True, exist_ok=True)
     copy_case(case_dir, run_dir / "case")
     copy_env(paths.env)
@@ -120,6 +123,7 @@ def create_run(case_dir: Path, runs_dir: Path) -> RunContext:
         run_dir=run_dir,
         paths=paths,
         output=output,
+        trace=trace,
         timeout_seconds=int(case.get("timeout_seconds") or DEFAULT_TIMEOUT_SECONDS),
         settle_seconds=min(
             MAX_SETTLE_SECONDS,
@@ -346,6 +350,7 @@ def wait_until_idle(
                 {"threadId": thread_id, "includeTurns": True},
             )
             thread = result.get("thread", {})
+            write_thread_trace(context, thread)
             if count_turns(thread) >= min_turn_count and thread_idle(thread):
                 return
             time.sleep(1)
@@ -376,7 +381,9 @@ def turn_count(context: RunContext, process: subprocess.Popen) -> int:
             "thread/read",
             {"threadId": thread_id, "includeTurns": True},
         )
-        return count_turns(result.get("thread", {}))
+        thread = result.get("thread", {})
+        write_thread_trace(context, thread)
+        return count_turns(thread)
     finally:
         client.close()
 
@@ -408,6 +415,32 @@ def output_fingerprint(path: Path) -> tuple[tuple[str, int, int], ...]:
             stat = item.stat()
             rows.append((item.relative_to(path).as_posix(), stat.st_size, stat.st_mtime_ns))
     return tuple(rows)
+
+
+def snapshot_thread_trace(context: RunContext) -> None:
+    thread_id = read_thread_id(context)
+    if not thread_id:
+        return
+    client = JsonRpcClient()
+    try:
+        client.connect()
+        initialize(client)
+        result = client.request(
+            "thread/read",
+            {"threadId": thread_id, "includeTurns": True},
+        )
+        write_thread_trace(context, result.get("thread", {}))
+    except Exception as error:
+        print(f"warning: could not write trace/thread.json: {error}", file=sys.stderr)
+    finally:
+        client.close()
+
+
+def write_thread_trace(context: RunContext, thread: dict[str, Any]) -> None:
+    context.trace.mkdir(parents=True, exist_ok=True)
+    (context.trace / "thread.json").write_text(
+        json.dumps(thread, indent=2, sort_keys=True) + "\n"
+    )
 
 
 def ensure_running(process: subprocess.Popen, context: RunContext) -> None:
