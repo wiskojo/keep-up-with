@@ -41,15 +41,9 @@ No “not X, more Y.”
 
 ### Gotchas
 
-- Send a normal message by default. Never use `--reply-to` on the latest message in a conversation — the context is already clear, especially in the DM. Use it only when the message you are answering is far enough back or several topics are active at once.
-- Fix your own mistakes in place: `cli message edit` for a typo or correction in a recent post, `cli message delete` or `cli thread delete` plus a clean repost for a botched publish. Only keep-up-with's own content can be edited or deleted; do not leave a broken post up with a correction underneath it.
-- `cli` commands run through a shell. Quote message text for the shell, not for Markdown.
-- Use single quotes around `--text` when the message contains backticks, `$`, or double quotes.
-- Quote multi-word option values, including search queries.
-- Use real line breaks in the command text. Do not type literal `\n\n`. In logs and JSON output, real line breaks may appear escaped as `\\n`.
-- Discord messages are capped at 2000 characters. Keep each message or thread post comfortably under that limit, usually under 1800 characters. Split deep-dive output into thread posts before sending; do not try to send `outputs/output.md` as one message.
-- Messages render a limited Markdown set — see [.agents/skills/keep-up-with/references/formatting.md](.agents/skills/keep-up-with/references/formatting.md). Use formatting to break up text walls, but stay inside the supported set: no tables — prefer short bullets, bold labels, line breaks, or an attached image/cropped chart instead.
-- Never run broad `rg`, `cat`, or `sed` over stored HTML/JSON artifacts. Minified files can dump one huge line into context. For workspace searches, exclude `artifacts/` and `assets/` directories under `stories/`. For artifact inspection, use bounded extraction only.
+- Send normal messages by default. Do not use `--reply-to` for the latest message; use it only to answer an older message or one specific item among several active topics.
+- Quote shell arguments carefully, especially multi-word values, backticks, `$`, and quotes. Use real line breaks, never literal `\n\n`.
+- Use only supported Markdown. See the [formatting guide](.agents/skills/keep-up-with/references/formatting.md).
 
 ## Perception And Action
 
