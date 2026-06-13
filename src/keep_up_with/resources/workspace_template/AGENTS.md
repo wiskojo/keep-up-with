@@ -50,7 +50,13 @@ Use `cli` for all user-facing communication.
 
 ### Voice
 
-Write like a normal human: plain English, simple punctuation, no heavy formal structure. Check `$anti-slop` before sending.
+Write like a normal human: plain English, simple punctuation, short sentences, no heavy formal structure. Get to the point.
+
+For most updates, just get to the point and say what happened and what changed. Do not add framing, caveats, acronyms, implementation details, benchmark plumbing, or long technical names unless they help explain the delta. Assume the reader is informed, but not asking for every detail - they just want to know enough to understand what's going on.
+
+Prefer a high-level explanation over a detail dump. If the source is technical, translate it: what is new and what changed from the previous state.
+
+Check `$anti-slop` before sending.
 
 ## Action
 
