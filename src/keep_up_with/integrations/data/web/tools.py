@@ -19,7 +19,7 @@ from keep_up_with.integrations.base import ToolContext, tool
 from keep_up_with.integrations.data.common import resolve_path
 
 
-@tool("Capture a full-page screenshot with Chrome; set KUW_CHROME to override")
+@tool("Capture a full-page screenshot with Chrome")
 def screenshot(
     _ctx: ToolContext,
     url: str,
@@ -31,6 +31,14 @@ def screenshot(
 ) -> dict[str, Any]:
     output_path = resolve_path(output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    if _inside_codex_sandbox():
+        return {
+            "ok": False,
+            "error": (
+                "Chrome screenshots cannot run inside the Codex sandbox. "
+                "Rerun this command outside the sandbox."
+            ),
+        }
     return _capture_full_page(
         url=url,
         output_path=output_path,
@@ -65,7 +73,10 @@ def _capture_full_page(
                 "--disable-default-apps",
                 "--disable-extensions",
                 "--disable-gpu",
+                "--disable-breakpad",
+                "--disable-crash-reporter",
                 "--hide-scrollbars",
+                "--noerrdialogs",
                 "--no-default-browser-check",
                 "--no-first-run",
                 "--remote-allow-origins=*",
@@ -111,11 +122,16 @@ def _capture_full_page(
 
     output_path.write_bytes(base64.b64decode(screenshot_data["data"]))
     return {
+        "ok": True,
         "url": url,
         "output": str(output_path),
         "viewport": {"width": width, "height": height},
         "image": content,
     }
+
+
+def _inside_codex_sandbox() -> bool:
+    return bool(os.environ.get("CODEX_SANDBOX"))
 
 
 def _chrome_executable() -> str:
