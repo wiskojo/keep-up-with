@@ -83,6 +83,30 @@ def list_command(
     echo_jsonl(messages)
 
 
+@app.command("around", help="Show messages around a message")
+def around_command(
+    message_id: Annotated[str, typer.Argument(help="Message id")],
+    channel: Annotated[str | None, typer.Option(help="Channel name or id")] = None,
+    thread_id: Annotated[str | None, typer.Option(help="Thread id")] = None,
+    before: Annotated[int, typer.Option(help="Messages before the target")] = 10,
+    after: Annotated[int, typer.Option(help="Messages after the target")] = 20,
+) -> None:
+    client = messaging_client(get_config())
+    try:
+        messages = asyncio.run(
+            client.messages_around(
+                message_id=message_id,
+                channel=channel,
+                thread_id=thread_id,
+                before=before,
+                after=after,
+            )
+        )
+    except ValueError as error:
+        fail(str(error))
+    echo_jsonl(messages)
+
+
 @app.command("edit", help="Edit one of keep-up-with's own messages")
 def edit_command(
     message_id: Annotated[str, typer.Argument(help="Message id")],

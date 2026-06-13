@@ -272,6 +272,16 @@ class MessagingClient(Protocol):
         author: str | None = None,
     ) -> list[dict[str, Any]]: ...
 
+    async def messages_around(
+        self,
+        *,
+        message_id: str,
+        channel: str | None = None,
+        thread_id: str | None = None,
+        before: int = 10,
+        after: int = 20,
+    ) -> list[dict[str, Any]]: ...
+
     async def send_message(
         self,
         *,

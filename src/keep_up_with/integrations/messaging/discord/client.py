@@ -290,6 +290,27 @@ class DiscordMessagingClient:
             rows.sort(key=lambda row: row["created_at"])
             return rows
 
+    async def messages_around(
+        self,
+        *,
+        message_id: str,
+        channel: str | None = None,
+        thread_id: str | None = None,
+        before: int = 10,
+        after: int = 20,
+    ) -> list[dict[str, Any]]:
+        async with self._client(_message_intents()) as client:
+            target = await self._message_target(
+                client, channel=channel, thread_id=thread_id
+            )
+            anchor = await _fetch_message(target, message_id)
+            return await _collect_messages_around(
+                target,
+                anchor,
+                before=max(0, min(before, 100)),
+                after=max(0, min(after, 100)),
+            )
+
     async def send_message(
         self,
         *,
@@ -534,9 +555,25 @@ class DiscordMessagingClient:
                 raise ValueError(f"thread is not messageable: {thread_id}")
             return target
         if channel:
-            return await self._text_channel(client, channel)
+            return await self._message_channel(client, channel)
         user = await client.fetch_user(int(self.context.settings()["user_id"]))
         return user.dm_channel or await user.create_dm()
+
+    async def _message_channel(
+        self,
+        client: discord.Client,
+        channel: str,
+    ) -> discord.abc.Messageable:
+        try:
+            return await self._text_channel(client, channel)
+        except ValueError as error:
+            if not channel.isdigit():
+                raise
+            user = await client.fetch_user(int(self.context.settings()["user_id"]))
+            dm = user.dm_channel or await user.create_dm()
+            if str(dm.id) == channel:
+                return dm
+            raise error
 
     async def _text_channel(
         self,
@@ -637,6 +674,25 @@ async def _collect_messages(
                 continue
         messages.append(data)
     return list(reversed(messages))
+
+
+async def _collect_messages_around(
+    target: discord.abc.Messageable,
+    anchor: discord.Message,
+    *,
+    before: int,
+    after: int,
+) -> list[dict[str, Any]]:
+    previous_messages = []
+    async for message in target.history(limit=before, before=anchor):
+        previous_messages.append(message_data(message))
+    next_messages = []
+    async for message in target.history(limit=after, after=anchor, oldest_first=True):
+        next_messages.append(message_data(message))
+
+    anchor_data = message_data(anchor)
+    anchor_data["anchor"] = True
+    return [*reversed(previous_messages), anchor_data, *next_messages]
 
 
 async def _delete_channels(channels: list[Any]) -> None:
