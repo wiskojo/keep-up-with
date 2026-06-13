@@ -38,16 +38,6 @@ def list_command(
     )
 
 
-@app.command("show", help="Show one pending event")
-def show_command(
-    event_id: Annotated[str, typer.Argument(help="Event id or unique prefix")],
-) -> None:
-    event = EventStore(get_config()).get_event(event_id)
-    if event is None:
-        fail("unknown or ambiguous event", id=event_id)
-    echo_json(event)
-
-
 @app.command("dismiss", help="Resolve pending events, recording their disposition")
 def dismiss_command(
     event_ids: Annotated[

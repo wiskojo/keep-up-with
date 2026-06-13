@@ -9,7 +9,7 @@ To interact with the user or share information with them, you must use `cli`.
 | Term | CLI | Meaning | Use |
 | --- | --- | --- | --- |
 | Message | `cli message send/list` | Chat item in the DM or a channel. | Direct replies, quick updates, and update posts. |
-| Channel | `cli message channels`, `cli space channels list/create/rename/move` | Topic or project area. | Put messages and threads in the right place. Create or move channels only for reused structure. |
+| Channel | `cli space channels list/create/rename/move` | Topic or project area. | Put messages and threads in the right place. Create or move channels only for reused structure. |
 | Section | `cli space sections list/create/rename/move` | Group of channels. | Persistent layout. |
 | Thread | `cli thread create/append/list/show` | Focused story or research path inside a channel. | Deep-dive stories and connected updates over time. `create` publishes all posts at once and pings the user; draft the full thread first. `create --from-message` converts an existing post into a thread. |
 
@@ -60,7 +60,7 @@ You can then use `cli tools`, existing commands, scripts, or other means at your
 | CLI | Use |
 | --- | --- |
 | `cli events list/show` | Stored event history. `list` is compact and supports `-q` text search; use `show` for full payloads. |
-| `cli inbox list/show/dismiss` | Current queue: `list` is compact; `show`, handle, dismiss. |
+| `cli inbox list/dismiss` | Current queue: `list`, handle, dismiss; use `cli events show` for a full payload. |
 | `cli subs list` | Configured subscriptions. |
 | `cli tools` | Integration commands for image crops, screenshots, transcripts, frames, history, metadata, or linked material. |
 

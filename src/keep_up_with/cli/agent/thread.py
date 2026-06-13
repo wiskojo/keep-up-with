@@ -120,7 +120,7 @@ def build_posts(texts: list[str], attachments: list[str]) -> list[ThreadPost]:
 
 @app.command("append", help="Append a message to a thread")
 def append_command(
-    thread_id: Annotated[str, typer.Option(help="Thread id")],
+    thread_id: Annotated[str, typer.Argument(help="Thread id")],
     text: Annotated[str, typer.Option("--text", "-t", help="Message text")] = "",
     attachment: Annotated[
         list[str] | None,

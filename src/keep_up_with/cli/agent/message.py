@@ -17,11 +17,10 @@ app = typer.Typer(
 )
 
 
-@app.command("send", help="Send a message, defaults to DM")
+@app.command("send", help="Send a message to a channel or the DM (default); use `thread append` for threads")
 def send_command(
     text: Annotated[str, typer.Option("--text", "-t", help="Message text")] = "",
     channel: Annotated[str | None, typer.Option(help="Channel name or id")] = None,
-    thread_id: Annotated[str | None, typer.Option(help="Thread id")] = None,
     reply_to: Annotated[str | None, typer.Option(help="Message id to reply to")] = None,
     attachment: Annotated[
         list[str] | None,
@@ -38,7 +37,6 @@ def send_command(
             client.send_message(
                 text=text,
                 channel=channel,
-                thread_id=thread_id,
                 reply_to=reply_to,
                 attachments=attachment or [],
             )
@@ -87,7 +85,7 @@ def list_command(
 
 @app.command("edit", help="Edit one of keep-up-with's own messages")
 def edit_command(
-    message_id: Annotated[str, typer.Option(help="Message id")],
+    message_id: Annotated[str, typer.Argument(help="Message id")],
     text: Annotated[str, typer.Option("--text", "-t", help="Replacement text")],
     channel: Annotated[str | None, typer.Option(help="Channel name or id")] = None,
     thread_id: Annotated[str | None, typer.Option(help="Thread id")] = None,
@@ -109,7 +107,7 @@ def edit_command(
 
 @app.command("delete", help="Delete one of keep-up-with's own messages")
 def delete_command(
-    message_id: Annotated[str, typer.Option(help="Message id")],
+    message_id: Annotated[str, typer.Argument(help="Message id")],
     channel: Annotated[str | None, typer.Option(help="Channel name or id")] = None,
     thread_id: Annotated[str | None, typer.Option(help="Thread id")] = None,
 ) -> None:
@@ -125,9 +123,3 @@ def delete_command(
     except ValueError as error:
         fail(str(error))
     echo_json({"deleted": True, "id": message_id})
-
-
-@app.command("channels", help="List message channels")
-def channels_command() -> None:
-    client = messaging_client(get_config())
-    echo_jsonl(asyncio.run(client.list_channels()))
