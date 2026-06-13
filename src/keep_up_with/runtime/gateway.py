@@ -6,6 +6,7 @@ import sys
 import time
 import traceback
 from dataclasses import dataclass, field
+from datetime import datetime
 from functools import partial
 from pathlib import Path
 from threading import Event as ThreadEvent
@@ -579,19 +580,50 @@ def start_turn(client: JsonRpcClient, state: CodexState, text: str) -> None:
         state.active_turn_id = str(turn["id"])
 
 
-def render_wake(items: list[InboxItem], inbox_count: int) -> str:
+def render_wake(
+    items: list[InboxItem],
+    inbox_count: int,
+    *,
+    now: datetime | None = None,
+) -> str:
     noun = "notification" if len(items) == 1 else "notifications"
-    lines = [f"{len(items)} new {noun} received ({inbox_count} in inbox):", ""]
+    lines = [
+        f"Current time: {format_local_time(now or datetime.now().astimezone())}",
+        "",
+        f"{len(items)} new {noun} received ({inbox_count} in inbox):",
+        "",
+    ]
     for index, item in enumerate(items, start=1):
         event = item.event
         lines.append(
             f"{index}. [{event.integration}.{event.kind} {event.id[:6]}] "
             f"{event.summary}"
         )
+        lines.append(f"   received: {format_local_iso_time(item.created_at)}")
         refs = " ".join(f"{key}={value}" for key, value in event.refs.items())
         if refs:
             lines.append(f"   ref: {refs}")
     return "\n".join(lines)
+
+
+def format_local_iso_time(value: str) -> str:
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return value
+    return format_local_time(parsed)
+
+
+def format_local_time(value: datetime) -> str:
+    local = value.astimezone()
+    hour = local.hour % 12 or 12
+    suffix = "am" if local.hour < 12 else "pm"
+    zone = local.tzname()
+    timestamp = (
+        f"{local.strftime('%A %B')} {local.day}, {local.year} "
+        f"{hour}:{local.minute:02d}{suffix}"
+    )
+    return f"{timestamp} {zone}" if zone else timestamp
 
 
 def input_text(text: str) -> list[dict[str, Any]]:
