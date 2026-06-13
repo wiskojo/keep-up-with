@@ -126,7 +126,7 @@ class RedditClient:
 
         media_results = download_media(collect_thread_media(data), media_dir)
         markdown_path = target_dir / "thread.md"
-        markdown = thread_markdown(data, media_results)
+        markdown = thread_markdown(data, media_results, base_dir=target_dir)
         markdown_path.write_text(markdown, encoding="utf-8")
         return {
             "id": post["id"],
@@ -503,7 +503,12 @@ def comments(items: Any, *, depth: int, remaining: list[int]) -> list[dict[str, 
     return rows
 
 
-def thread_markdown(data: dict[str, Any], media_results: list[dict[str, Any]]) -> str:
+def thread_markdown(
+    data: dict[str, Any],
+    media_results: list[dict[str, Any]],
+    *,
+    base_dir: Path,
+) -> str:
     post = data["post"]
     media_by_owner = group_media_results(media_results)
     lines = [
@@ -522,7 +527,13 @@ def thread_markdown(data: dict[str, Any], media_results: list[dict[str, Any]]) -
         lines.extend(["## Post", "", selftext, ""])
     media_rows = media_by_owner.get(("post", str(post.get("id") or "")), [])
     if media_rows:
-        lines.extend(media_markdown_lines(media_rows, alt="Reddit post media"))
+        lines.extend(
+            media_markdown_lines(
+                media_rows,
+                alt="Reddit post media",
+                base_dir=base_dir,
+            )
+        )
     comments_data = data.get("comments") or []
     if comments_data:
         lines.extend(["## Comments", ""])
@@ -532,6 +543,7 @@ def thread_markdown(data: dict[str, Any], media_results: list[dict[str, Any]]) -
                 comment,
                 prefix=f"{index}.",
                 media_by_owner=media_by_owner,
+                base_dir=base_dir,
             )
             lines.append("")
     return "\n".join(lines).rstrip() + "\n"
@@ -543,6 +555,7 @@ def append_comment_markdown(
     *,
     prefix: str,
     media_by_owner: dict[tuple[str, str], list[dict[str, Any]]],
+    base_dir: Path,
     indent: int = 0,
 ) -> None:
     pad = "  " * indent
@@ -565,6 +578,7 @@ def append_comment_markdown(
                 for line in media_markdown_lines(
                     [item],
                     alt=f"Reddit comment {comment.get('id') or ''} media",
+                    base_dir=base_dir,
                 )
             )
     for reply_index, reply in enumerate(comment.get("replies") or [], start=1):
@@ -573,6 +587,7 @@ def append_comment_markdown(
             reply,
             prefix=f"{prefix}{reply_index}.",
             media_by_owner=media_by_owner,
+            base_dir=base_dir,
             indent=indent + 1,
         )
 
@@ -605,10 +620,15 @@ def collect_thread_media(data: dict[str, Any]) -> list[dict[str, Any]]:
     return rows
 
 
-def media_markdown_lines(rows: list[dict[str, Any]], *, alt: str) -> list[str]:
+def media_markdown_lines(
+    rows: list[dict[str, Any]],
+    *,
+    alt: str,
+    base_dir: Path,
+) -> list[str]:
     lines: list[str] = []
     for index, item in enumerate(rows, start=1):
-        label = item.get("path") or item.get("url") or ""
+        label = media_markdown_target(item, base_dir=base_dir)
         if not label:
             continue
         if item.get("ok"):
@@ -619,6 +639,16 @@ def media_markdown_lines(rows: list[dict[str, Any]], *, alt: str) -> list[str]:
     if lines:
         lines.append("")
     return lines
+
+
+def media_markdown_target(item: dict[str, Any], *, base_dir: Path) -> str:
+    path = item.get("path") or ""
+    if path:
+        try:
+            return Path(path).relative_to(base_dir).as_posix()
+        except ValueError:
+            return str(path)
+    return str(item.get("url") or "")
 
 
 def download_media(rows: list[dict[str, Any]], output_dir: Path) -> list[dict[str, Any]]:

@@ -95,7 +95,12 @@ class XClient:
 
         media_results = download_media(thread_posts, media_dir)
         markdown_path = target_dir / "post.md"
-        markdown = post_markdown(thread_posts, media_results, thread_error=thread_error)
+        markdown = post_markdown(
+            thread_posts,
+            media_results,
+            base_dir=target_dir,
+            thread_error=thread_error,
+        )
         markdown_path.write_text(markdown, encoding="utf-8")
         return {
             "id": post["id"],
@@ -134,7 +139,7 @@ class XClient:
         by_id = {row["id"]: row for row in rows}
         by_id.setdefault(str(post["id"]), post)
         return prune_self_thread(
-            sorted(by_id.values(), key=lambda row: str(row.get("created_at") or "")),
+            list(by_id.values()),
             root_id=str(conversation_id),
         )
 
@@ -437,16 +442,20 @@ def post_url(author: dict[str, Any], post: dict[str, Any]) -> str:
 
 
 def prune_self_thread(rows: list[dict[str, Any]], *, root_id: str) -> list[dict[str, Any]]:
+    remaining = {str(row.get("id") or ""): row for row in rows if row.get("id")}
     kept_ids: set[str] = set()
-    kept: list[dict[str, Any]] = []
-    for row in rows:
-        post_id = str(row.get("id") or "")
-        if not post_id:
-            continue
-        if post_id == root_id or replied_to_kept_post(row, kept_ids):
-            kept.append(row)
-            kept_ids.add(post_id)
-    return kept
+    kept: dict[str, dict[str, Any]] = {}
+    while True:
+        changed = False
+        for post_id, row in list(remaining.items()):
+            if post_id == root_id or replied_to_kept_post(row, kept_ids):
+                kept[post_id] = row
+                kept_ids.add(post_id)
+                del remaining[post_id]
+                changed = True
+        if not changed:
+            break
+    return sorted(kept.values(), key=post_sort_key)
 
 
 def replied_to_kept_post(row: dict[str, Any], kept_ids: set[str]) -> bool:
@@ -460,18 +469,23 @@ def replied_to_kept_post(row: dict[str, Any], kept_ids: set[str]) -> bool:
     return False
 
 
+def post_sort_key(row: dict[str, Any]) -> tuple[str, int]:
+    post_id = str(row.get("id") or "")
+    try:
+        id_value = int(post_id)
+    except ValueError:
+        id_value = 0
+    return str(row.get("created_at") or ""), id_value
+
+
 def post_markdown(
     rows: list[dict[str, Any]],
     media_results: list[dict[str, Any]],
     *,
+    base_dir: Path,
     thread_error: str = "",
 ) -> str:
-    first = rows[0]
-    author = first.get("author") or {}
-    title = author.get("username") or first.get("id") or "X post"
-    lines = [f"# @{title}", ""]
-    if first.get("url"):
-        lines.extend([f"URL: {first['url']}", ""])
+    lines: list[str] = []
     if thread_error:
         lines.extend([f"Thread expansion error: {thread_error}", ""])
     media_by_post = group_media_results(media_results)
@@ -486,11 +500,7 @@ def post_markdown(
                 f"Author: @{username}",
                 f"Posted: {row.get('created_at') or ''}",
                 f"URL: {row.get('url') or ''}",
-                "Metrics: "
-                f"{metrics.get('reply_count', 0)} replies, "
-                f"{metrics.get('retweet_count', 0)} reposts, "
-                f"{metrics.get('like_count', 0)} likes, "
-                f"{metrics.get('quote_count', 0)} quotes",
+                f"Metrics: {post_metrics(metrics)}",
                 "",
                 str(row.get("text") or "").strip(),
                 "",
@@ -498,24 +508,57 @@ def post_markdown(
         )
         media_rows = media_by_post.get(str(row.get("id") or ""), [])
         if media_rows:
-            lines.extend(media_markdown_lines(media_rows, alt=f"X post {index} media"))
+            lines.extend(
+                media_markdown_lines(
+                    media_rows,
+                    alt=f"X post {index} media",
+                    base_dir=base_dir,
+                )
+            )
     return "\n".join(lines).rstrip() + "\n"
 
 
-def media_markdown_lines(rows: list[dict[str, Any]], *, alt: str) -> list[str]:
+def media_markdown_lines(
+    rows: list[dict[str, Any]],
+    *,
+    alt: str,
+    base_dir: Path,
+) -> list[str]:
     lines: list[str] = []
     for index, item in enumerate(rows, start=1):
-        label = item.get("path") or item.get("url") or ""
+        label = media_markdown_target(item, base_dir=base_dir)
         if not label:
             continue
         if item.get("ok"):
-            lines.extend(["", f"![{alt} {index}]({label})"])
+            lines.append(f"![{alt} {index}]({label})")
             continue
         status = item.get("error") or "download failed"
-        lines.extend(["", f"- {label} ({status})"])
+        lines.append(f"- {label} ({status})")
     if lines:
         lines.append("")
     return lines
+
+
+def post_metrics(metrics: dict[str, Any]) -> str:
+    parts = [
+        f"{metrics.get('reply_count', 0)} replies",
+        f"{metrics.get('retweet_count', 0)} reposts",
+        f"{metrics.get('like_count', 0)} likes",
+        f"{metrics.get('quote_count', 0)} quotes",
+    ]
+    if "impression_count" in metrics:
+        parts.append(f"{metrics.get('impression_count', 0)} impressions")
+    return ", ".join(parts)
+
+
+def media_markdown_target(item: dict[str, Any], *, base_dir: Path) -> str:
+    path = item.get("path") or ""
+    if path:
+        try:
+            return Path(path).relative_to(base_dir).as_posix()
+        except ValueError:
+            return str(path)
+    return str(item.get("url") or "")
 
 
 def download_media(rows: list[dict[str, Any]], output_dir: Path) -> list[dict[str, Any]]:
