@@ -74,6 +74,7 @@ def default_config(messaging: dict) -> dict:
         "app": {
             "thread_name": "Main",
             "codex_socket": "~/.codex/app-server-control/app-server-control.sock",
+            "eval_mode": False,
         },
         "messaging": messaging,
         "integrations": {

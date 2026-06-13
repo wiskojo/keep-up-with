@@ -1,0 +1,19 @@
+[
+  {
+    "name": "deepswe reddit announcement",
+    "events": [
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "reddit-1tom0v5",
+        "summary": "r/accelerate: Datacurve released DeepSWE, a new benchmark for evaluating coding agents on long-horizon software engineering tasks.",
+        "refs": {
+          "post_id": "1tom0v5",
+          "url": "https://www.reddit.com/r/accelerate/comments/1tom0v5/datacurve_released_deepswe_a_new_benchmark_for/"
+        },
+        "data": {},
+        "high_priority": true
+      }
+    ]
+  }
+]

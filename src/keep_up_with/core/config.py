@@ -61,6 +61,7 @@ class AppSettings(BaseModel):
 
     thread_name: str = "Main"
     codex_socket: str = "~/.codex/app-server-control/app-server-control.sock"
+    eval_mode: bool = False
 
 
 class KeepUpWithSettings(BaseModel):

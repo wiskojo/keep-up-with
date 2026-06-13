@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import socket
 import sys
 import time
@@ -157,6 +158,10 @@ def ensure_thread(
     state.context_used = 0.0
     name_thread(client, state.thread_id)
     archive_stray_threads(config, client, state)
+
+    if config.settings.app.eval_mode:
+        return
+
     if candidate is None:
         record_startup_event(config, store)
     else:
@@ -273,6 +278,21 @@ def workspace_threads(
 
 
 def thread_params(config: KeepUpWithConfig) -> dict[str, Any]:
+    env = {
+        "KEEP_UP_WITH_HOME": str(config.paths.home.resolve()),
+    }
+    path = os.environ.get("PATH")
+
+    if path:
+        env["PATH"] = path
+
+    writable_roots = {str(config.paths.home.resolve())}
+    messaging_settings = config.messaging().model_dump()
+    output_dir = messaging_settings.get("output_dir")
+
+    if output_dir:
+        writable_roots.add(str(Path(str(output_dir)).expanduser().resolve()))
+
     return {
         "cwd": str(config.paths.workspace),
         "approvalPolicy": "on-request",
@@ -281,9 +301,13 @@ def thread_params(config: KeepUpWithConfig) -> dict[str, Any]:
         "config": {
             "sandbox_workspace_write": {
                 "network_access": True,
-                "writable_roots": [str(config.paths.home)],
+                "writable_roots": sorted(writable_roots),
                 "exclude_tmpdir_env_var": False,
                 "exclude_slash_tmp": False,
+            },
+            "shell_environment_policy": {
+                "inherit": "all",
+                "set": env,
             },
         },
         "sessionStartSource": "startup",
@@ -354,6 +378,9 @@ def record_rotation_event(
 
 
 def start_messaging(config: KeepUpWithConfig, store: EventStore) -> None:
+    if config.settings.app.eval_mode:
+        return
+
     messaging = messaging_integration(config)
     # Messaging credentials and subscriptions are fixed for the process lifetime.
     for subscription in messaging.subscriptions:
@@ -373,6 +400,11 @@ def reconcile_data(
     store: EventStore,
     running: dict[SubscriptionKey, RunningSubscription],
 ) -> None:
+    if config.settings.app.eval_mode:
+        stop_all(running)
+        running.clear()
+        return
+
     desired: dict[SubscriptionKey, tuple[str, Subscription, dict[str, Any]]] = {}
     signatures: dict[SubscriptionKey, str] = {}
     for integration in data_integrations(config):
