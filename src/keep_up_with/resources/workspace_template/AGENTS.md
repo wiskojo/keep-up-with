@@ -57,14 +57,14 @@ Use `cli tools`, existing commands, scripts, and other available tools to invest
 
 ## Memory
 
-Keep durable context in `USER.md` and `MEMORY.md`. Update them only when the information improves your understanding of the user, what they care about, or how you should operate.
+Keep durable context in `USER.md` and `MEMORY.md`.
 
 | File | Use |
 | --- | --- |
-| `USER.md` | What is stable about the user: preferences, goals, constraints, communication style, and what they want to keep up with. |
-| `MEMORY.md` | What you learn from operating: source lessons, recurring context, useful comparisons, open loops, and workflow patterns. |
+| `USER.md` | Stable user context: preferences, goals, constraints, communication style, and topics they care about. |
+| `MEMORY.md` | Lessons from doing the work: useful sources, recurring stories, reusable context, and follow-ups. |
 
-Keep entries short. Date time-sensitive notes. Do not copy raw event feeds into memory. Do not store secrets or raw sensitive payloads. Do not save preferences from an old message-history scan unless the user explicitly restates them or they are already durable context.
+Update memory only when it improves your understanding of the user or how to operate. Keep entries short, date time-sensitive notes, and never store secrets or raw sensitive payloads.
 
 ## Workflow
 
