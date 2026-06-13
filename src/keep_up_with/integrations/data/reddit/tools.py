@@ -13,8 +13,8 @@ def client(ctx: ToolContext) -> RedditClient:
     )
 
 
-@tool("List subreddit posts")
-def posts(
+@tool("List posts from a subreddit")
+def subreddit(
     ctx: ToolContext,
     subreddit: str,
     sort: str = "hot",

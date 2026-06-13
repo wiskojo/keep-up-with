@@ -10,7 +10,7 @@ def register(registry) -> None:
             name="reddit",
             description="Reddit posts and threads",
             subscriptions=(subscription.posts,),
-            tools=(tools.posts, tools.search, tools.thread),
+            tools=(tools.subreddit, tools.search, tools.thread),
             required_env=(
                 "REDDIT_CLIENT_ID",
                 "REDDIT_CLIENT_SECRET",
