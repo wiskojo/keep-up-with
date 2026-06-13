@@ -506,6 +506,7 @@ def post_markdown(
                 "",
             ]
         )
+        lines.extend(quoted_post_markdown_lines(row))
         media_rows = media_by_post.get(str(row.get("id") or ""), [])
         if media_rows:
             lines.extend(
@@ -516,6 +517,22 @@ def post_markdown(
                 )
             )
     return "\n".join(lines).rstrip() + "\n"
+
+
+def quoted_post_markdown_lines(row: dict[str, Any]) -> list[str]:
+    lines: list[str] = []
+    for reference in row.get("referenced_tweets") or []:
+        if not isinstance(reference, dict) or reference.get("type") != "quoted":
+            continue
+        post_id = str(reference.get("id") or "")
+        if not post_id:
+            continue
+        lines.extend(["Quoted post:", "", f"> {x_status_url(post_id)}", ""])
+    return lines
+
+
+def x_status_url(post_id: str) -> str:
+    return f"https://x.com/i/status/{post_id}"
 
 
 def media_markdown_lines(
