@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from keep_up_with.integrations.base import ToolContext, tool
+from keep_up_with.integrations.data.common import resolve_path
 from keep_up_with.integrations.data.reddit.client import RedditClient
 
 
@@ -42,12 +43,19 @@ def search(
     )
 
 
-@tool("Show a Reddit thread")
-def thread(
+@tool("Download a Reddit thread")
+def download(
     ctx: ToolContext,
     url_or_id: str,
+    output_dir: str,
     sort: str = "best",
-    depth: int = 3,
-    limit: int = 100,
+    depth: int = 1,
+    limit: int = 20,
 ) -> dict[str, Any]:
-    return client(ctx).thread(url_or_id, sort=sort, depth=depth, limit=limit)
+    return client(ctx).download(
+        url_or_id,
+        sort=sort,
+        depth=depth,
+        limit=limit,
+        output_dir=resolve_path(output_dir),
+    )

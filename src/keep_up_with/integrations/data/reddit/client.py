@@ -1,13 +1,18 @@
 from __future__ import annotations
 
+import json
+import re
 from datetime import datetime, timezone
 from html import unescape
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+import httpx
 import praw
 
 USER_AGENT = "script:keep-up-with:v0.1"
+MEDIA_URL_RE = re.compile(r"https?://[^\s)\]>]+")
 
 
 class RedditClient:
@@ -81,8 +86,8 @@ class RedditClient:
         url_or_id: str,
         *,
         sort: str = "best",
-        depth: int = 3,
-        limit: int = 100,
+        depth: int = 1,
+        limit: int = 20,
     ) -> dict[str, Any]:
         post = self.reddit.submission(id=parse_thread_id(url_or_id))
         post.comment_sort = sort
@@ -96,6 +101,44 @@ class RedditClient:
                 remaining=remaining,
             ),
             "more": [],
+        }
+
+    def download(
+        self,
+        url_or_id: str,
+        *,
+        output_dir: Path,
+        sort: str = "best",
+        depth: int = 1,
+        limit: int = 20,
+    ) -> dict[str, Any]:
+        data = self.thread(url_or_id, sort=sort, depth=depth, limit=limit)
+        post = data["post"]
+        target_dir = output_dir / f"reddit-thread-{safe_path_part(str(post['id']))}"
+        media_dir = target_dir / "media"
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+        json_path = target_dir / "thread.json"
+        json_path.write_text(
+            json.dumps(data, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+
+        media_results = download_media(collect_thread_media(data), media_dir)
+        markdown_path = target_dir / "thread.md"
+        markdown = thread_markdown(data, media_results)
+        markdown_path.write_text(markdown, encoding="utf-8")
+        return {
+            "id": post["id"],
+            "type": "reddit_thread",
+            "directory": str(target_dir),
+            "json": {"ok": True, "path": str(json_path)},
+            "markdown": {
+                "ok": True,
+                "path": str(markdown_path),
+                "characters": len(markdown),
+            },
+            "media": media_artifact(media_dir, media_results),
         }
 
 
@@ -146,7 +189,20 @@ def post_media(post: Any) -> list[dict[str, Any]]:
     )
     add_thumbnail(media, seen, post)
 
-    return media
+    return dedupe_media(media)
+
+
+def comment_media(comment: Any) -> list[dict[str, Any]]:
+    media: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    add_body_media(media, seen, getattr(comment, "body", ""))
+    add_media_metadata(
+        media,
+        seen,
+        getattr(comment, "media_metadata", None),
+        source="comment.media_metadata",
+    )
+    return dedupe_media(media)
 
 
 def add_direct_url(
@@ -233,6 +289,48 @@ def add_gallery(
         )
 
 
+def add_media_metadata(
+    rows: list[dict[str, Any]],
+    seen: set[str],
+    media_metadata: Any,
+    *,
+    source: str,
+) -> None:
+    if not isinstance(media_metadata, dict):
+        return
+    for media_id, metadata in media_metadata.items():
+        if not isinstance(metadata, dict):
+            continue
+        item = metadata.get("s") or {}
+        if not isinstance(item, dict):
+            continue
+        url = clean_url(item.get("u") or item.get("gif") or item.get("mp4") or "")
+        add_media(
+            rows,
+            seen,
+            source=source,
+            media_type=media_type_from_metadata(metadata),
+            url=url,
+            width=item.get("x"),
+            height=item.get("y"),
+            media_id=media_id,
+        )
+
+
+def add_body_media(rows: list[dict[str, Any]], seen: set[str], body: str) -> None:
+    for match in MEDIA_URL_RE.finditer(body or ""):
+        url = clean_url(match.group(0).rstrip(".,"))
+        if not looks_like_media_url(url):
+            continue
+        add_media(
+            rows,
+            seen,
+            source="comment.body",
+            media_type=media_type_from_url(url),
+            url=url,
+        )
+
+
 def add_reddit_video(
     rows: list[dict[str, Any]],
     seen: set[str],
@@ -245,17 +343,16 @@ def add_reddit_video(
     video = media.get("reddit_video") or {}
     if not isinstance(video, dict):
         return
-    for key in ("fallback_url", "hls_url", "dash_url"):
-        add_media(
-            rows,
-            seen,
-            source=f"{source}.reddit_video",
-            media_type="video",
-            url=clean_url(video.get(key, "")),
-            width=video.get("width"),
-            height=video.get("height"),
-            duration=video.get("duration"),
-        )
+    add_media(
+        rows,
+        seen,
+        source=f"{source}.reddit_video",
+        media_type="video",
+        url=clean_url(video.get("fallback_url", "")),
+        width=video.get("width"),
+        height=video.get("height"),
+        duration=video.get("duration"),
+    )
 
 
 def add_thumbnail(rows: list[dict[str, Any]], seen: set[str], post: Any) -> None:
@@ -298,6 +395,42 @@ def add_media(
     if media_id is not None:
         item["media_id"] = media_id
     rows.append(item)
+
+
+def dedupe_media(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped: dict[str, dict[str, Any]] = {}
+    for item in rows:
+        key = media_group_key(item)
+        current = grouped.get(key)
+        if current is None or media_quality(item) > media_quality(current):
+            grouped[key] = item
+    return list(grouped.values())
+
+
+def media_group_key(item: dict[str, Any]) -> str:
+    media_id = item.get("media_id")
+    if media_id:
+        return f"id:{media_id}"
+    parsed = urlparse(str(item.get("url") or ""))
+    stem = Path(parsed.path).stem
+    if parsed.netloc.endswith(("redd.it", "redditmedia.com")) and stem:
+        return f"reddit:{stem}"
+    return f"url:{parsed.scheme}://{parsed.netloc}{parsed.path}"
+
+
+def media_quality(item: dict[str, Any]) -> int:
+    width = int(item.get("width") or 0)
+    height = int(item.get("height") or 0)
+    source = item.get("source") or ""
+    media_type = item.get("type") or ""
+    score = width * height
+    if media_type != "thumbnail":
+        score += 1_000_000_000
+    if source in {"url", "gallery", "comment.media_metadata", "comment.body"}:
+        score += 100_000_000
+    if source.startswith("preview"):
+        score += 10_000_000
+    return score
 
 
 def clean_url(value: Any) -> str:
@@ -362,11 +495,202 @@ def comments(items: Any, *, depth: int, remaining: list[int]) -> list[dict[str, 
                 "created_utc": item.created_utc,
                 "body": item.body or "",
                 "permalink": f"https://reddit.com{item.permalink}",
+                "media": comment_media(item),
                 "replies": comments(item.replies, depth=depth - 1, remaining=remaining),
                 "more": [],
             }
         )
     return rows
+
+
+def thread_markdown(data: dict[str, Any], media_results: list[dict[str, Any]]) -> str:
+    post = data["post"]
+    media_by_owner = group_media_results(media_results)
+    lines = [
+        f"# r/{post.get('subreddit')}: {post.get('title')}",
+        "",
+        f"Author: u/{post.get('author') or '[deleted]'}",
+        f"Score: {post.get('score')}",
+        f"Comments: {post.get('num_comments')}",
+        f"Posted: {post.get('created_at')}",
+        f"Permalink: {post.get('permalink')}",
+        f"URL: {post.get('url')}",
+        "",
+    ]
+    selftext = str(post.get("selftext") or "").strip()
+    if selftext:
+        lines.extend(["## Post", "", selftext, ""])
+    media_rows = media_by_owner.get(("post", str(post.get("id") or "")), [])
+    if media_rows:
+        lines.extend(media_markdown_lines(media_rows, alt="Reddit post media"))
+    comments_data = data.get("comments") or []
+    if comments_data:
+        lines.extend(["## Comments", ""])
+        for index, comment in enumerate(comments_data, start=1):
+            append_comment_markdown(
+                lines,
+                comment,
+                prefix=f"{index}.",
+                media_by_owner=media_by_owner,
+            )
+            lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def append_comment_markdown(
+    lines: list[str],
+    comment: dict[str, Any],
+    *,
+    prefix: str,
+    media_by_owner: dict[tuple[str, str], list[dict[str, Any]]],
+    indent: int = 0,
+) -> None:
+    pad = "  " * indent
+    author = comment.get("author") or "[deleted]"
+    score = comment.get("score")
+    permalink = comment.get("permalink") or ""
+    lines.append(f"{pad}{prefix} u/{author} · {score} points")
+    if permalink:
+        lines.append(f"{pad}   {permalink}")
+    body = str(comment.get("body") or "").strip()
+    if body:
+        for line in body.splitlines():
+            quote = line.strip()
+            lines.append(f"{pad}   > {quote}" if quote else f"{pad}   >")
+    media_rows = media_by_owner.get(("comment", str(comment.get("id") or "")), [])
+    if media_rows:
+        for item in media_rows:
+            lines.extend(
+                f"{pad}   {line}" if line else ""
+                for line in media_markdown_lines(
+                    [item],
+                    alt=f"Reddit comment {comment.get('id') or ''} media",
+                )
+            )
+    for reply_index, reply in enumerate(comment.get("replies") or [], start=1):
+        append_comment_markdown(
+            lines,
+            reply,
+            prefix=f"{prefix}{reply_index}.",
+            media_by_owner=media_by_owner,
+            indent=indent + 1,
+        )
+
+
+def collect_thread_media(data: dict[str, Any]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    post = data.get("post") or {}
+    for item in post.get("media") or []:
+        rows.append(
+            {
+                **item,
+                "owner_type": "post",
+                "owner_id": str(post.get("id") or ""),
+            }
+        )
+
+    def collect_comments(comments_data: list[dict[str, Any]]) -> None:
+        for comment in comments_data:
+            for item in comment.get("media") or []:
+                rows.append(
+                    {
+                        **item,
+                        "owner_type": "comment",
+                        "owner_id": str(comment.get("id") or ""),
+                    }
+                )
+            collect_comments(comment.get("replies") or [])
+
+    collect_comments(data.get("comments") or [])
+    return rows
+
+
+def media_markdown_lines(rows: list[dict[str, Any]], *, alt: str) -> list[str]:
+    lines: list[str] = []
+    for index, item in enumerate(rows, start=1):
+        label = item.get("path") or item.get("url") or ""
+        if not label:
+            continue
+        if item.get("ok"):
+            lines.extend(["", f"![{alt} {index}]({label})"])
+            continue
+        status = item.get("error") or "download failed"
+        lines.extend(["", f"- {label} ({status})"])
+    if lines:
+        lines.append("")
+    return lines
+
+
+def download_media(rows: list[dict[str, Any]], output_dir: Path) -> list[dict[str, Any]]:
+    results: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for index, item in enumerate(rows, start=1):
+        if not isinstance(item, dict):
+            continue
+        url = str(item.get("url") or "")
+        if not url or url in seen:
+            continue
+        seen.add(url)
+        suffix = url_suffix(url, default=".bin")
+        media_id = item.get("media_id") or f"media-{index:02d}"
+        path = output_dir / f"{safe_path_part(str(media_id))}{suffix}"
+        result = {
+            "owner_type": item.get("owner_type") or "",
+            "owner_id": item.get("owner_id") or "",
+            "url": url,
+            "type": item.get("type") or "",
+            "source": item.get("source") or "",
+            "path": str(path),
+        }
+        try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+            download_file(url, path)
+            result["ok"] = True
+        except Exception as error:
+            result["ok"] = False
+            result["error"] = f"{type(error).__name__}: {error}"
+        results.append(result)
+    return results
+
+
+def group_media_results(rows: list[dict[str, Any]]) -> dict[tuple[str, str], list[dict[str, Any]]]:
+    grouped: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for item in rows:
+        key = (str(item.get("owner_type") or ""), str(item.get("owner_id") or ""))
+        grouped.setdefault(key, []).append(item)
+    return grouped
+
+
+def media_artifact(output_dir: Path, rows: list[dict[str, Any]]) -> dict[str, Any]:
+    errors = [
+        {"url": item.get("url", ""), "error": item.get("error", "")}
+        for item in rows
+        if not item.get("ok")
+    ]
+    return {
+        "ok": not errors,
+        "directory": str(output_dir),
+        "files": [item["path"] for item in rows if item.get("ok") and item.get("path")],
+        "errors": errors,
+    }
+
+
+def download_file(url: str, path: Path) -> None:
+    with httpx.stream("GET", url, timeout=60, follow_redirects=True) as response:
+        response.raise_for_status()
+        with path.open("wb") as file:
+            for chunk in response.iter_bytes():
+                file.write(chunk)
+
+
+def url_suffix(url: str, *, default: str) -> str:
+    suffix = Path(urlparse(url).path).suffix
+    return suffix if suffix else default
+
+
+def safe_path_part(value: str) -> str:
+    cleaned = "".join(char if char.isalnum() or char in "-._" else "-" for char in value)
+    return cleaned.strip(".-") or "item"
 
 
 def parse_thread_id(value: str) -> str:

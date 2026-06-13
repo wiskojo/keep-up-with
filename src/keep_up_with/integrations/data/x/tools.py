@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from keep_up_with.integrations.base import ToolContext, tool
+from keep_up_with.integrations.data.common import resolve_path
 from keep_up_with.integrations.data.x.client import XClient
 
 
@@ -15,9 +16,18 @@ def search(ctx: ToolContext, query: str, limit: int = 10) -> list[dict[str, Any]
     return client(ctx).search(query, limit=limit)
 
 
-@tool("Show an X post")
-def post(ctx: ToolContext, post_id: str) -> dict[str, Any]:
-    return client(ctx).post(post_id)
+@tool("Download an X post")
+def download(
+    ctx: ToolContext,
+    post_id: str,
+    output_dir: str,
+    include_thread: bool = True,
+) -> dict[str, Any]:
+    return client(ctx).download(
+        post_id,
+        output_dir=resolve_path(output_dir),
+        include_thread=include_thread,
+    )
 
 
 @tool("Show an X account")

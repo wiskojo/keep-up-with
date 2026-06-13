@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import gzip
+import json
 import re
+import shutil
+import subprocess
 import tarfile
 from pathlib import Path
 from typing import Any
@@ -18,13 +21,19 @@ ID_RE = re.compile(
 GRAPHICS_RE = re.compile(
     r"\\includegraphics(?:\[[^\]]*\])?\{(?P<path>[^}]+)\}",
 )
+HTML_SRC_RE = re.compile(
+    r"(?P<prefix>\bsrc=[\"'])(?P<path>[^\"']+)(?P<suffix>[\"'])",
+)
+MARKDOWN_IMAGE_RE = re.compile(
+    r"(?P<prefix>!\[[^\]]*\]\()(?P<path>[^)\s]+)(?P<suffix>\))",
+)
 FIGURE_EXTENSIONS = (".pdf", ".png", ".jpg", ".jpeg", ".eps", ".svg")
 
 
 def download_pdf(id_or_url: str, *, output_dir: Path) -> dict[str, Any]:
     arxiv_id = normalize_id(id_or_url)
     output_dir.mkdir(parents=True, exist_ok=True)
-    path = output_dir / f"{safe_id(arxiv_id)}.pdf"
+    path = output_dir / "paper.pdf"
     download_file(ARXIV_PDF.format(id=arxiv_id), path)
     return {
         "id": arxiv_id,
@@ -38,19 +47,24 @@ def convert_to_markdown(
     *,
     output: Path | None,
     output_dir: Path,
+    source_result: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     arxiv_id = normalize_id(id_or_url)
-    pdf_result = ensure_pdf(arxiv_id, output_dir=output_dir)
-    pdf_path = Path(pdf_result["path"])
-    target = output or output_dir / f"{safe_id(arxiv_id)}.md"
+    target = output or output_dir / "paper.md"
     target.parent.mkdir(parents=True, exist_ok=True)
-    text = convert_pdf_to_markdown(pdf_path)
+    pdf_path = output_dir / "paper.pdf"
+    if not source_result or not source_result.get("ok") or not source_result.get("source_dir"):
+        raise ValueError("arXiv source is required for Markdown conversion")
+    text = convert_source_to_markdown(Path(str(source_result["source_dir"])))
+    if not text.strip():
+        raise ValueError("pandoc produced empty Markdown output")
     target.write_text(text, encoding="utf-8")
     return {
         "id": arxiv_id,
         "pdf_path": str(pdf_path),
         "markdown_path": str(target),
         "characters": len(text),
+        "method": "pandoc",
     }
 
 
@@ -61,9 +75,9 @@ def download_source(
     extract: bool = True,
 ) -> dict[str, Any]:
     arxiv_id = normalize_id(id_or_url)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    archive = output_dir / f"{safe_id(arxiv_id)}-source.src"
-    source_dir = output_dir / f"{safe_id(arxiv_id)}-source"
+    source_dir = output_dir / "source"
+    source_dir.mkdir(parents=True, exist_ok=True)
+    archive = source_dir / "source.src"
     download_file(ARXIV_SOURCE.format(id=arxiv_id), archive)
 
     source_type = detect_source_type(archive)
@@ -78,7 +92,6 @@ def download_source(
     if not extract:
         return result
 
-    source_dir.mkdir(parents=True, exist_ok=True)
     if source_type == "tar":
         extract_tar(archive, source_dir)
     else:
@@ -88,19 +101,18 @@ def download_source(
     files = [
         path.relative_to(source_dir).as_posix()
         for path in sorted(source_dir.rglob("*"))
-        if path.is_file()
+        if path.is_file() and path != archive
     ]
     result["source_dir"] = str(source_dir)
     result["files"] = files
     return result
 
 
-def collect_figures(id_or_url: str, *, output_dir: Path) -> dict[str, Any]:
-    source_result = download_source(id_or_url, output_dir=output_dir, extract=True)
-    return figure_inventory(source_result)
+def collect_figures(source_result: dict[str, Any], *, media_dir: Path) -> dict[str, Any]:
+    return figure_inventory(source_result, media_dir=media_dir)
 
 
-def figure_inventory(source_result: dict[str, Any]) -> dict[str, Any]:
+def figure_inventory(source_result: dict[str, Any], *, media_dir: Path) -> dict[str, Any]:
     source_dir = Path(str(source_result["source_dir"]))
     if not source_dir.exists():
         raise ValueError("source extraction did not create a source directory")
@@ -110,10 +122,13 @@ def figure_inventory(source_result: dict[str, Any]) -> dict[str, Any]:
         for path in sorted(source_dir.rglob("*"))
         if path.is_file() and path.suffix.casefold() in FIGURE_EXTENSIONS
     ]
+    media_files = copy_figures(source_dir, figure_files, media_dir=media_dir)
     return {
         **source_result,
         "includegraphics": references,
         "figure_files": figure_files,
+        "media_dir": str(media_dir),
+        "media_files": media_files,
     }
 
 
@@ -122,22 +137,39 @@ def download(
     *,
     output_dir: Path,
 ) -> dict[str, Any]:
+    require_pandoc()
     arxiv_id = normalize_id(id_or_url)
+    target_dir = output_dir / f"arxiv-paper-{safe_id(arxiv_id)}"
+    media_dir = target_dir / "media"
     result: dict[str, Any] = {
         "id": arxiv_id,
+        "type": "arxiv_paper",
+        "directory": str(target_dir),
     }
     result["pdf"] = artifact_result(
-        lambda: download_pdf(arxiv_id, output_dir=output_dir)
+        lambda: pdf_artifact(download_pdf(arxiv_id, output_dir=target_dir))
     )
-    result["markdown"] = artifact_result(
-        lambda: convert_to_markdown(
+    source_result = artifact_result(
+        lambda: download_source(arxiv_id, output_dir=target_dir, extract=True)
+    )
+    media_result = artifact_result(
+        lambda: collect_figures(source_result, media_dir=media_dir)
+    )
+    result["source"] = source_artifact(source_result)
+    result["media"] = media_artifact(media_result, media_dir=media_dir)
+    result["markdown"] = markdown_artifact(
+        convert_to_markdown(
             arxiv_id,
             output=None,
-            output_dir=output_dir,
+            output_dir=target_dir,
+            source_result=source_result,
         )
     )
-    result["source"] = artifact_result(
-        lambda: collect_figures(arxiv_id, output_dir=output_dir)
+    result["json"] = artifact_result(
+        lambda: write_json_artifact(
+            target_dir / "paper.json",
+            {key: value for key, value in result.items() if key != "json"},
+        )
     )
     return result
 
@@ -170,7 +202,7 @@ def safe_id(arxiv_id: str) -> str:
 
 def artifact_result(action) -> dict[str, Any]:
     try:
-        return {"ok": True, "data": action()}
+        return {"ok": True, **action()}
     except Exception as error:
         return {
             "ok": False,
@@ -178,15 +210,100 @@ def artifact_result(action) -> dict[str, Any]:
         }
 
 
-def ensure_pdf(arxiv_id: str, *, output_dir: Path) -> dict[str, Any]:
-    path = output_dir / f"{safe_id(arxiv_id)}.pdf"
-    if path.exists():
+def pdf_artifact(result: dict[str, Any]) -> dict[str, Any]:
+    return {"path": result["path"], "url": result["url"]}
+
+
+def markdown_artifact(result: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "ok": True,
+        "path": result["markdown_path"],
+        "characters": result["characters"],
+        "pdf_path": result["pdf_path"],
+        "method": result["method"],
+    }
+
+
+def source_artifact(result: dict[str, Any]) -> dict[str, Any]:
+    if not result.get("ok"):
+        return result
+    artifact = {
+        "ok": True,
+        "directory": result["source_dir"],
+        "archive_path": result["source_path"],
+        "source_url": result["source_url"],
+        "source_type": result["source_type"],
+        "files": result["files"],
+    }
+    if "figure_files" in result:
+        artifact["figure_files"] = result["figure_files"]
+    if "includegraphics" in result:
+        artifact["includegraphics"] = result["includegraphics"]
+    return artifact
+
+
+def media_artifact(result: dict[str, Any], *, media_dir: Path) -> dict[str, Any]:
+    if not result.get("ok"):
         return {
-            "id": arxiv_id,
-            "path": str(path),
-            "url": ARXIV_PDF.format(id=arxiv_id),
+            "ok": False,
+            "directory": str(media_dir),
+            "files": [],
+            "errors": [{"error": result.get("error", "source download failed")}],
         }
-    return download_pdf(arxiv_id, output_dir=output_dir)
+    return {
+        "ok": True,
+        "directory": result["media_dir"],
+        "files": result["media_files"],
+        "errors": [],
+    }
+
+
+def write_json_artifact(path: Path, payload: dict[str, Any]) -> dict[str, Any]:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    return {"path": str(path)}
+
+
+def copy_figures(source_dir: Path, figure_files: list[str], *, media_dir: Path) -> list[str]:
+    media_files: list[str] = []
+    for item in figure_files:
+        source = source_dir / item
+        if not source.is_file():
+            continue
+        if source.suffix.casefold() == ".pdf":
+            target = (media_dir / item).with_suffix(".png")
+            convert_pdf_figure(source, target)
+        else:
+            target = media_dir / item
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+        media_files.append(str(target))
+    return media_files
+
+
+def convert_pdf_figure(source: Path, target: Path) -> None:
+    if shutil.which("pdftoppm") is None:
+        raise ValueError("pdftoppm is required to convert PDF figures")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    prefix = target.with_suffix("")
+    try:
+        subprocess.run(
+            [
+                "pdftoppm",
+                "-png",
+                "-singlefile",
+                "-r",
+                "200",
+                str(source),
+                str(prefix),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as error:
+        detail = (error.stderr or "").strip() or "unknown pdftoppm error"
+        raise ValueError(f"failed to convert PDF figure {source}: {detail}") from error
 
 
 def download_file(url: str, path: Path) -> None:
@@ -232,19 +349,100 @@ def looks_like_tex(data: bytes) -> bool:
     )
 
 
-def convert_pdf_to_markdown(pdf_path: Path) -> str:
+def convert_source_to_markdown(source_dir: Path) -> str:
+    main = main_tex_file(source_dir)
+    if main is None:
+        raise ValueError("arXiv source does not contain a TeX file")
+    require_pandoc()
     try:
-        from markitdown import MarkItDown
-    except ImportError as error:
-        raise ValueError("markitdown is required for arXiv Markdown conversion") from error
+        result = subprocess.run(
+            [
+                "pandoc",
+                "--from",
+                "latex",
+                "--to",
+                "gfm",
+                "--wrap=none",
+                main.name,
+            ],
+            cwd=main.parent,
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+    except subprocess.TimeoutExpired as error:
+        raise ValueError("pandoc timed out while converting arXiv source") from error
+    except subprocess.CalledProcessError as error:
+        detail = (error.stderr or "").strip() or "unknown pandoc error"
+        raise ValueError(f"pandoc failed while converting arXiv source: {detail}") from error
+    except OSError as error:
+        raise ValueError(f"pandoc failed while converting arXiv source: {error}") from error
+    text = rewrite_markdown_asset_paths(
+        result.stdout.strip(),
+        base_dir=main.parent,
+        source_dir=source_dir,
+    )
+    return f"{text}\n" if text else ""
 
-    result = MarkItDown().convert(str(pdf_path))
-    content = getattr(result, "text_content", None)
-    if not isinstance(content, str):
-        content = getattr(result, "markdown", None)
-    if not isinstance(content, str):
-        content = str(result)
-    return content
+
+def require_pandoc() -> None:
+    if shutil.which("pandoc") is None:
+        raise ValueError("pandoc is required for arXiv Markdown conversion")
+
+
+def rewrite_markdown_asset_paths(text: str, *, base_dir: Path, source_dir: Path) -> str:
+    def html_replace(match: re.Match[str]) -> str:
+        path = source_relative_path(
+            match.group("path"),
+            base_dir=base_dir,
+            source_dir=source_dir,
+        )
+        return f"{match.group('prefix')}{path}{match.group('suffix')}"
+
+    def markdown_replace(match: re.Match[str]) -> str:
+        path = source_relative_path(
+            match.group("path"),
+            base_dir=base_dir,
+            source_dir=source_dir,
+        )
+        return f"{match.group('prefix')}{path}{match.group('suffix')}"
+
+    text = HTML_SRC_RE.sub(html_replace, text)
+    return MARKDOWN_IMAGE_RE.sub(markdown_replace, text)
+
+
+def source_relative_path(value: str, *, base_dir: Path, source_dir: Path) -> str:
+    parsed = urlparse(value)
+    if parsed.scheme or parsed.netloc or value.startswith(("/", "#")):
+        return value
+    resolved = (base_dir / parsed.path).resolve()
+    try:
+        relative = resolved.relative_to(source_dir.resolve())
+    except ValueError:
+        return value
+    path = f"source/{relative.as_posix()}"
+    if parsed.query:
+        path = f"{path}?{parsed.query}"
+    if parsed.fragment:
+        path = f"{path}#{parsed.fragment}"
+    return path
+
+
+def main_tex_file(source_dir: Path) -> Path | None:
+    candidates = sorted(source_dir.rglob("*.tex"))
+    document_files = [
+        path
+        for path in candidates
+        if "\\begin{document}" in path.read_text(encoding="utf-8", errors="replace")
+    ]
+    if not document_files:
+        return candidates[0] if candidates else None
+    for name in ("main.tex", "ms.tex", "paper.tex"):
+        for path in document_files:
+            if path.name == name:
+                return path
+    return document_files[0]
 
 
 def extract_tar(archive: Path, output_dir: Path) -> None:

@@ -7,11 +7,11 @@ from keep_up_with.integrations.data.arxiv import client
 from keep_up_with.integrations.data.common import resolve_path
 
 
-@tool("Download an arXiv paper and artifacts")
+@tool("Download an arXiv paper")
 def download(
     _ctx: ToolContext,
     id_or_url: str,
-    output_dir: str = "research/artifacts/arxiv",
+    output_dir: str,
 ) -> dict[str, Any]:
     return client.download(
         id_or_url,
