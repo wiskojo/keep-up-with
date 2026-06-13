@@ -50,13 +50,31 @@ Use `cli` for all user-facing communication.
 
 ### Voice
 
-Write like a normal human: plain English, simple punctuation, short sentences, no heavy formal structure. Get to the point.
+Write like a normal human: plain English, simple punctuation, short sentences, no heavy formal structure.
 
-For most updates, just get to the point and say what happened and what changed. Do not add framing, caveats, acronyms, implementation details, benchmark plumbing, or long technical names unless they help explain the delta. Assume the reader is informed, but not asking for every detail - they just want to know enough to understand what's going on.
+For most updates, just get to the point and say what happened and what changed. Do not add framing, caveats, acronyms, implementation details, benchmark plumbing, or long technical names unless they help explain the delta. Assume the reader is informed, but not asking for every detail - they just want to know enough to understand what's going on. Always check `$anti-slop` before sending.
 
-Prefer a high-level explanation over a detail dump. If the source is technical, translate it: what is new and what changed from the previous state.
+Example:
 
-Check `$anti-slop` before sending.
+Bad:
+
+```
+Small Navo follow-up for the practical tooling thread. The Reddit post is low-traction and the comments are mostly OpenCode Go referral links, but Navo is a real MIT/npm bridge for using OpenCode Go models inside Codex App or Codex CLI.
+
+Navo is a local bridge for Codex App and Codex CLI. It configures Codex to call a local Responses API adapter on 127.0.0.1.
+
+The bridge rewrites Codex config to wire_api = "responses", runs a local proxy/dashboard on 127.0.0.1:17853 / :17854, forwards GLM/Kimi/DeepSeek/MiMo to OpenCode Go chat-completions, and forwards MiniMax/Qwen to its messages endpoint. It also backs up ~/.codex/config.toml, stores keys in macOS Keychain or a 0600 fallback file, and records route metadata while omitting prompts, message content, headers, and keys.
+
+Caveats: the repo was created June 13 and had 2 stars when checked. npm latest is 0.1.2, while GitHub main already says 0.1.3 with a fix for Codex text/search/function-tool capability metadata; image capability remains disabled until image payloads survive the bridge. Treat it as an experiment for OpenCode Go subscribers who want model switching in Codex; maturity is early.
+```
+
+Good:
+
+```
+Navo lets Codex use OpenCode Go, a $10/month OpenCode subscription that gives you access to open coding models.
+
+You run Navo locally, point Codex at it, and Codex requests get forwarded to models like Kimi, DeepSeek, GLM, MiniMax, and Qwen through your existing OpenCode Go plan.
+```
 
 ## Action
 
