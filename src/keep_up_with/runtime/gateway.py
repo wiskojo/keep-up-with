@@ -8,7 +8,6 @@ import traceback
 from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
-from textwrap import dedent
 from threading import Event as ThreadEvent
 from threading import Thread
 from typing import Any
@@ -19,7 +18,7 @@ from keep_up_with.core.config import (
     get_config,
     load_config,
 )
-from keep_up_with.core.events import EventStore, InboxItem
+from keep_up_with.core.events import Event, EventStore, InboxItem
 from keep_up_with.integrations.base import Subscription, SubscriptionContext
 from keep_up_with.integrations.registry import data_integrations, messaging_integration
 from keep_up_with.runtime.codex import JsonRpcClient
@@ -29,6 +28,8 @@ CONFIG_CHECK_SECONDS = 3.0
 HIGH_WAKE_DELAY_SECONDS = 5.0
 LOW_WAKE_DELAY_SECONDS = 30.0
 ROTATE_CONTEXT_USED_FRACTION = 0.75
+SYSTEM_INTEGRATION = "system"
+SYSTEM_SUMMARY_LIMIT = 1500
 
 
 @dataclass(frozen=True)
@@ -73,10 +74,8 @@ def run_gateway(config: KeepUpWithConfig) -> None:
     client.connect()
     try:
         initialize(client)
-        first_message = ensure_thread(config, client, state)
+        ensure_thread(config, client, state, store)
         write_thread_state(config.paths.thread, state, config.settings.app.thread_name)
-        if first_message:
-            start_turn(client, state, first_message)
 
         start_messaging(config, store)
         reconcile_data(config, store, running)
@@ -127,12 +126,14 @@ def ensure_thread(
     config: KeepUpWithConfig,
     client: JsonRpcClient,
     state: CodexState,
-) -> str | None:
-    """Resume or create the main thread; returns the first turn message, if any.
+    store: EventStore,
+) -> None:
+    """Resume or create the main thread, recording a system event for new ones.
 
     The main thread is a chain: each rotation or recovery starts a fresh thread
-    that points back at the previous one. The startup greeting is sent only
+    that points back at the previous one. The startup event is recorded only
     when the workspace has no threads at all (fresh install or after reset).
+    The wake loop delivers these events like any other notification.
     """
     params = thread_params(config)
     candidate = state.thread_id or latest_workspace_thread_id(config, client)
@@ -141,7 +142,7 @@ def ensure_thread(
             result = client.request("thread/resume", {"threadId": candidate, **params})
             state.thread_id = str(result["thread"]["id"])
             archive_stray_threads(config, client, state)
-            return None
+            return
         except RuntimeError as error:
             print(
                 f"gateway could not resume thread {candidate}: {error}",
@@ -156,20 +157,24 @@ def ensure_thread(
     name_thread(client, state.thread_id)
     archive_stray_threads(config, client, state)
     if candidate is None:
-        return initial_turn_message(config)
-    return continuation_turn_message(candidate)
+        record_startup_event(config, store)
+    else:
+        record_rotation_event(
+            store, previous_thread_id=candidate, thread_id=state.thread_id
+        )
 
 
 def rotate_thread_if_due(
     config: KeepUpWithConfig,
     client: JsonRpcClient,
     state: CodexState,
-) -> str | None:
+    store: EventStore,
+) -> Event | None:
     """Rotate to a fresh thread before codex compacts the current one.
 
-    Called on the wake path right before a turn starts, so the next wake lands
-    on the new thread with the continuation pointer prepended. Returns the
-    continuation message to prepend, or None when no rotation was needed.
+    Called on the wake path right before a turn starts, so the wake lands on
+    the new thread with the rotation event delivered first. Returns the
+    rotation event, or None when no rotation was needed.
     """
     # Codex auto-compacts somewhere around 80-95% of the context window; rotate to
     # a fresh thread comfortably before that so compaction never gets a chance to
@@ -189,7 +194,9 @@ def rotate_thread_if_due(
         file=sys.stderr,
         flush=True,
     )
-    return continuation_turn_message(previous_thread_id)
+    return record_rotation_event(
+        store, previous_thread_id=previous_thread_id, thread_id=state.thread_id
+    )
 
 
 def latest_workspace_thread_id(
@@ -283,22 +290,66 @@ def thread_params(config: KeepUpWithConfig) -> dict[str, Any]:
     }
 
 
-def initial_turn_message(config: KeepUpWithConfig) -> str:
-    return dedent(
-        f"""
-        You were just started. Your operating instructions are in `AGENTS.md`, and your durable context lives in `{config.paths.workspace}`. You are always allowed, and encouraged, to use subagents.
+def record_system_event(
+    store: EventStore,
+    *,
+    kind: str,
+    external_id: str,
+    summary: str,
+    refs: dict[str, Any] | None = None,
+    data: dict[str, Any] | None = None,
+    high_priority: bool = True,
+) -> Event | None:
+    """Record a runtime-originated event; the wake loop delivers it like any other."""
+    return store.record(
+        integration=SYSTEM_INTEGRATION,
+        kind=kind,
+        external_id=external_id,
+        summary=summary,
+        refs=refs,
+        data=data,
+        high_priority=high_priority,
+        summary_limit=SYSTEM_SUMMARY_LIMIT,
+    )
 
-        1. Greet the user to let them know you're up. Say you're getting situated and will follow up shortly.
-        2. Read `USER.md` and `MEMORY.md`, then run `cli --help` and confirm the command works.
-        3. Inspect what the user keeps up with: `cli subs list` for subscriptions and `cli space channels list` for the channel layout. They have already gone through setup, so do not ask broad setup questions.
-        4. Follow up by introducing yourself more fully, saying what you understand so far, getting a feel for what they care about, and asking any questions you have.
 
-        If notifications arrive while you are getting situated, finish situating first."""
-    ).strip()
+def record_startup_event(config: KeepUpWithConfig, store: EventStore) -> Event | None:
+    return record_system_event(
+        store,
+        kind="startup",
+        external_id=f"started-{int(time.time())}",
+        summary=(
+            "You were just started for the first time. Your operating instructions"
+            " are in `AGENTS.md`, and your durable context lives in"
+            f" `{config.paths.workspace}`. You are always allowed, and encouraged,"
+            " to use subagents. Greet the user to let them know you're up and"
+            " getting situated. Read `USER.md` and `MEMORY.md`, run `cli --help` to"
+            " confirm the command works, then check `cli subs list` and"
+            " `cli space channels list` to see what they keep up with — setup is"
+            " already done, so do not ask broad setup questions. Then introduce"
+            " yourself more fully, say what you understand so far, and ask any"
+            " questions you have. Finish situating before handling other"
+            " notifications."
+        ),
+    )
 
 
-def continuation_turn_message(previous_thread_id: str) -> str:
-    return f"This thread continues your previous conversation thread `{previous_thread_id}`."
+def record_rotation_event(
+    store: EventStore,
+    *,
+    previous_thread_id: str,
+    thread_id: str,
+) -> Event | None:
+    return record_system_event(
+        store,
+        kind="rotation",
+        external_id=thread_id,
+        summary=(
+            "This thread continues your previous conversation thread"
+            f" `{previous_thread_id}`."
+        ),
+        data={"previous_thread_id": previous_thread_id, "thread_id": thread_id},
+    )
 
 
 def start_messaging(config: KeepUpWithConfig, store: EventStore) -> None:
@@ -401,7 +452,6 @@ def run_subscription(
     baseline_first_run: bool = False,
 ) -> None:
     consecutive_failures = 0
-    last_error_at: dict[str, float] = {}
     first_run = True
     effective_stop_event = stop_event or ThreadEvent()
     while not effective_stop_event.is_set():
@@ -422,15 +472,8 @@ def run_subscription(
         except Exception as error:
             consecutive_failures += 1
             traceback.print_exception(error, file=sys.stderr)
-            emit_error(
-                store,
-                context,
-                subscription.name,
-                error,
-                consecutive_failures,
-                last_error_at,
-            )
-            context.wait(5)
+            emit_error(store, context, subscription.name, error, consecutive_failures)
+            context.wait(failure_backoff_seconds(consecutive_failures))
             continue
         sleep_seconds = 5.0
         if subscription.default_interval_seconds is not None:
@@ -513,10 +556,13 @@ def send_wake(
 ) -> None:
     if state.thread_id is None:
         raise RuntimeError("cannot wake without thread id")
+    rotation = rotate_thread_if_due(config, client, state, store)
+    if rotation is not None:
+        items = [
+            InboxItem(event=rotation, created_at=rotation.created_at, notified_at=None),
+            *items,
+        ]
     text = render_wake(items, len(store.list_inbox()))
-    continuation = rotate_thread_if_due(config, client, state)
-    if continuation:
-        text = f"{continuation}\n\n{text}"
     start_turn(client, state, text)
     store.mark_notified([item.event.id for item in items])
 
@@ -637,25 +683,27 @@ def file_fingerprint(path: Path) -> tuple[int, int]:
     return (stat.st_mtime_ns, stat.st_size)
 
 
+def failure_backoff_seconds(consecutive_failures: int) -> float:
+    return min(600.0, 5.0 * 2 ** min(consecutive_failures - 1, 7))
+
+
 def emit_error(
     store: EventStore,
     context: SubscriptionContext,
     subscription: str,
     error: Exception,
     consecutive_failures: int,
-    last_error_at: dict[str, float],
 ) -> None:
+    # The time bucket in the external id makes the store's insert-or-ignore the
+    # rate limiter: one alert per failing subscription per window, re-arming as
+    # long as the failure persists — including across gateway restarts.
+    bucket = int(time.time() // ERROR_EVENT_SECONDS)
     error_type = type(error).__name__
-    now = time.monotonic()
-    previous = last_error_at.get(error_type)
-    if previous is not None and now - previous < ERROR_EVENT_SECONDS:
-        return
-    last_error_at[error_type] = now
-    store.record(
-        integration="keep_up_with",
+    record_system_event(
+        store,
         kind="subscription_error",
-        external_id=f"{subscription}:{error_type}",
-        summary=f"{subscription}: {error}",
+        external_id=f"{subscription}:{error_type}:{bucket}",
+        summary=f"{subscription} subscription is failing: {error}",
         refs={"subscription": subscription, "integration": context.integration},
         data={
             "subscription": subscription,
@@ -664,6 +712,7 @@ def emit_error(
             "error": str(error),
             "consecutive_failures": consecutive_failures,
         },
+        high_priority=False,
     )
 
 
