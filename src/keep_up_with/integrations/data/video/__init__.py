@@ -8,7 +8,7 @@ def register(registry) -> None:
     registry.add_data(
         DataIntegration(
             name="video",
-            description="Extract metadata, transcripts, frames, clips, and GIFs from a video URL or local file",
+            description="Video sources and files",
             tools=(
                 tools.info,
                 tools.transcript,

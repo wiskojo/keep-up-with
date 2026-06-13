@@ -8,7 +8,7 @@ def register(registry) -> None:
     registry.add_data(
         DataIntegration(
             name="browser",
-            description="Search browser history",
+            description="Local browser history",
             tools=(history,),
         )
     )

@@ -9,7 +9,7 @@ def register(registry) -> None:
     registry.add_data(
         DataIntegration(
             name="web",
-            description="Watch RSS feeds and web pages",
+            description="Web pages and screenshots",
             subscriptions=(items,),
             tools=(tools.screenshot,),
             parameters=(

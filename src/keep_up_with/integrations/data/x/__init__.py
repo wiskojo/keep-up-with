@@ -9,7 +9,7 @@ def register(registry) -> None:
     registry.add_data(
         DataIntegration(
             name="x",
-            description="Search X posts and accounts",
+            description="X posts, accounts, and timelines",
             subscriptions=(posts,),
             tools=(search, post, user, timeline),
             required_env=("X_BEARER_TOKEN",),

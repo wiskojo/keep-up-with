@@ -8,7 +8,7 @@ def register(registry) -> None:
     registry.add_data(
         DataIntegration(
             name="image",
-            description="Crop and inspect image assets",
+            description="Image files and crops",
             tools=(tools.crop, tools.grid),
         )
     )

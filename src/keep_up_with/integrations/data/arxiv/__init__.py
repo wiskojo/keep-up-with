@@ -8,7 +8,7 @@ def register(registry) -> None:
     registry.add_data(
         DataIntegration(
             name="arxiv",
-            description="Fetch arXiv papers and artifacts",
+            description="arXiv papers and source files",
             tools=(download,),
         )
     )

@@ -8,7 +8,7 @@ def register(registry) -> None:
     registry.add_data(
         DataIntegration(
             name="raindrop",
-            description="Search saved bookmarks",
+            description="Saved bookmarks",
             subscriptions=(subscription.bookmarks,),
             tools=(tools.bookmarks,),
             required_env=("RAINDROP_TOKEN",),

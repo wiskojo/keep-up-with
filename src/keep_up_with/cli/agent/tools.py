@@ -72,7 +72,7 @@ def build_tools_app() -> typer.Typer:
     app = typer.Typer(
         add_completion=False,
         invoke_without_command=True,
-        help="Run tools",
+        help="Run tools to access and work with different kinds of data",
         no_args_is_help=False,
     )
     try:
