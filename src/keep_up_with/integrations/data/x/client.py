@@ -112,14 +112,14 @@ class XClient:
 
     def self_thread(self, post: dict[str, Any]) -> list[dict[str, Any]]:
         conversation_id = post.get("conversation_id") or post.get("id") or ""
-        username = (post.get("author") or {}).get("username") or ""
-        if not conversation_id or not username:
+        author_id = post.get("author_id") or ""
+        if not conversation_id or not author_id:
             return [post]
         rows = posts(
             self.get(
                 "/2/tweets/search/recent",
                 {
-                    "query": f"conversation_id:{conversation_id} from:{username}",
+                    "query": f"conversation_id:{conversation_id} from:{author_id} -is:retweet",
                     "max_results": 100,
                     "tweet.fields": POST_FIELDS,
                     "user.fields": USER_FIELDS,
@@ -133,7 +133,10 @@ class XClient:
             return [post]
         by_id = {row["id"]: row for row in rows}
         by_id.setdefault(str(post["id"]), post)
-        return sorted(by_id.values(), key=lambda row: str(row.get("created_at") or ""))
+        return prune_self_thread(
+            sorted(by_id.values(), key=lambda row: str(row.get("created_at") or "")),
+            root_id=str(conversation_id),
+        )
 
     def user(self, username: str) -> dict[str, Any]:
         data = self.get(
@@ -431,6 +434,30 @@ def post_url(author: dict[str, Any], post: dict[str, Any]) -> str:
     if not username or not post_id:
         return ""
     return f"https://x.com/{username}/status/{post_id}"
+
+
+def prune_self_thread(rows: list[dict[str, Any]], *, root_id: str) -> list[dict[str, Any]]:
+    kept_ids: set[str] = set()
+    kept: list[dict[str, Any]] = []
+    for row in rows:
+        post_id = str(row.get("id") or "")
+        if not post_id:
+            continue
+        if post_id == root_id or replied_to_kept_post(row, kept_ids):
+            kept.append(row)
+            kept_ids.add(post_id)
+    return kept
+
+
+def replied_to_kept_post(row: dict[str, Any], kept_ids: set[str]) -> bool:
+    for reference in row.get("referenced_tweets") or []:
+        if not isinstance(reference, dict):
+            continue
+        if reference.get("type") != "replied_to":
+            continue
+        if str(reference.get("id") or "") in kept_ids:
+            return True
+    return False
 
 
 def post_markdown(
