@@ -89,13 +89,13 @@ description = "Hosted or packaged AI products, usually from startups or companie
 key = "ai.tools"
 name = "🧰・tools"
 section = "ai"
-description = "Open-source or developer-facing artifacts people can install, clone, call, or integrate. Use for GitHub repos, SDKs, CLIs, APIs, MCP servers, libraries, infra tools, eval harnesses, demos, and developer utilities."
+description = "Open-source or developer-facing artifacts people can install, clone, call, integrate, or build against. Use for GitHub repos, SDKs, CLIs, APIs, MCP servers, libraries, specs, data formats, infra tools, eval harnesses, demos, and developer utilities."
 
 [[space.channels]]
 key = "ai.tips"
 name = "💡・tips"
 section = "ai"
-description = "Practical ways to use AI better. Use for prompting tricks, Claude Code setups, AGENTS.md patterns, coding-agent habits, workflow recipes, how I use this tool, and small repeatable techniques."
+description = "Practical, immediately usable ways to use AI better. Use for prompting tricks, setup tweaks, shortcuts, how-I-use-this-tool notes, and repeatable techniques that do not need a broader engineering thread."
 
 [[space.channels]]
 key = "ai.rumors"
@@ -119,7 +119,7 @@ description = "Significant non-frontier model releases. Use only when the model 
 key = "ai.engineering"
 name = "🛠️・engineering"
 section = "ai"
-description = "Practitioner AI engineering. Use for implementation details, agent components, architecture notes, talks, postmortems, scaling lessons, deployment, observability, debugging stories, and how teams are building AI systems."
+description = "Practitioner AI engineering. Use for implementation details, agent components, workflow patterns, orchestration, architecture notes, talks, postmortems, scaling lessons, deployment, observability, debugging stories, and how teams are building AI systems."
 
 [[space.channels]]
 key = "ai.research"
