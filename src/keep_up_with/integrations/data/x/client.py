@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable, Iterable, Iterator
+from datetime import datetime, timedelta, timezone
 from html import unescape
 from pathlib import Path
 from typing import Any
@@ -124,9 +125,10 @@ class XClient:
         author_id = post.get("author_id") or ""
         if not conversation_id or not author_id:
             return [post]
+        endpoint = x_search_endpoint_for_post(post)
         rows = posts(
             self.get(
-                "/2/tweets/search/recent",
+                endpoint,
                 {
                     "query": f"conversation_id:{conversation_id} from:{author_id} -is:retweet",
                     "max_results": 100,
@@ -295,6 +297,13 @@ class XClient:
 
     def headers(self) -> dict[str, str]:
         return {"Authorization": f"Bearer {self.bearer_token}"}
+
+
+def x_search_endpoint_for_post(post: dict[str, Any]) -> str:
+    created = datetime.fromisoformat(str(post["created_at"]).replace("Z", "+00:00"))
+    if datetime.now(timezone.utc) - created >= timedelta(days=6):
+        return "/2/tweets/search/all"
+    return "/2/tweets/search/recent"
 
 
 def clean_accounts(accounts: Iterable[str]) -> list[str]:
