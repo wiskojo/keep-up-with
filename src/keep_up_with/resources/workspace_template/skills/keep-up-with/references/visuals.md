@@ -6,7 +6,7 @@ Use visuals extracted from source material only.
 
 A visual should help verify, explain, or make a specific highlight easier to scan. It should come from the event itself or from material discovered during research: source pages, papers, repos, docs, dashboards, posts, comments, videos, demos, slides, screenshots, charts, tables, diagrams, thumbnails, GIFs, or frames.
 
-Default to inclusion. Every useful visual in the source material belongs in the output — if a source offers ten useful figures, use all ten. The bar is per-visual quality: readable, relevant, tied to a specific claim. Never ration by count.
+Default to inclusion. Every useful visual in the source material belongs in the output — if a source offers ten useful figures, use all ten. The bar is per-visual quality: readable, relevant, tied to a specific claim. Never ration by count, and never compress a visual-rich source into a short text summary when separate charts or tables carry separate claims. Outside-context visuals can add perspective, but they do not replace source coverage.
 
 Do not create custom graphics for now. Do not make generated images, synthetic charts, SVG summaries, new diagrams, timelines, maps, tables, or visual reinterpretations. If the sources do not contain a useful visual, ground the post in source quotes instead — one or many, interleaved with the commentary the way visuals would be.
 
@@ -31,7 +31,7 @@ Prefer the least lossy source path available:
 1. Download or save the original image, chart, video frame, table, or document asset when the page exposes it directly.
 2. For webpages, capture the page with `cli tools web screenshot` and crop to the chart, figure, table, or card; use element screenshots instead when browser automation is available.
 3. For videos or demos, capture the exact frame, GIF, or short clip that carries the point, with the timestamp in notes.
-4. For flat screenshots, crop from the screenshot with normalized coordinates or an auto-detected crop box.
+4. For flat screenshots, crop from the screenshot with normalized coordinates.
 5. Use manual pixel offsets only as a fallback, and write the crop box down so it can be reproduced.
 
 ## Webpage Captures
@@ -43,6 +43,8 @@ cli tools web screenshot "https://example.com/post" --output research/artifacts/
 cli tools image grid research/artifacts/page.png research/artifacts/page-grid.png
 cli tools image crop research/artifacts/page.png outputs/assets/post-2-chart.png 0.18,0.33,0.67,0.44
 ```
+
+If the screenshot is too tall to inspect accurately, do not guess from the thumbnail. Make a grid image, use browser automation for element screenshots, or crop section-by-section and inspect each crop before it becomes a final asset.
 
 If browser automation (for example Playwright) is set up, element screenshots are less lossy than full-page crops. Good targets: `figure`, `img`, `svg`, a chart container found by heading text, a bordered card or table around the chart, or a video/canvas element.
 
@@ -103,6 +105,6 @@ Final assets should be direct source extracts or crops:
 - video frames, GIFs, clips, or demo recordings
 - paper figures, leaderboard crops, screenshots of comments, or issue excerpts
 
-Before using a visual, inspect it at full size and thumbnail size. It should be readable, relevant, and connected to the surrounding text. If it is only decorative, cut it.
+Before using a visual, inspect it at full size and thumbnail size; never attach the first crop without checking it. Crop the whole figure, table, card, frame, or comment needed for the claim: title, axes, labels, legend, caption or footnote when relevant. Adjacent prose, clipped text, missing labels, excess page chrome, or off-center framing means the crop is not final; recrop it or skip it. For reports, studies, dashboards, and long posts, inventory the figures first; extract each high-value chart or table separately instead of using one overview image. If a visual is only decorative, cut it.
 
 Attach each visual to the post whose claim it supports.

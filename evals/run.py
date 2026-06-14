@@ -38,7 +38,7 @@ from keep_up_with.runtime.gateway import initialize
 
 ROOT = Path(__file__).resolve().parent
 RUNS = ROOT / "runs"
-DEFAULT_TIMEOUT_SECONDS = 900
+DEFAULT_TIMEOUT_SECONDS = 1500
 DEFAULT_SETTLE_SECONDS = 3
 MAX_SETTLE_SECONDS = 5
 
@@ -75,6 +75,7 @@ def main() -> None:
     process = start_gateway(context)
     try:
         wait_for_thread(context, process, timeout_seconds=60)
+        wait_for_startup_handled(context, process, timeout_seconds=context.timeout_seconds)
         wait_until_caught_up(context, process, timeout_seconds=context.timeout_seconds)
         run_batches(context, process)
     finally:
@@ -244,6 +245,7 @@ def run_batches(context: RunContext, process: subprocess.Popen) -> None:
             context,
             process,
             min_turn_count=previous_turn_count + 1,
+            dismissed_event_ids=event_ids,
             timeout_seconds=int(batch.get("timeout_seconds") or context.timeout_seconds),
         )
         wait_for_output_settle(context, seconds=min(
@@ -273,6 +275,42 @@ def wait_until_caught_up(
                 return
         time.sleep(0.5)
     raise RuntimeError(f"gateway did not catch up within {timeout_seconds}s")
+
+
+def wait_for_startup_handled(
+    context: RunContext,
+    process: subprocess.Popen,
+    *,
+    timeout_seconds: int,
+) -> None:
+    print("gateway: waiting for startup", flush=True)
+    deadline = time.monotonic() + timeout_seconds
+    while time.monotonic() < deadline:
+        ensure_running(process, context)
+        try:
+            with sqlite3.connect(context.paths.events_db) as db:
+                row = db.execute(
+                    """
+                    select inbox.notified_at, inbox.dismissed_at
+                    from inbox
+                    join events on events.id = inbox.event_id
+                    where events.integration = 'system'
+                      and events.kind = 'startup'
+                    order by inbox.created_at desc
+                    limit 1
+                    """
+                ).fetchone()
+        except sqlite3.OperationalError:
+            row = None
+        if row and row[0] and row[1]:
+            wait_until_idle(
+                context,
+                process,
+                timeout_seconds=max(1, int(deadline - time.monotonic())),
+            )
+            return
+        time.sleep(0.5)
+    raise RuntimeError(f"startup was not handled within {timeout_seconds}s")
 
 
 def unnotified_inbox_count(context: RunContext) -> int:
@@ -336,6 +374,7 @@ def wait_until_idle(
     *,
     timeout_seconds: int,
     min_turn_count: int = 0,
+    dismissed_event_ids: list[str] | None = None,
 ) -> None:
     thread_id = wait_for_thread(context, process, timeout_seconds=60)
     client = JsonRpcClient()
@@ -351,12 +390,34 @@ def wait_until_idle(
             )
             thread = result.get("thread", {})
             write_thread_trace(context, thread)
-            if count_turns(thread) >= min_turn_count and thread_idle(thread):
+            ensure_thread_ok(thread, label="thread")
+            if (
+                count_turns(thread) >= min_turn_count
+                and thread_idle(thread)
+                and spawned_agents_idle(context, client, thread)
+                and events_dismissed(context, dismissed_event_ids)
+            ):
                 return
             time.sleep(1)
     finally:
         client.close()
     raise RuntimeError(f"thread did not become idle within {timeout_seconds}s")
+
+
+def events_dismissed(context: RunContext, event_ids: list[str] | None) -> bool:
+    if not event_ids:
+        return True
+    with sqlite3.connect(context.paths.events_db) as db:
+        row = db.execute(
+            f"""
+            select count(*)
+            from inbox
+            where event_id in ({','.join('?' for _ in event_ids)})
+              and dismissed_at is not null
+            """,
+            event_ids,
+        ).fetchone()
+    return bool(row and int(row[0]) == len(event_ids))
 
 
 def thread_idle(thread: dict[str, Any]) -> bool:
@@ -383,6 +444,7 @@ def turn_count(context: RunContext, process: subprocess.Popen) -> int:
         )
         thread = result.get("thread", {})
         write_thread_trace(context, thread)
+        ensure_thread_ok(thread, label="thread")
         return count_turns(thread)
     finally:
         client.close()
@@ -429,7 +491,9 @@ def snapshot_thread_trace(context: RunContext) -> None:
             "thread/read",
             {"threadId": thread_id, "includeTurns": True},
         )
-        write_thread_trace(context, result.get("thread", {}))
+        thread = result.get("thread", {})
+        write_thread_trace(context, thread)
+        snapshot_spawned_agents(context, client, thread)
     except Exception as error:
         print(f"warning: could not write trace/thread.json: {error}", file=sys.stderr)
     finally:
@@ -439,6 +503,88 @@ def snapshot_thread_trace(context: RunContext) -> None:
 def write_thread_trace(context: RunContext, thread: dict[str, Any]) -> None:
     context.trace.mkdir(parents=True, exist_ok=True)
     (context.trace / "thread.json").write_text(
+        json.dumps(thread, indent=2, sort_keys=True) + "\n"
+    )
+
+
+def spawned_agents_idle(
+    context: RunContext,
+    client: JsonRpcClient,
+    thread: dict[str, Any],
+) -> bool:
+    agent_ids = spawned_agent_ids(thread)
+    if not agent_ids:
+        return True
+    all_idle = True
+    for agent_id in sorted(agent_ids):
+        result = client.request(
+            "thread/read",
+            {"threadId": agent_id, "includeTurns": True},
+        )
+        agent_thread = result.get("thread", {})
+        write_spawned_agent_trace(context, agent_id, agent_thread)
+        ensure_thread_ok(agent_thread, label=f"spawned agent {agent_id}")
+        if not thread_idle(agent_thread):
+            all_idle = False
+    return all_idle
+
+
+def snapshot_spawned_agents(
+    context: RunContext,
+    client: JsonRpcClient,
+    thread: dict[str, Any],
+) -> None:
+    for agent_id in sorted(spawned_agent_ids(thread)):
+        result = client.request(
+            "thread/read",
+            {"threadId": agent_id, "includeTurns": True},
+        )
+        agent_thread = result.get("thread", {})
+        write_spawned_agent_trace(context, agent_id, agent_thread)
+        ensure_thread_ok(agent_thread, label=f"spawned agent {agent_id}")
+
+
+def ensure_thread_ok(thread: dict[str, Any], *, label: str) -> None:
+    status = thread.get("status")
+    if isinstance(status, dict) and status.get("type") == "systemError":
+        raise RuntimeError(f"{label} failed: {status}")
+
+
+def spawned_agent_ids(thread: dict[str, Any]) -> set[str]:
+    path = thread.get("path")
+    if not isinstance(path, str) or not path:
+        return set()
+    result: set[str] = set()
+    try:
+        lines = Path(path).read_text().splitlines()
+    except OSError:
+        return result
+    for line in lines:
+        try:
+            row = json.loads(line)
+            payload = row.get("payload", {})
+        except json.JSONDecodeError:
+            continue
+        if payload.get("type") != "function_call_output":
+            continue
+        try:
+            output = json.loads(str(payload.get("output") or "{}"))
+        except json.JSONDecodeError:
+            continue
+        agent_id = output.get("agent_id")
+        if isinstance(agent_id, str) and agent_id:
+            result.add(agent_id)
+    return result
+
+
+def write_spawned_agent_trace(
+    context: RunContext,
+    agent_id: str,
+    thread: dict[str, Any],
+) -> None:
+    directory = context.trace / "subagents"
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / f"{agent_id}.json").write_text(
         json.dumps(thread, indent=2, sort_keys=True) + "\n"
     )
 

@@ -1,22 +1,60 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import math
 import os
+import re
 import shutil
 import subprocess
 import tempfile
 import time
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 import httpx
+from markitdown import MarkItDown
 import websocket
 
 from keep_up_with.integrations.base import ToolContext, tool
 from keep_up_with.integrations.data.common import resolve_path
+
+
+@tool("Download a web page")
+def download(
+    _ctx: ToolContext,
+    url: str,
+    output_dir: str,
+) -> dict[str, Any]:
+    response = httpx.get(
+        url,
+        follow_redirects=True,
+        timeout=30,
+        headers={"user-agent": "keep-up-with/0.1"},
+    )
+    response.raise_for_status()
+
+    target_dir = resolve_path(output_dir) / f"web-page-{safe_path_part(url)}"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    html_path = target_dir / "page.html"
+    markdown_path = target_dir / "page.md"
+    metadata_path = target_dir / "metadata.json"
+
+    html_path.write_text(response.text, encoding=response.encoding or "utf-8")
+    markdown = MarkItDown().convert(str(html_path)).text_content.strip()
+    markdown_path.write_text(markdown + "\n", encoding="utf-8")
+    metadata = {
+        "type": "web_page",
+        "url": url,
+        "final_url": str(response.url),
+        "status_code": response.status_code,
+        "html": str(html_path),
+        "markdown": str(markdown_path),
+    }
+    metadata_path.write_text(json.dumps(metadata, indent=2, sort_keys=True) + "\n")
+    return {"ok": True, "output_dir": str(target_dir), **metadata}
 
 
 @tool("Capture a full-page screenshot with Chrome")
@@ -150,6 +188,14 @@ def _chrome_executable() -> str:
         if Path(candidate).exists() or shutil.which(candidate):
             return candidate
     return ""
+
+
+def safe_path_part(value: str) -> str:
+    parsed = urlparse(value)
+    base = f"{parsed.netloc}{parsed.path}".strip("/") or "page"
+    base = re.sub(r"[^A-Za-z0-9._-]+", "-", base).strip("-._").lower()
+    suffix = hashlib.sha1(value.encode("utf-8")).hexdigest()[:8]
+    return f"{base[:70] or 'page'}-{suffix}"
 
 
 def _wait_for_debug_port(

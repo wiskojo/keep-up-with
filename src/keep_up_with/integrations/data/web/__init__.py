@@ -11,7 +11,7 @@ def register(registry) -> None:
             name="web",
             description="Web pages and screenshots",
             subscriptions=(items,),
-            tools=(tools.screenshot,),
+            tools=(tools.download, tools.screenshot),
             parameters=(
                 IntegrationParameter(
                     name="feeds",

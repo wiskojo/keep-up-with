@@ -25,6 +25,7 @@ class RedditClient:
         self.reddit = praw.Reddit(
             client_id=client_id,
             client_secret=client_secret,
+            check_for_updates=False,
             user_agent=USER_AGENT,
         )
         self.reddit.read_only = True
