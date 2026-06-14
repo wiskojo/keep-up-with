@@ -10,7 +10,7 @@ import httpx
 from keep_up_with.integrations.base import ToolContext, tool
 from keep_up_with.integrations.data.common import resolve_path
 
-STAR_HISTORY_URL = "https://api.star-history.com/svg"
+STAR_HISTORY_URL = "https://api.star-history.com/chart"
 REPO_PATTERN = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 CHART_TYPES = {
     "date": "Date",
@@ -22,7 +22,7 @@ CHART_TYPES = {
 def star_history(
     _ctx: ToolContext,
     repos: str,
-    output: str = "research/artifacts/repo/star-history.svg",
+    output: str,
     chart_type: str = "Date",
 ) -> dict[str, Any]:
     repo_names = _parse_repos(repos)
@@ -32,7 +32,7 @@ def star_history(
 
     response = httpx.get(
         STAR_HISTORY_URL,
-        params={"repos": ",".join(repo_names), "type": chart},
+        params={"repos": ",".join(repo_names), "type": chart.lower()},
         follow_redirects=True,
         timeout=30,
         headers={"user-agent": "keep-up-with/0.1"},
