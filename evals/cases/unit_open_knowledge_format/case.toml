@@ -1,0 +1,5 @@
+name = "unit_open_knowledge_format"
+description = "Single web event for Google Cloud Open Knowledge Format."
+
+[workspace]
+preset = "ai"

@@ -1,0 +1,5 @@
+name = "unit_diffusiongemma"
+description = "Single web event for Google's DiffusionGemma announcement."
+
+[workspace]
+preset = "ai"

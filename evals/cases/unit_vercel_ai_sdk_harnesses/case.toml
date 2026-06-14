@@ -1,0 +1,5 @@
+name = "unit_vercel_ai_sdk_harnesses"
+description = "Single X event for Vercel AI SDK HarnessAgent canary support."
+
+[workspace]
+preset = "ai"

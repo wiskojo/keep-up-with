@@ -6,7 +6,7 @@ Cognition released **FrontierCode** on June 8. Cognition is the Devin company, s
 
 The new target is mergeability. Instead of asking only whether an agent can pass tests, FrontierCode asks whether the patch would clear a maintainer review: correct behavior, useful tests, limited scope, project style, and code quality.
 
-The headline number is low. On the hardest Diamond split, Cognition reports Claude Opus 4.8 at **13.4/100**, GPT-5.5 at **6.3**, and Gemini 3.1 Pro at **4.7**. That is the point of the release: current agents can pass a lot of coding tests, but Cognition is saying they still fail the “would this be merged?” bar.
+On the hardest Diamond split, Cognition reports Claude Opus 4.8 at **13.4/100**, GPT-5.5 at **6.3**, and Gemini 3.1 Pro at **4.7**. Cognition is arguing that current agents can pass a lot of coding tests, but still fail the “would this be merged?” bar.
 
 This got real attention on X, roughly 2.5M impressions on the launch post. Reddit discussion was smaller and more skeptical, mostly because the ranking favors Claude and the benchmark is not public.
 

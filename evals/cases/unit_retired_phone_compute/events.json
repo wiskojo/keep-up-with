@@ -1,0 +1,18 @@
+[
+  {
+    "name": "retired phone compute platform",
+    "events": [
+      {
+        "integration": "web",
+        "kind": "item",
+        "external_id": "https://research.google/blog/a-low-carbon-computing-platform-from-your-retired-phones/",
+        "summary": "Google Research shared UC San Diego's plan to build a low-carbon compute platform from retired Pixel phones by stripping them to motherboards, replacing Android userspace with Linux, and running Kubernetes clusters of 25-50 phones.",
+        "refs": {
+          "url": "https://research.google/blog/a-low-carbon-computing-platform-from-your-retired-phones/"
+        },
+        "data": {},
+        "high_priority": false
+      }
+    ]
+  }
+]

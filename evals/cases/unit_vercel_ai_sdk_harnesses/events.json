@@ -1,0 +1,19 @@
+[
+  {
+    "name": "vercel ai sdk harnesses",
+    "events": [
+      {
+        "integration": "x",
+        "kind": "post",
+        "external_id": "x-2065509970775519569",
+        "summary": "@vercel_dev: AI SDK canary now supports agent harnesses like Claude Code, Codex, and Pi through HarnessAgent, with sandboxed sessions and AI SDK-compatible generate/stream results.",
+        "refs": {
+          "post_id": "2065509970775519569",
+          "url": "https://x.com/vercel_dev/status/2065509970775519569"
+        },
+        "data": {},
+        "high_priority": false
+      }
+    ]
+  }
+]

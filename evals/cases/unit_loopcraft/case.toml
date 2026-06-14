@@ -1,0 +1,5 @@
+name = "unit_loopcraft"
+description = "Paired Latent Space and X event for LoopCraft agent-workflow framing."
+
+[workspace]
+preset = "ai"

@@ -1,0 +1,5 @@
+name = "unit_retired_phone_compute"
+description = "Single web event for Google Research retired-phone compute platform."
+
+[workspace]
+preset = "ai"

@@ -1,0 +1,30 @@
+[
+  {
+    "name": "loopcraft latent space and swyx",
+    "events": [
+      {
+        "integration": "web",
+        "kind": "item",
+        "external_id": "https://www.latent.space/p/ainews-loopcraft-the-art-of-stacking",
+        "summary": "Latent Space published LoopCraft: The Art of Stacking Loops, framing agent work as a shift from one-off prompting to designing loops that prompt agents. The core idea is to go down a loop for reliability and up a loop for leverage.",
+        "refs": {
+          "url": "https://www.latent.space/p/ainews-loopcraft-the-art-of-stacking"
+        },
+        "data": {},
+        "high_priority": false
+      },
+      {
+        "integration": "x",
+        "kind": "post",
+        "external_id": "x-2065307558198567206",
+        "summary": "@swyx: On LoopCraft, the long-term agent skill is stacking loops effectively: go down a loop when things break, and go up a loop as models improve.",
+        "refs": {
+          "post_id": "2065307558198567206",
+          "url": "https://x.com/swyx/status/2065307558198567206"
+        },
+        "data": {},
+        "high_priority": false
+      }
+    ]
+  }
+]

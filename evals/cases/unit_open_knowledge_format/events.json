@@ -1,0 +1,18 @@
+[
+  {
+    "name": "google cloud open knowledge format",
+    "events": [
+      {
+        "integration": "web",
+        "kind": "item",
+        "external_id": "https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing/",
+        "summary": "Google Cloud introduced Open Knowledge Format v0.1, a draft spec for portable agent-readable knowledge bundles made from Markdown files, YAML frontmatter, normal links, optional index/log files, and sample tooling around BigQuery enrichment and graph viewing.",
+        "refs": {
+          "url": "https://cloud.google.com/blog/products/data-analytics/how-the-open-knowledge-format-can-improve-data-sharing/"
+        },
+        "data": {},
+        "high_priority": false
+      }
+    ]
+  }
+]
