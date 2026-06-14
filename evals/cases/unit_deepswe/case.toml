@@ -1,7 +1,5 @@
 name = "unit_deepswe"
 description = "Single Reddit event for the DeepSWE benchmark announcement."
-timeout_seconds = 1500
-settle_seconds = 3
 
 [workspace]
 preset = "ai"

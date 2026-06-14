@@ -1,0 +1,5 @@
+name = "unit_frontiercode"
+description = "Single X event for Cognition's FrontierCode benchmark announcement."
+
+[workspace]
+preset = "ai"

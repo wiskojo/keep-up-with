@@ -1,0 +1,19 @@
+[
+  {
+    "name": "frontiercode x announcement",
+    "events": [
+      {
+        "integration": "x",
+        "kind": "post",
+        "external_id": "x-2064061031912288715",
+        "summary": "@cognition: Introducing FrontierCode, a coding eval for whether AI-written code would actually be merged. Each task took 40+ hours from leading open-source maintainers. The benchmark claims to measure correctness, test quality, scope discipline, style, and codebase standards.",
+        "refs": {
+          "post_id": "2064061031912288715",
+          "url": "https://x.com/cognition/status/2064061031912288715"
+        },
+        "data": {},
+        "high_priority": true
+      }
+    ]
+  }
+]
