@@ -1,0 +1,19 @@
+[
+  {
+    "name": "claude lazy senior dev mode reddit post",
+    "events": [
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "reddit-1u3jlo0",
+        "summary": "r/ClaudeCode: A developer shared Ponytail, a Claude Code plugin and portable ruleset that pushes coding agents toward a \"lazy senior dev\" style: YAGNI, standard library and native features first, and minimal code. The linked repo reports author-run benchmarks showing much lower LOC, cost, and latency.",
+        "refs": {
+          "post_id": "1u3jlo0",
+          "url": "https://reddit.com/r/ClaudeCode/comments/1u3jlo0/i_gave_claude_code_a_lazy_senior_dev_mode_and_it/"
+        },
+        "data": {},
+        "high_priority": false
+      }
+    ]
+  }
+]

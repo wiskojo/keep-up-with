@@ -1,0 +1,18 @@
+[
+  {
+    "name": "etsy gifting assistant youtube talk",
+    "events": [
+      {
+        "integration": "web",
+        "kind": "item",
+        "external_id": "https://www.youtube.com/watch?v=CS5HojyZ5FE",
+        "summary": "LangChain posted Derrick Kondo's Interrupt 26 talk on the Etsy Gifting Assistant, covering how Etsy's GenAI Enablement team shipped a LangChain, LangGraph, and LangSmith conversational gift-search agent from prototype to beta production in six weeks.",
+        "refs": {
+          "url": "https://www.youtube.com/watch?v=CS5HojyZ5FE"
+        },
+        "data": {},
+        "high_priority": false
+      }
+    ]
+  }
+]

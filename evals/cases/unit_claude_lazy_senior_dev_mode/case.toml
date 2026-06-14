@@ -1,0 +1,5 @@
+name = "unit_claude_lazy_senior_dev_mode"
+description = "Single Reddit event for Ponytail, a lazy senior dev mode for Claude Code and other coding agents."
+
+[workspace]
+preset = "ai"
