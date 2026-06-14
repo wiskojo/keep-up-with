@@ -149,6 +149,10 @@ def copy_case(source: Path, target: Path) -> None:
         src = source / name
         if src.exists():
             shutil.copy2(src, target / name)
+    for name in ("expected",):
+        src = source / name
+        if src.exists():
+            shutil.copytree(src, target / name)
 
 
 def copy_env(target: Path) -> None:
