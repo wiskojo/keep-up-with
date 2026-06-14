@@ -253,13 +253,16 @@ def setup_messaging(paths: KeepUpWithPaths) -> None:
 
 def choose_messaging_integration(config: KeepUpWithConfig | None) -> MessagingIntegration:
     integrations = sorted(
-        available_messaging_integrations(), key=lambda item: item.name
+        (
+            integration
+            for integration in available_messaging_integrations()
+            if integration.setup is not None
+        ),
+        key=lambda item: item.name,
     )
     if not integrations:
-        raise RuntimeError("no messaging integrations are registered")
+        raise RuntimeError("no user-facing messaging integrations are registered")
     current = config.messaging().integration if config else ""
-    if len(integrations) == 1:
-        return integrations[0]
     selected = ui.select(
         "Messaging",
         [
