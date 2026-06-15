@@ -98,6 +98,12 @@ section = "ai"
 description = "Practical, immediately usable ways to use AI better. Use for prompting tricks, setup tweaks, shortcuts, how-I-use-this-tool notes, and repeatable techniques that do not need a broader engineering thread."
 
 [[space.channels]]
+key = "ai.tutorials"
+name = "📚・tutorials"
+section = "ai"
+description = "Longer learning material for using AI more effectively. Use for tutorials, walkthroughs, courses, worked examples, tool introductions, and full workflows that are too substantial for tips."
+
+[[space.channels]]
 key = "ai.rumors"
 name = "👀・rumors"
 section = "ai"
