@@ -86,14 +86,16 @@ Use `cli tools`, existing commands, scripts, and other available tools to invest
 
 ## Memory
 
-Keep durable context in `USER.md` and `MEMORY.md`.
+Keep durable user context in `USER.md` and entity memory in `MEMORY.md`.
 
 | File | Use |
 | --- | --- |
 | `USER.md` | Stable user context: preferences, goals, constraints, communication style, and topics they care about. |
-| `MEMORY.md` | Lessons from doing the work: useful sources, recurring stories, reusable context, and follow-ups. |
+| `MEMORY.md` | Durable entity memory, organized so future work can recognize people, organizations, tools, products, projects, benchmarks, communities, and related entities. |
 
-Update memory only when it improves your understanding of the user or how to operate. Keep entries short, date time-sensitive notes, and never store secrets or raw sensitive payloads.
+Use `MEMORY.md` as a recall aid, not a fixed taxonomy. The starter headings are a prior to reduce variance, not the required final structure. Use them when they fit; rename, delete, split, or add headings and subheadings when that makes lookup clearer. Put people under `People`, companies/startups/labs under `Organizations`, hosted apps or product surfaces under `Products`, and repos, CLIs, libraries, specs, papers, and methods under `Tools` unless another heading fits better. Do not force mismatched entities into a catch-all group. Do not create broad topic headers like `AI Engineering` or `Developer Tools` when an entity-type heading would be clearer.
+
+Entry shape: `Name` - what it is, why it matters, and key context learned. Stories: `[story](stories/...)`. Link story folders when they involve the entity. If later work teaches you more, update the existing entry instead of duplicating it. Skip generic well-known names unless the specific detail is useful. Do not store secrets, raw sensitive payloads, or raw event feeds.
 
 ## Workflow
 
@@ -103,3 +105,4 @@ You are the orchestrator. Manage and triage events, start subagents, route follo
 2. **Route to an active agent.** If a real subagent is already working on something related, or the new event could help its work, send the event to that subagent instead of dispatching a new one.
 3. **Dispatch a new agent.** For anything that needs real work, start a clean-context default subagent running `$keep-up-with` for one event or a related group of events. Use `fork_context: false` and a plain `message` only; do not pass `items`, role, model, or effort overrides. Keep the prompt short: pass the event(s), say it owns the work end to end, and tell it to split independent leads instead of writing a batch roundup. Wait for the result; do not send status-check prompts just because the worker is taking time. If a worker cannot be started, leave the item open; if it errors later, report the blocker. Do not silently take over the story.
 4. **Update inbox.** Dismiss every handled inbox item with a reason.
+5. **Persist context.** After a worker finishes, merge any durable context it found. Stable user preferences, goals, constraints, interests, or operating instructions go in `USER.md`. Reusable entity context goes in `MEMORY.md`.

@@ -21,9 +21,9 @@ from keep_up_with.integrations.base import (
     DataIntegration,
     MessagingIntegration,
     MessagingSetupContext,
-    SpaceResetPreview,
     SpaceChannel,
     SpacePlan,
+    SpaceResetPreview,
     SpaceSection,
 )
 from keep_up_with.integrations.registry import (
@@ -95,7 +95,17 @@ def write_default_workspace(paths: KeepUpWithPaths) -> None:
 def write_workspace_files(paths: KeepUpWithPaths) -> None:
     files = {
         "USER.md": "# User",
-        "MEMORY.md": "# Memory",
+        "MEMORY.md": (
+            "# Memory\n\n"
+            "## People\n\n"
+            "## Organizations\n\n"
+            "### Companies\n\n"
+            "### Startups\n\n"
+            "### Labs\n\n"
+            "## Products\n\n"
+            "## Tools\n\n"
+            "## Benchmarks\n\n"
+        ),
     }
     for name, text in files.items():
         path = paths.workspace / name
@@ -177,7 +187,9 @@ def managed_workflow_paths(paths: KeepUpWithPaths):
 def ensure_managed_sources(items) -> None:
     for source, _target in items:
         if not source.is_file() and not source.is_dir():
-            raise RuntimeError("managed keep-up-with workflow is missing from the package")
+            raise RuntimeError(
+                "managed keep-up-with workflow is missing from the package"
+            )
 
 
 def same_resource(source, target: Path) -> bool:
@@ -251,7 +263,9 @@ def setup_messaging(paths: KeepUpWithPaths) -> None:
     write_messaging_config(paths=paths, config=config, messaging=messaging)
 
 
-def choose_messaging_integration(config: KeepUpWithConfig | None) -> MessagingIntegration:
+def choose_messaging_integration(
+    config: KeepUpWithConfig | None,
+) -> MessagingIntegration:
     integrations = sorted(
         (
             integration
@@ -400,7 +414,9 @@ def setup_keep_up_with(paths: KeepUpWithPaths) -> list[str]:
     return names
 
 
-def has_watch_lists(config: KeepUpWithConfig, integrations: list[DataIntegration]) -> bool:
+def has_watch_lists(
+    config: KeepUpWithConfig, integrations: list[DataIntegration]
+) -> bool:
     return any(
         unique_strings(config.integration(integration.name).get(parameter.name))
         for integration in integrations
@@ -446,11 +462,7 @@ def preset_is_configured(
 def keep_up_with_presets() -> dict[str, KeepUpWithPreset]:
     loaded: dict[str, KeepUpWithPreset] = {}
     presets = resources.files("keep_up_with.resources").joinpath("presets")
-    preset_paths = [
-        item
-        for item in presets.iterdir()
-        if item.name.endswith(".toml")
-    ]
+    preset_paths = [item for item in presets.iterdir() if item.name.endswith(".toml")]
     for path in sorted(preset_paths, key=lambda item: item.name):
         value = tomllib.loads(path.read_text())
         integrations: dict[str, dict[str, list[str]]] = {}
@@ -483,7 +495,9 @@ def space_sections(value: dict) -> list[SpaceSection]:
     sections = space.get("sections")
     if not isinstance(sections, list):
         return []
-    rows = [section_fields(section) for section in sections if isinstance(section, dict)]
+    rows = [
+        section_fields(section) for section in sections if isinstance(section, dict)
+    ]
     return [SpaceSection(key=key, name=name) for key, name in rows if key and name]
 
 
@@ -494,7 +508,9 @@ def space_channels(value: dict) -> list[SpaceChannel]:
     channels = space.get("channels")
     if not isinstance(channels, list):
         return []
-    rows = [channel_fields(channel) for channel in channels if isinstance(channel, dict)]
+    rows = [
+        channel_fields(channel) for channel in channels if isinstance(channel, dict)
+    ]
     return [
         SpaceChannel(
             key=key,
@@ -583,7 +599,9 @@ def setup_space(
     config = load_config(paths)
     client = messaging_client(config)
     preview = preview_space_reset(client)
-    target = preview.target if preview and preview.target else "configured message space"
+    target = (
+        preview.target if preview and preview.target else "configured message space"
+    )
     ui.header("Server layout")
     ui.info(target)
     ui.info("Reset recreates the default channel layout.")
