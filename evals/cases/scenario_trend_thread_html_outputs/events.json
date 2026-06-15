@@ -1,0 +1,74 @@
+[
+  {
+    "name": "html as agent output story",
+    "events": [
+      {
+        "integration": "x",
+        "kind": "post",
+        "external_id": "x-2052811606032269638",
+        "summary": "@trq212 argues in a high-traction X article that agent outputs are shifting from Markdown summaries toward HTML artifacts users can inspect, share, and keep; the examples repo has multiple self-contained HTML outputs.",
+        "refs": {
+          "url": "https://x.com/trq212/status/2052811606032269638",
+          "post_id": "2052811606032269638"
+        },
+        "data": {
+          "story": "HTML as agent output",
+          "impressions": 14000000,
+          "bookmarks": 34000
+        },
+        "high_priority": false
+      },
+      {
+        "integration": "x",
+        "kind": "post",
+        "external_id": "x-2060751120587497720",
+        "summary": "@omarsar0 connects the same shift to AI work products: HTML pages and small interactive artifacts can communicate long-horizon agent work better than a plain Markdown summary.",
+        "refs": {
+          "url": "https://x.com/omarsar0/status/2060751120587497720",
+          "post_id": "2060751120587497720"
+        },
+        "data": {
+          "story": "HTML as agent output"
+        },
+        "high_priority": false
+      }
+    ]
+  },
+  {
+    "name": "pushmatrix related story",
+    "events": [
+      {
+        "integration": "x",
+        "kind": "post",
+        "external_id": "x-2064722585019969727",
+        "summary": "@pushmatrix shares Shopify Quick and Artifact: a separate internal hosting/sharing system for generated HTML apps and work products. It is related to the earlier HTML-output story, but it is its own project and product surface.",
+        "refs": {
+          "url": "https://x.com/pushmatrix/status/2064722585019969727",
+          "post_id": "2064722585019969727"
+        },
+        "data": {
+          "story": "Shopify Quick and Artifact"
+        },
+        "high_priority": false
+      }
+    ]
+  },
+  {
+    "name": "vercel drop related story",
+    "events": [
+      {
+        "integration": "web",
+        "kind": "page",
+        "external_id": "web-vercel-drop",
+        "summary": "Vercel launched Vercel Drop, a separate platform feature for sharing and publishing generated web artifacts. It is its own product update and also adds another example to the shareable-artifact trend.",
+        "refs": {
+          "url": "https://vercel.com/changelog/vercel-drop"
+        },
+        "data": {
+          "story": "Vercel Drop"
+        },
+        "high_priority": false
+      }
+    ]
+  }
+]

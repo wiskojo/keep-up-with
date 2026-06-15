@@ -1,0 +1,5 @@
+name = "scenario_trend_thread_html_outputs"
+description = "Distinct stories about HTML/shareable artifacts should each get their own output while also forming and updating one broader trend thread."
+
+[workspace]
+preset = "ai"

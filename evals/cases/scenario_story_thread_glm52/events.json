@@ -1,0 +1,59 @@
+[
+  {
+    "name": "glm 5.2 official release",
+    "events": [
+      {
+        "integration": "x",
+        "kind": "post",
+        "external_id": "x-2065704919299235870",
+        "summary": "@Zai_org announced GLM-5.2: deployed in GLM Coding Plan and API, with MIT-licensed open weights to follow.",
+        "refs": {
+          "url": "https://x.com/Zai_org/status/2065704919299235870",
+          "post_id": "2065704919299235870"
+        },
+        "data": {
+          "story": "GLM 5.2 release",
+          "source_role": "official release"
+        },
+        "high_priority": false
+      }
+    ]
+  },
+  {
+    "name": "glm 5.2 reddit follow-ups",
+    "events": [
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "reddit-1u4nmpl",
+        "summary": "r/LocalLLaMA: GLM 5.2 is deployed in GLM Coding Plan and API; the thread adds community reaction, paid-plan access notes, and questions about the promised MIT open weights. (about 226 upvotes)",
+        "refs": {
+          "url": "https://reddit.com/r/LocalLLaMA/comments/1u4nmpl/glm_52_is_deployed_in_glm_coding_plan_api_and_mit/"
+        },
+        "data": {
+          "subreddit": "LocalLLaMA",
+          "story": "GLM 5.2 release",
+          "source_role": "community follow-up",
+          "upvotes": 226
+        },
+        "high_priority": false
+      },
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "reddit-1u4p1av",
+        "summary": "r/LocalLLaMA: GLM 5.2 is out; users are testing coding behavior, comparing it to other coding models, and tracking the expected open-weight release. (about 341 upvotes)",
+        "refs": {
+          "url": "https://reddit.com/r/LocalLLaMA/comments/1u4p1av/glm_52_is_out_open_weights_to_be_released_next/"
+        },
+        "data": {
+          "subreddit": "LocalLLaMA",
+          "story": "GLM 5.2 release",
+          "source_role": "community follow-up",
+          "upvotes": 341
+        },
+        "high_priority": false
+      }
+    ]
+  }
+]

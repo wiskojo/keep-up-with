@@ -1,0 +1,5 @@
+name = "scenario_story_thread_glm52"
+description = "A story starts as one GLM 5.2 release event, then related Reddit follow-ups should anchor or convert it into one continuing story thread."
+
+[workspace]
+preset = "ai"
