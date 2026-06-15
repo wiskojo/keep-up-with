@@ -1,0 +1,267 @@
+[
+  {
+    "name": "single low-signal discussion",
+    "events": [
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "noise-reddit-gemini-fifa",
+        "summary": "r/GeminiAI: Gemini suggested Italy as one of the top 10 contenders to the FIFA world cup. (0 upvotes, 1 comment)",
+        "refs": {
+          "url": "https://reddit.com/r/GeminiAI/comments/1u53cpw/gemini_suggested_italy_as_one_of_the_top_10/"
+        },
+        "data": {
+          "subreddit": "GeminiAI",
+          "upvotes": 0,
+          "comments": 1
+        },
+        "high_priority": false
+      }
+    ]
+  },
+  {
+    "name": "small discussion cluster",
+    "events": [
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "noise-reddit-codex-slow-iphone",
+        "summary": "r/codex: Codex responses are extremely slow on iPhone 13 pro (2 upvotes, 1 comment)",
+        "refs": {
+          "url": "https://reddit.com/r/codex/comments/1u539b8/codex_responses_are_extremely_slow_on_iphone_13/"
+        },
+        "data": {
+          "subreddit": "codex",
+          "upvotes": 2,
+          "comments": 1
+        },
+        "high_priority": false
+      },
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "noise-reddit-repos-confusing",
+        "summary": "r/vibecoding: What's the most confusing / difficult thing about repos? (2 upvotes, 4 comments)",
+        "refs": {
+          "url": "https://reddit.com/r/vibecoding/comments/1u51jhv/whats_the_most_confusing_difficult_thing_about/"
+        },
+        "data": {
+          "subreddit": "vibecoding",
+          "upvotes": 2,
+          "comments": 4
+        },
+        "high_priority": false
+      },
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "noise-reddit-gemini-ominous",
+        "summary": "r/GeminiAI: That's... ominous? (2 upvotes, 3 comments)",
+        "refs": {
+          "url": "https://reddit.com/r/GeminiAI/comments/1u52itl/thats_ominous/"
+        },
+        "data": {
+          "subreddit": "GeminiAI",
+          "upvotes": 2,
+          "comments": 3
+        },
+        "high_priority": false
+      }
+    ]
+  },
+  {
+    "name": "minor discussion and x replies",
+    "events": [
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "noise-reddit-model-cross-check",
+        "summary": "r/OpenAI: do you actually trust one model's answer on something important, or do you cross-check? (2 upvotes, 5 comments)",
+        "refs": {
+          "url": "https://reddit.com/r/OpenAI/comments/1u50n8p/do_you_actually_trust_one_models_answer_on/"
+        },
+        "data": {
+          "subreddit": "OpenAI",
+          "upvotes": 2,
+          "comments": 5
+        },
+        "high_priority": false
+      },
+      {
+        "integration": "x",
+        "kind": "post",
+        "external_id": "noise-x-reply-model-swapping",
+        "summary": "@omarsar0: @morgan_coding That last-minute model-swapping strategy is unsustainable. (0 likes, 0 reposts)",
+        "refs": {
+          "url": "https://x.com/omarsar0/status/2065895717302923317",
+          "post_id": "2065895717302923317"
+        },
+        "data": {
+          "likes": 0,
+          "reposts": 0
+        },
+        "high_priority": false
+      }
+    ]
+  },
+  {
+    "name": "low-traction tools and reposts",
+    "events": [
+      {
+        "integration": "x",
+        "kind": "post",
+        "external_id": "noise-x-thanks-highlight",
+        "summary": "@omarsar0: @brooksjordan it's a really important point. thanks for highlighting (0 likes, 0 reposts)",
+        "refs": {
+          "url": "https://x.com/omarsar0/status/2065895435554697564",
+          "post_id": "2065895435554697564"
+        },
+        "data": {
+          "likes": 0,
+          "reposts": 0
+        },
+        "high_priority": false
+      },
+      {
+        "integration": "x",
+        "kind": "post",
+        "external_id": "noise-x-rt-llm-council",
+        "summary": "@dair_ai: RT @omarsar0: The LLM Council idea was never fully explored... (0 likes, 1 repost)",
+        "refs": {
+          "url": "https://x.com/dair_ai/status/2065898043434471640",
+          "post_id": "2065898043434471640"
+        },
+        "data": {
+          "likes": 0,
+          "reposts": 1
+        },
+        "high_priority": false
+      },
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "noise-reddit-couchpilot",
+        "summary": "r/vibecoding: I made a mobile vibe coding harness that wraps claude code with some useful tooling. Repo: TheOutdoorProgrammer/couchpilot, 0 GitHub stars. (2 upvotes, 0 comments)",
+        "refs": {
+          "url": "https://reddit.com/r/vibecoding/comments/1u4hcwf/i_made_a_mobile_vibe_coding_harness_that_wraps/",
+          "repo": "https://github.com/TheOutdoorProgrammer/couchpilot"
+        },
+        "data": {
+          "subreddit": "vibecoding",
+          "upvotes": 2,
+          "comments": 0,
+          "repo": "TheOutdoorProgrammer/couchpilot",
+          "repo_stars": 0
+        },
+        "high_priority": false
+      },
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "noise-reddit-payo",
+        "summary": "r/cursor: Made a tool to auto-generate .cursorrules from your actual stack. Repo: uttam-gelot/payo, 5 GitHub stars. (1 upvote, 0 comments)",
+        "refs": {
+          "url": "https://reddit.com/r/cursor/comments/1u4i4ac/made_a_tool_to_autogenerate_cursorrules_from_your/",
+          "repo": "https://github.com/uttam-gelot/payo"
+        },
+        "data": {
+          "subreddit": "cursor",
+          "upvotes": 1,
+          "comments": 0,
+          "repo": "uttam-gelot/payo",
+          "repo_stars": 5
+        },
+        "high_priority": false
+      },
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "noise-reddit-arc-gate",
+        "summary": "r/OpenAI: I built an OpenAI compatible proxy that tracks authority across conversations. Repo: 9hannahnine-jpg/arc-gate, 8 GitHub stars. (1 upvote, 0 comments)",
+        "refs": {
+          "url": "https://reddit.com/r/OpenAI/comments/1u53ao2/i_built_an_openai_compatible_proxy_that_tracks/",
+          "repo": "https://github.com/9hannahnine-jpg/arc-gate"
+        },
+        "data": {
+          "subreddit": "OpenAI",
+          "upvotes": 1,
+          "comments": 0,
+          "repo": "9hannahnine-jpg/arc-gate",
+          "repo_stars": 8
+        },
+        "high_priority": false
+      }
+    ]
+  },
+  {
+    "name": "remaining low-signal items",
+    "events": [
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "noise-reddit-agentautopsy",
+        "summary": "r/OpenAI: I almost burned $400 on the OpenAI API because an agent got stuck in an infinite loop. Repo: Abhisekhpatel/AgentAutopsy, 11 GitHub stars. (1 upvote, 1 comment)",
+        "refs": {
+          "url": "https://reddit.com/r/OpenAI/comments/1u4m6va/i_almost_burned_400_on_the_openai_api_because_an/",
+          "repo": "https://github.com/Abhisekhpatel/AgentAutopsy"
+        },
+        "data": {
+          "subreddit": "OpenAI",
+          "upvotes": 1,
+          "comments": 1,
+          "repo": "Abhisekhpatel/AgentAutopsy",
+          "repo_stars": 11
+        },
+        "high_priority": false
+      },
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "noise-reddit-iris",
+        "summary": "r/vibecoding: Opus: trust me bro. Repo: syrin-labs/iris, 48 GitHub stars. (2 upvotes, 0 comments)",
+        "refs": {
+          "url": "https://reddit.com/r/vibecoding/comments/1u4udoa/opus_trust_me_bro/",
+          "repo": "https://github.com/syrin-labs/iris"
+        },
+        "data": {
+          "subreddit": "vibecoding",
+          "upvotes": 2,
+          "comments": 0,
+          "repo": "syrin-labs/iris",
+          "repo_stars": 48
+        },
+        "high_priority": false
+      },
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "noise-reddit-agi-is-here",
+        "summary": "r/GeminiAI: Ladies and Gentlemen.. AGI is here. (0 upvotes, 3 comments)",
+        "refs": {
+          "url": "https://reddit.com/r/GeminiAI/comments/1u4xs2q/ladies_and_gentlemen_agi_is_here/"
+        },
+        "data": {
+          "subreddit": "GeminiAI",
+          "upvotes": 0,
+          "comments": 3
+        },
+        "high_priority": false
+      },
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "noise-reddit-codex-nerf",
+        "summary": "r/codex: Anyone notice the codex nerf? (3 upvotes, 5 comments)",
+        "refs": {
+          "url": "https://reddit.com/r/codex/comments/1u4ynkf/anyone_notice_the_codex_nerf/"
+        },
+        "data": {
+          "subreddit": "codex",
+          "upvotes": 3,
+          "comments": 5
+        },
+        "high_priority": false
+      }
+    ]
+  }
+]

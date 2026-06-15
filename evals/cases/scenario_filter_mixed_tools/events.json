@@ -1,0 +1,120 @@
+[
+  {
+    "name": "mixed tool triage batch",
+    "events": [
+      {
+        "integration": "x",
+        "kind": "post",
+        "external_id": "x-2065768034753458675",
+        "summary": "@trending_repos: Trending repository of the day 📈 container ... Last 24h: 3,504 ⭐ Total: 35,746 ⭐️",
+        "refs": {
+          "post_id": "2065768034753458675",
+          "url": "https://x.com/trending_repos/status/2065768034753458675",
+          "repo": "https://github.com/apple/container"
+        },
+        "data": {
+          "repo": "apple/container",
+          "stars_last_24h": 3504,
+          "stars_total": 35746
+        },
+        "high_priority": false
+      },
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "reddit-1u4uef2",
+        "summary": "r/codex: Visualizing the impact of Codex's plan before we even execute it. Repo: CodeBoarding/CodeBoarding, about 2.2k GitHub stars. (4 upvotes, 6 comments)",
+        "refs": {
+          "url": "https://reddit.com/r/codex/comments/1u4uef2/visualizing_the_impact_of_codexs_plan_before_we/",
+          "repo": "https://github.com/CodeBoarding/CodeBoarding"
+        },
+        "data": {
+          "subreddit": "codex",
+          "upvotes": 4,
+          "comments": 6,
+          "repo": "CodeBoarding/CodeBoarding",
+          "repo_stars": 2200
+        },
+        "high_priority": false
+      },
+      {
+        "integration": "github",
+        "kind": "repo",
+        "external_id": "github-millionco-react-doctor",
+        "summary": "GitHub repo: millionco/react-doctor. Your agent writes bad React. This catches it. About 12.7k GitHub stars.",
+        "refs": {
+          "url": "https://github.com/millionco/react-doctor",
+          "repo": "https://github.com/millionco/react-doctor"
+        },
+        "data": {
+          "repo": "millionco/react-doctor",
+          "repo_stars": 12679
+        },
+        "high_priority": false
+      },
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "reddit-1u4z7pn",
+        "summary": "r/OpenAI: Ai research volunteers (2 upvotes, 0 comments)",
+        "refs": {
+          "url": "https://reddit.com/r/OpenAI/comments/1u4z7pn/ai_research_volunteers/"
+        },
+        "data": {
+          "subreddit": "OpenAI",
+          "upvotes": 2,
+          "comments": 0
+        },
+        "high_priority": false
+      },
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "reddit-1u4zu7x",
+        "summary": "r/OpenAI: OpenAI on June 23 (0 upvotes, 1 comment)",
+        "refs": {
+          "url": "https://reddit.com/r/OpenAI/comments/1u4zu7x/openai_on_june_23/"
+        },
+        "data": {
+          "subreddit": "OpenAI",
+          "upvotes": 0,
+          "comments": 1
+        },
+        "high_priority": false
+      },
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "reddit-1u4zzer",
+        "summary": "r/GeminiAI: Completely free for a limited test time, I just want feedback. TheRT.ai (1 upvote, 0 comments)",
+        "refs": {
+          "url": "https://reddit.com/r/GeminiAI/comments/1u4zzer/completely_free_for_a_limited_test_time_i_just/"
+        },
+        "data": {
+          "subreddit": "GeminiAI",
+          "upvotes": 1,
+          "comments": 0
+        },
+        "high_priority": false
+      },
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "reddit-1u4pj1e",
+        "summary": "r/cursor: Cursor's Agent Can't Hear Your Meeting (So I Fixed That). Repo: databorodata/meetbridge, about 1 GitHub star. (1 upvote, 0 comments)",
+        "refs": {
+          "url": "https://reddit.com/r/cursor/comments/1u4pj1e/cursors_agent_cant_hear_your_meeting_so_i_fixed/",
+          "repo": "https://github.com/databorodata/meetbridge"
+        },
+        "data": {
+          "subreddit": "cursor",
+          "upvotes": 1,
+          "comments": 0,
+          "repo": "databorodata/meetbridge",
+          "repo_stars": 1
+        },
+        "high_priority": false
+      }
+    ]
+  }
+]

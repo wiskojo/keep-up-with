@@ -1,0 +1,5 @@
+name = "unit_reddit_multi_tool_split"
+description = "Single Reddit event whose comments mention several independent tools; useful leads should fan out into separate outputs."
+
+[workspace]
+preset = "ai"

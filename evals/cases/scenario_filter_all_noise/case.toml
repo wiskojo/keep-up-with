@@ -1,0 +1,5 @@
+name = "scenario_filter_all_noise"
+description = "A sequence of noisy Reddit and X events that should all be skipped with no user-facing output."
+
+[workspace]
+preset = "ai"

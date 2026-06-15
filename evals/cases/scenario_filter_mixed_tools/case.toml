@@ -1,0 +1,5 @@
+name = "scenario_filter_mixed_tools"
+description = "One noisy batch where three high-signal tool/repo events should publish as separate short messages and four low-signal events should be skipped."
+
+[workspace]
+preset = "ai"

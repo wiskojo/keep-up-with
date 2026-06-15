@@ -1,0 +1,5 @@
+name = "unit_orca_fable_split"
+description = "Single Reddit event that contains two separable stories: Fable discussion and an Orca tool link."
+
+[workspace]
+preset = "ai"

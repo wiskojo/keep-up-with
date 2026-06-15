@@ -1,0 +1,29 @@
+[
+  {
+    "name": "orca fable split reddit thread",
+    "events": [
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "reddit-1u4dp6n",
+        "summary": "r/ClaudeCode: The state of Fable right now. The thread is mostly about Fable access/policy fallout, then links stablyai/orca as a way to run multiple coding CLIs. (about 494 upvotes, 49 comments; Orca has about 4.8k GitHub stars)",
+        "refs": {
+          "url": "https://reddit.com/r/ClaudeCode/comments/1u4dp6n/the_state_of_fable_right_now/",
+          "repo": "https://github.com/stablyai/orca"
+        },
+        "data": {
+          "subreddit": "ClaudeCode",
+          "upvotes": 494,
+          "comments": 49,
+          "repo": "stablyai/orca",
+          "repo_stars": 4800,
+          "topics": [
+            "Fable access and policy discussion",
+            "multi-agent coding CLI orchestration tool"
+          ]
+        },
+        "high_priority": false
+      }
+    ]
+  }
+]

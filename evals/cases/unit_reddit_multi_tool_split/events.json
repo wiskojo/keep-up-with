@@ -1,0 +1,28 @@
+[
+  {
+    "name": "token use reddit thread with tool leads",
+    "events": [
+      {
+        "integration": "reddit",
+        "kind": "headline",
+        "external_id": "reddit-1tyxkzj",
+        "summary": "r/codex: How I cut Codex token use from ~138M/day to ~20M/day after the 2x promo ended. The post is a workflow writeup; comments mention separate tools such as rtk, sdl-mcp, and context/caveman-style plugins. (about 292 upvotes, 60 comments)",
+        "refs": {
+          "url": "https://reddit.com/r/codex/comments/1tyxkzj/how_i_cut_codex_token_use_from_138mday_to_20mday/"
+        },
+        "data": {
+          "subreddit": "codex",
+          "upvotes": 292,
+          "comments": 60,
+          "tool_mentions": [
+            "rtk",
+            "sdl-mcp",
+            "context-mode",
+            "caveman plugin"
+          ]
+        },
+        "high_priority": false
+      }
+    ]
+  }
+]
