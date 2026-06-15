@@ -15,7 +15,7 @@ POST_FIELDS = (
     "attachments,author_id,created_at,conversation_id,lang,note_tweet,public_metrics,"
     "referenced_tweets"
 )
-USER_FIELDS = "created_at,description,public_metrics,verified,verified_type"
+USER_FIELDS = "created_at,description,name,public_metrics,username,verified,verified_type"
 EXPANSIONS = "author_id"
 POST_EXPANSIONS = "author_id,attachments.media_keys"
 DOWNLOAD_POST_FIELDS = f"article,entities,{POST_FIELDS}"
@@ -491,6 +491,21 @@ def user(data: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def author_display(author: dict[str, Any], *, fallback: str = "unknown") -> str:
+    username = str(author.get("username") or "").removeprefix("@").strip()
+    name = str(author.get("name") or "").strip()
+    if username and name and name.removeprefix("@").lower() != username.lower():
+        return f"{name} (@{username})"
+    if username:
+        return f"@{username}"
+    if name:
+        return name
+    fallback = fallback.strip() or "unknown"
+    if fallback.startswith("@"):
+        return fallback
+    return f"@{fallback}" if fallback != "unknown" else fallback
+
+
 def post_url(author: dict[str, Any], post: dict[str, Any]) -> str:
     username = author.get("username")
     post_id = post.get("id")
@@ -549,13 +564,13 @@ def post_markdown(
     media_by_post = group_media_results(media_results)
     for index, row in enumerate(rows, start=1):
         author = row.get("author") or {}
-        username = author.get("username") or row.get("author_id") or "unknown"
         metrics = row.get("metrics") or {}
         lines.extend(
             [
                 f"## Post {index}",
                 "",
-                f"Author: @{username}",
+                "Author: "
+                f"{author_display(author, fallback=str(row.get('author_id') or ''))}",
                 f"Posted: {row.get('created_at') or ''}",
                 f"URL: {row.get('url') or ''}",
                 f"Metrics: {post_metrics(metrics)}",

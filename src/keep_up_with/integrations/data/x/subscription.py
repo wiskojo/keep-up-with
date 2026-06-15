@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from keep_up_with.integrations.base import SubscriptionContext, subscription
-from keep_up_with.integrations.data.x.client import XClient, clean_accounts
+from keep_up_with.integrations.data.x.client import XClient, author_display, clean_accounts
 
 
 @subscription("x.posts")
@@ -19,11 +19,13 @@ def posts(ctx: SubscriptionContext) -> None:
         if not post_id:
             continue
         author = item.get("author") if isinstance(item.get("author"), dict) else {}
-        username = author.get("username") or item.get("author_id") or "unknown"
         ctx.emit(
             kind="post",
             external_id=str(post_id),
-            summary=f"@{username}: {item.get('text') or 'post'}",
+            summary=(
+                f"{author_display(author, fallback=str(item.get('author_id') or ''))}: "
+                f"{item.get('text') or 'post'}"
+            ),
             summary_limit=1200,
             refs={"post_id": post_id, "url": item.get("url", "")},
             data=item,
