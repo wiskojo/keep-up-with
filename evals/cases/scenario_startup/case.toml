@@ -1,0 +1,5 @@
+name = "scenario_startup"
+description = "No injected events; validates the startup exchange only."
+
+[workspace]
+preset = "ai"

@@ -12,6 +12,7 @@ from functools import partial
 from pathlib import Path
 from threading import Event as ThreadEvent
 from threading import Thread
+from textwrap import dedent
 from typing import Any
 
 from keep_up_with.core.config import (
@@ -340,19 +341,27 @@ def record_startup_event(config: KeepUpWithConfig, store: EventStore) -> Event |
         store,
         kind="startup",
         external_id=f"started-{int(time.time())}",
-        summary=(
-            "You were just started for the first time. Your operating instructions"
-            " are in `AGENTS.md`, and your durable context lives in"
-            f" `{config.paths.workspace}`. You are always allowed, and encouraged,"
-            " to use subagents. Greet the user to let them know you're up and"
-            " getting situated. Read `USER.md` and `MEMORY.md`, run `cli --help` to"
-            " confirm the command works, then check `cli subs list` and"
-            " `cli space channels list` to see what they keep up with — setup is"
-            " already done, so do not ask broad setup questions. Then introduce"
-            " yourself more fully, say what you understand so far, and ask any"
-            " questions you have. Finish situating before handling other"
-            " notifications."
-        ),
+        summary=dedent(
+            f"""
+            You were just started for the first time. Your operating instructions
+            are in `AGENTS.md`, and your durable context lives in
+            `{config.paths.workspace}`. You are always allowed, and encouraged,
+            to use subagents.
+
+            Send the user a short message that you're up and getting situated.
+            Then read `USER.md` and `MEMORY.md`, run `cli --help` to confirm the
+            command works, and check `cli subs list` and
+            `cli space channels list` to see what they keep up with.
+
+            When situated, send one brief ready message. Based on what you just
+            checked, briefly say what you understand, that you're ready to help
+            them keep up with what is configured, and that you'll wait for events
+            and surface the important ones. End by telling the user that if they
+            have any questions or preferences, they can just let you know.
+
+            Finish situating before handling other notifications.
+            """
+        ).strip(),
     )
 
 
