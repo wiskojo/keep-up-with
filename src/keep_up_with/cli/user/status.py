@@ -81,5 +81,7 @@ def event_status(config: KeepUpWithConfig) -> str:
         return "0 events, 0 inbox"
     with sqlite3.connect(config.paths.events_db) as db:
         events = db.execute("select count(*) from events").fetchone()[0]
-        inbox = db.execute("select count(*) from inbox").fetchone()[0]
+        inbox = db.execute(
+            "select count(*) from inbox where dismissed_at is null"
+        ).fetchone()[0]
     return f"{events} events, {inbox} inbox"
