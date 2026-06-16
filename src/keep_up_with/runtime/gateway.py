@@ -537,6 +537,10 @@ def drain(client: JsonRpcClient, state: CodexState) -> None:
             turn = params.get("turn", {})
             if turn.get("id") == state.active_turn_id:
                 state.active_turn_id = None
+        elif method == "thread/status/changed":
+            status = params.get("status", {})
+            if isinstance(status, dict) and status.get("type") == "idle":
+                state.active_turn_id = None
         elif method == "thread/tokenUsage/updated":
             if params.get("threadId") == state.thread_id:
                 state.context_used = context_used_fraction(params) or state.context_used
@@ -566,8 +570,6 @@ def wake_on_inbox(
         state.high_queued_at = None
         state.low_queued_at = None
         return
-    if state.active_turn_id is not None:
-        return
 
     high_items = [item for item in items if item.event.high_priority]
     low_items = [item for item in items if not item.event.high_priority]
@@ -595,15 +597,38 @@ def send_wake(
 ) -> None:
     if state.thread_id is None:
         raise RuntimeError("cannot wake without thread id")
+    text = render_wake(items, len(store.list_inbox()))
+    if state.active_turn_id is not None and steer_turn(client, state, text):
+        store.mark_notified([item.event.id for item in items])
+        return
+
     rotation = rotate_thread_if_due(config, client, state, store)
     if rotation is not None:
         items = [
             InboxItem(event=rotation, created_at=rotation.created_at, notified_at=None),
             *items,
         ]
-    text = render_wake(items, len(store.list_inbox()))
+        text = render_wake(items, len(store.list_inbox()))
     start_turn(client, state, text)
     store.mark_notified([item.event.id for item in items])
+
+
+def steer_turn(client: JsonRpcClient, state: CodexState, text: str) -> bool:
+    if state.thread_id is None or state.active_turn_id is None:
+        return False
+    try:
+        client.request(
+            "turn/steer",
+            {
+                "threadId": state.thread_id,
+                "expectedTurnId": state.active_turn_id,
+                "input": input_text(text),
+            },
+        )
+    except RuntimeError as error:
+        print(f"gateway could not steer turn: {error}", file=sys.stderr, flush=True)
+        return False
+    return True
 
 
 def start_turn(client: JsonRpcClient, state: CodexState, text: str) -> None:
