@@ -368,6 +368,7 @@ class FileMessagingClient:
             "channel_id": channel_row["id"],
             "created_at": now(),
             "url": f"file://thread/{thread_id}",
+            "members": _thread_members(self.context.settings()),
             "messages": [],
         }
         if from_message:
@@ -409,10 +410,6 @@ class FileMessagingClient:
             message["channel_id"] = channel_row["id"]
             message["thread_id"] = thread_id
             thread["messages"].append(message)
-        message = self._new_message(state, text="@everyone", attachments=[])
-        message["channel_id"] = channel_row["id"]
-        message["thread_id"] = thread_id
-        thread["messages"].append(message)
         self._save(state)
         return ThreadRef(
             id=thread["id"],
@@ -687,6 +684,9 @@ def render_output(root: Path, state: dict[str, Any]) -> None:
         text = f"# {thread['name']}\n\n"
         if channel:
             text += f"Channel: [{channel['name']}](../channels/{channel['id']}.md)\n\n"
+        members = thread.get("members") or []
+        if members:
+            text += f"Members: {', '.join(members)}\n\n"
         text += render_messages(thread["messages"], attachment_prefix="../")
         write_markdown(root / "threads" / f"{thread['id']}.md", text)
 
@@ -731,6 +731,18 @@ def write_markdown(path: Path, text: str) -> None:
 
 def image_like(path: str) -> bool:
     return Path(path).suffix.lower() in {".png", ".jpg", ".jpeg", ".gif", ".webp"}
+
+
+def _thread_members(settings: dict[str, Any]) -> list[str]:
+    raw = settings.get("members")
+    if isinstance(raw, list):
+        members = [str(value) for value in raw if str(value)]
+    else:
+        members = []
+    mention = settings.get("mention") or settings.get("user_id")
+    if mention:
+        members.append(str(mention))
+    return sorted(set(members))
 
 
 def next_id(state: dict[str, Any], key: str, prefix: str) -> str:

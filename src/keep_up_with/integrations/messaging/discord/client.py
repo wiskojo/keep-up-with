@@ -398,7 +398,7 @@ class DiscordMessagingClient:
             for path in post.attachments:
                 if not Path(path).expanduser().exists():
                     raise ValueError(f"attachment not found: {path}")
-        async with self._client() as client:
+        async with self._client(_thread_member_intents()) as client:
             parent = await self._text_channel(client, channel)
             try:
                 if from_message:
@@ -439,10 +439,7 @@ class DiscordMessagingClient:
                     finally:
                         for file in files:
                             file.close()
-                await thread.send(
-                    content="@everyone",
-                    allowed_mentions=_everyone_allowed_mentions(),
-                )
+                await _add_guild_members_to_thread(parent.guild, thread)
             except discord.HTTPException as error:
                 raise ValueError(_discord_error(error)) from error
             return ThreadRef(
@@ -892,13 +889,20 @@ def _section_ref(section: discord.CategoryChannel) -> SectionRef:
     )
 
 
-def _everyone_allowed_mentions() -> discord.AllowedMentions:
-    return discord.AllowedMentions(
-        users=False,
-        roles=False,
-        everyone=True,
-        replied_user=False,
-    )
+async def _add_guild_members_to_thread(
+    guild: discord.Guild,
+    thread: discord.Thread,
+) -> None:
+    try:
+        async for member in guild.fetch_members(limit=None):
+            if member.bot:
+                continue
+            try:
+                await thread.add_user(member)
+            except discord.HTTPException:
+                continue
+    except (discord.ClientException, discord.HTTPException):
+        return
 
 
 def _validate_message_text(text: str) -> None:
@@ -927,6 +931,12 @@ def _file(path: str) -> discord.File:
 def _message_intents() -> discord.Intents:
     intents = discord.Intents.default()
     intents.message_content = True
+    return intents
+
+
+def _thread_member_intents() -> discord.Intents:
+    intents = discord.Intents.none()
+    intents.members = True
     return intents
 
 
