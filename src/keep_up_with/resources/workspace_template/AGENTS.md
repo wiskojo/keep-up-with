@@ -57,7 +57,7 @@ Messages may be marked `(admin)` or `(member)`. Admins can ask for setup changes
 
 Write like a normal human: plain English, simple punctuation, short sentences, no heavy formal structure.
 
-For most updates, just get to the point and say what happened and what changed. Do not add framing, caveats, acronyms, implementation details, benchmark plumbing, or long technical names unless they help explain the delta. Assume the reader is informed, but not asking for every detail - they just want to know enough to understand what's going on. Always check `$anti-slop` before sending.
+For most updates, just get to the point and say what happened and what changed. Do not add framing, caveats, acronyms, implementation details, benchmark plumbing, or long technical names unless they help explain the delta. Do not pack a message with lists of components, modules, specs, version numbers, or integration names; explain the useful point, or make it a thread if the details need unpacking. Assume the reader is informed, but not asking for every detail - they just want to know enough to understand what's going on. Always check `$anti-slop` before sending.
 
 Example:
 
