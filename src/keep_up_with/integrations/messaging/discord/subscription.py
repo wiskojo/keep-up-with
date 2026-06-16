@@ -9,7 +9,7 @@ from keep_up_with.integrations.messaging.discord.payloads import message_data
 @subscription("discord.messages")
 def messages(ctx: SubscriptionContext) -> None:
     token = ctx.env("DISCORD_BOT_TOKEN")
-    user_id = str(ctx.settings()["user_id"])
+    admin_ids = _admin_user_ids(ctx.settings())
 
     intents = discord.Intents.default()
     intents.message_content = True
@@ -18,9 +18,16 @@ def messages(ctx: SubscriptionContext) -> None:
 
     @client.event
     async def on_message(message) -> None:
-        if message.author.bot or str(message.author.id) != user_id:
+        if message.author.bot:
             return
         data = message_data(message)
+        role = _actor_role(str(message.author.id), admin_ids)
+        data["actor_role"] = role
+        data["actor"] = {
+            "id": data["author_id"],
+            "name": data["author_name"],
+            "role": role,
+        }
         data["reply_to"] = await _reply_context(message)
         text = " ".join(str(data.get("content") or "").split())
         if not text and data.get("attachments"):
@@ -28,7 +35,9 @@ def messages(ctx: SubscriptionContext) -> None:
         ctx.emit(
             kind="message",
             external_id=data["message_id"],
-            summary=f"{data.get('author_name') or data.get('author_id')}: {text}",
+            summary=(
+                f"{data.get('author_name') or data.get('author_id')} ({role}): {text}"
+            ),
             summary_limit=1200,
             high_priority=True,
             refs={
@@ -40,9 +49,10 @@ def messages(ctx: SubscriptionContext) -> None:
 
     @client.event
     async def on_raw_reaction_add(payload) -> None:
-        if str(payload.user_id) != user_id:
+        if str(payload.user_id) not in admin_ids:
             return
         data = _reaction_data(payload)
+        data["actor_role"] = "admin"
         message = await _reaction_message(client, payload)
         if message is not None:
             data["target_message"] = message_data(message)
@@ -59,6 +69,18 @@ def messages(ctx: SubscriptionContext) -> None:
         )
 
     client.run(token)
+
+
+def _admin_user_ids(settings: dict) -> set[str]:
+    user_id = str(settings["user_id"])
+    values = settings.get("admin_user_ids") or []
+    if isinstance(values, str):
+        values = [values]
+    return {user_id, *(str(value) for value in values if str(value))}
+
+
+def _actor_role(user_id: str, admin_ids: set[str]) -> str:
+    return "admin" if user_id in admin_ids else "member"
 
 
 async def _reply_context(message) -> dict | None:
