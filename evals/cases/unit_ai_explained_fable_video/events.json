@@ -1,0 +1,25 @@
+[
+  {
+    "name": "ai explained fable video",
+    "events": [
+      {
+        "integration": "youtube",
+        "kind": "video",
+        "external_id": "Qj71N0tBzRo",
+        "summary": "AI Explained: Claude Fable Blocked - 11 Quiet Details on What's Next. The video walks through 11 under-covered details around the US government order, Anthropic's Fable/Mythos access cutoff, cyber jailbreak claims, administration process, and what could happen next.",
+        "refs": {
+          "video_id": "Qj71N0tBzRo",
+          "url": "https://www.youtube.com/watch?v=Qj71N0tBzRo"
+        },
+        "data": {
+          "channel_title": "AI Explained",
+          "title": "Claude Fable Blocked - 11 Quiet Details on What's Next",
+          "published_at": "2026-06-14T14:52:27Z",
+          "duration_seconds": 800,
+          "url": "https://www.youtube.com/watch?v=Qj71N0tBzRo"
+        },
+        "high_priority": true
+      }
+    ]
+  }
+]

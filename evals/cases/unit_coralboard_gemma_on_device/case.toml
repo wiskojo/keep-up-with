@@ -1,0 +1,5 @@
+name = "unit_coralboard_gemma_on_device"
+description = "Single Google Coralboard page event about on-device Gemma demos."
+
+[workspace]
+preset = "ai"

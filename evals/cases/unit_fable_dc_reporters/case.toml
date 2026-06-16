@@ -1,0 +1,5 @@
+name = "unit_fable_dc_reporters"
+description = "Batch of two X posts with DC process reporting on Anthropic/Fable meetings."
+
+[workspace]
+preset = "ai"

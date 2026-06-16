@@ -1,0 +1,53 @@
+[
+  {
+    "name": "fable dc reporter updates",
+    "events": [
+      {
+        "integration": "x",
+        "kind": "post",
+        "external_id": "x-2066688243706265865",
+        "summary": "Cheyenne Haslett (@cheyennehaslett): Latest on today's efforts between Anthropic and the Trump admin to lift the export controls: first day of in-person meetings after Anthropic sent top safety and policy people to DC; Commerce and ONCD staff-led technical meetings including Chris Fall at CAISI; a senior White House official said resolution will likely take longer than a few days, though it could move quickly.",
+        "refs": {
+          "post_id": "2066688243706265865",
+          "url": "https://x.com/cheyennehaslett/status/2066688243706265865"
+        },
+        "data": {
+          "author_name": "Cheyenne Haslett",
+          "author_username": "cheyennehaslett",
+          "author_description": "White House reporter at POLITICO covering health and tech; previously ABC.",
+          "metrics": {
+            "replies": 2,
+            "reposts": 4,
+            "likes": 23,
+            "quotes": 1,
+            "impressions": 3382
+          }
+        },
+        "high_priority": true
+      },
+      {
+        "integration": "x",
+        "kind": "post",
+        "external_id": "x-2066673032270123078",
+        "summary": "Hadas Gold (@Hadas_Gold): Anthropic at the meetings in DC today: senior technical Anthropic staff met with administration officials after prior virtual meetings, and both parties are working quickly toward protecting US critical infrastructure and the US lead in cyber defense.",
+        "refs": {
+          "post_id": "2066673032270123078",
+          "url": "https://x.com/Hadas_Gold/status/2066673032270123078"
+        },
+        "data": {
+          "author_name": "Hadas Gold",
+          "author_username": "Hadas_Gold",
+          "author_description": "CNN correspondent in New York covering AI; previously reported from Jerusalem, London, and DC.",
+          "metrics": {
+            "replies": 7,
+            "reposts": 16,
+            "likes": 121,
+            "quotes": 5,
+            "impressions": 24527
+          }
+        },
+        "high_priority": true
+      }
+    ]
+  }
+]

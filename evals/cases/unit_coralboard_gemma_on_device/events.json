@@ -1,0 +1,22 @@
+[
+  {
+    "name": "google coralboard gemma on device",
+    "events": [
+      {
+        "integration": "web",
+        "kind": "page",
+        "external_id": "https://developers.google.com/coral/products",
+        "summary": "Google Coralboard product page: Google posted Coralboard docs and demos for a Synaptics Coralboard dev kit with an integrated Coral NPU for on-device AI, including examples for FunctionGemma voice actions, Gemma speech translation, object detection, scene transcription, and audio demos.",
+        "refs": {
+          "url": "https://developers.google.com/coral/products"
+        },
+        "data": {
+          "title": "Coralboard",
+          "source": "Google Developers",
+          "repo": "https://github.com/google-coral/coralnpu"
+        },
+        "high_priority": false
+      }
+    ]
+  }
+]

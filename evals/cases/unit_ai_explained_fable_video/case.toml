@@ -1,0 +1,5 @@
+name = "unit_ai_explained_fable_video"
+description = "Single YouTube event for AI Explained's Fable/Mythos policy video."
+
+[workspace]
+preset = "ai"
