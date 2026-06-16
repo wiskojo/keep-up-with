@@ -78,7 +78,7 @@ Good:
 ```
 Navo lets Codex use OpenCode Go, a $10/month OpenCode subscription that gives you access to open coding models.
 
-You run Navo locally, point Codex at it, and Codex requests get forwarded to models like Kimi, DeepSeek, GLM, MiniMax, and Qwen through your existing OpenCode Go plan.
+You run Navo locally, point Codex at it, and Codex requests get forwarded to models like Kimi, DeepSeek, Qwen, etc. through your existing OpenCode Go plan.
 ```
 
 ## Action

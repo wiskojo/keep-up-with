@@ -76,8 +76,6 @@ Empty intensifiers and hedge adverbs — cut when they add nothing: really, trul
 - **Explain lists or remove them.** If several technical items matter, give each a job: "memory: stores recipient facts," "middleware: intercepts repeated tool calls." If the jobs don't matter, replace the list with the higher-level category. "Board datasheet, user guide, demos, camera/display/audio I/O" becomes "docs and examples for building small local AI devices."
 - **Show, don't describe.** "Three clicks from connect to first risk score" beats "a seamless experience."
 - **Use contractions.** "don't," "can't," "it's."
-- **Ground it.** Time, place, version, source. Prefer relative time: "2 hours ago," "3 days ago," or "1 week ago." Add the date only when the relative time is more than 2 weeks ago: "3 weeks ago (May 27)" beats only "May 27."
-- **Include friction where true.** Caveats, failures, and mess read human when they're real.
 - **Reach past the first word.** AI picks the highest-probability token; the less obvious word is usually better.
 
 ## Honesty
