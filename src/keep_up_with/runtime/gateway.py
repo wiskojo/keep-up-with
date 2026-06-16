@@ -10,9 +10,9 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from functools import partial
 from pathlib import Path
+from textwrap import dedent
 from threading import Event as ThreadEvent
 from threading import Thread
-from textwrap import dedent
 from typing import Any
 
 from keep_up_with.core.config import (
@@ -377,7 +377,7 @@ def record_rotation_event(
         external_id=thread_id,
         summary=(
             "This thread continues your previous conversation thread"
-            f" `{previous_thread_id}`."
+            f" `{previous_thread_id}`. Remember to use `$keep-up-with`."
         ),
         data={"previous_thread_id": previous_thread_id, "thread_id": thread_id},
     )

@@ -29,6 +29,7 @@ One goal: text that reads like a person wrote it. Apply these rules silently —
 - **Meta-commentary:** "Hint:," "Plot twist:," "Spoiler:," "X is a feature, not a bug," "but that's another post," announcing your own structure ("In this section...," "As we'll see..."). The writing should move, not narrate itself.
 - **Vague declaratives:** "The reasons are structural," "The implications are significant," "The stakes are high." Name the specific thing or cut the sentence.
 - **Technical noun dumps:** a sentence that lists tools, packages, acronyms, components, or subsystems without saying what each one does is not explanation. Group the list into a plain category, split it into short explanations, or cut it.
+- **Specs before meaning:** if the reader still cannot say what the thing is after the first sentence, rewrite. Lead with the plain object and use case before chipset names, model numbers, package names, protocols, specs, or demo names. "Coralboard is a tiny board for building local AI devices" can come before "Synaptics SL2619" or "1 TOPS"; the reverse is slop.
 - **Availability laundry lists:** "supports A, B, C, D, E..." is usually noise. Group availability by what the reader can do now — download, run, integrate, deploy, test, extend — and name only the paths that change the story.
 - **Invented visual metaphors:** don't call a diagram a ladder, funnel, pyramid, map, stack, or wheel unless the source clearly uses that shape or the metaphor helps the reader understand the image.
 - **Telling instead of showing:** "This is genuinely hard," "This is what X actually looks like," "actually matters." Demonstrate it.
@@ -72,10 +73,10 @@ Empty intensifiers and hedge adverbs — cut when they add nothing: really, trul
 ## Write instead
 
 - **Be specific.** "It tells you you'll run out of USDC in 47 days" beats "powerful analytics." Real numbers beat "significant growth." Named things beat "various tools."
-- **Explain lists or remove them.** If several technical items matter, give each a job: "memory: stores recipient facts," "middleware: intercepts repeated tool calls." If the jobs don't matter, use the higher-level category instead.
+- **Explain lists or remove them.** If several technical items matter, give each a job: "memory: stores recipient facts," "middleware: intercepts repeated tool calls." If the jobs don't matter, replace the list with the higher-level category. "Board datasheet, user guide, demos, camera/display/audio I/O" becomes "docs and examples for building small local AI devices."
 - **Show, don't describe.** "Three clicks from connect to first risk score" beats "a seamless experience."
 - **Use contractions.** "don't," "can't," "it's."
-- **Ground it.** Time, place, version, source — "the March release," "in the repo's issue #412."
+- **Ground it.** Time, place, version, source. Prefer relative time: "2 hours ago," "3 days ago," or "1 week ago." Add the date only when the relative time is more than 2 weeks ago: "3 weeks ago (May 27)" beats only "May 27."
 - **Include friction where true.** Caveats, failures, and mess read human when they're real.
 - **Reach past the first word.** AI picks the highest-probability token; the less obvious word is usually better.
 
@@ -104,7 +105,7 @@ Empty intensifiers and hedge adverbs — cut when they add nothing: really, trul
 7. More than one em dash, or any chain? Cut.
 8. Throat-clearing, meta-commentary, or framing habits? Cut to the point.
 9. Vague declarative? Name the specific thing.
-10. Technical list with no explanation? Group it, explain it, or cut it.
+10. Technical list with no explanation, or specs before meaning? Group it, explain it, or cut it.
 11. Invented visual metaphor? Use the source's own shape or describe what the image actually shows.
 12. Any invented specifics? Remove or mark hypothetical.
 13. Could any AI have written this for anyone? Add the specific that makes it yours.
