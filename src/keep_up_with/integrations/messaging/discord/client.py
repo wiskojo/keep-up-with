@@ -401,7 +401,6 @@ class DiscordMessagingClient:
         async with self._client() as client:
             parent = await self._text_channel(client, channel)
             try:
-                user_id = str(self.context.settings()["user_id"])
                 if from_message:
                     starter = await _fetch_message(parent, from_message)
                     existing = getattr(starter, "thread", None)
@@ -441,8 +440,8 @@ class DiscordMessagingClient:
                         for file in files:
                             file.close()
                 await thread.send(
-                    content=f"<@{user_id}>",
-                    allowed_mentions=_user_allowed_mentions(user_id),
+                    content="@everyone",
+                    allowed_mentions=_everyone_allowed_mentions(),
                 )
             except discord.HTTPException as error:
                 raise ValueError(_discord_error(error)) from error
@@ -893,11 +892,11 @@ def _section_ref(section: discord.CategoryChannel) -> SectionRef:
     )
 
 
-def _user_allowed_mentions(user_id: str) -> discord.AllowedMentions:
+def _everyone_allowed_mentions() -> discord.AllowedMentions:
     return discord.AllowedMentions(
-        users=[discord.Object(id=int(user_id))],
+        users=False,
         roles=False,
-        everyone=False,
+        everyone=True,
         replied_user=False,
     )
 

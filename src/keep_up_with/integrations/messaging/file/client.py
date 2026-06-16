@@ -409,12 +409,10 @@ class FileMessagingClient:
             message["channel_id"] = channel_row["id"]
             message["thread_id"] = thread_id
             thread["messages"].append(message)
-        mention = self.context.settings().get("mention") or self.context.settings().get("user_id")
-        if mention:
-            message = self._new_message(state, text=f"@{mention}", attachments=[])
-            message["channel_id"] = channel_row["id"]
-            message["thread_id"] = thread_id
-            thread["messages"].append(message)
+        message = self._new_message(state, text="@everyone", attachments=[])
+        message["channel_id"] = channel_row["id"]
+        message["thread_id"] = thread_id
+        thread["messages"].append(message)
         self._save(state)
         return ThreadRef(
             id=thread["id"],
