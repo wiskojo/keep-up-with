@@ -894,15 +894,46 @@ async def _add_guild_members_to_thread(
     thread: discord.Thread,
 ) -> None:
     try:
+        mentions: list[str] = []
         async for member in guild.fetch_members(limit=None):
             if member.bot:
                 continue
+            mentions.append(member.mention)
+        for chunk in _mention_chunks(mentions):
             try:
-                await thread.add_user(member)
+                message = await thread.send(
+                    "\u200b",
+                    allowed_mentions=discord.AllowedMentions.none(),
+                )
+                await message.edit(
+                    content=chunk,
+                    allowed_mentions=discord.AllowedMentions(
+                        everyone=False,
+                        users=True,
+                        roles=False,
+                        replied_user=False,
+                    ),
+                )
             except discord.HTTPException:
                 continue
     except (discord.ClientException, discord.HTTPException):
         return
+
+
+def _mention_chunks(mentions: list[str]) -> list[str]:
+    chunks: list[str] = []
+    current = ""
+    for mention in mentions:
+        candidate = f"{current} {mention}".strip()
+        if len(candidate) > DISCORD_MESSAGE_LIMIT:
+            if current:
+                chunks.append(current)
+            current = mention
+        else:
+            current = candidate
+    if current:
+        chunks.append(current)
+    return chunks
 
 
 def _validate_message_text(text: str) -> None:
