@@ -44,11 +44,11 @@ accounts = [
   "@TheRundownAI",
   "@simonw",
   "@karpathy",
+  "@trending_repos",
 ]
 
 [web]
 feeds = [
-  "https://mshibanami.github.io/GitHubTrendingRSS/daily/all.xml",
   "https://mshibanami.github.io/GitHubTrendingRSS/weekly/all.xml",
   "https://openai.com/news/rss.xml",
   "https://developers.openai.com/rss.xml",
