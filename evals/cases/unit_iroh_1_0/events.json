@@ -1,0 +1,22 @@
+[
+  {
+    "name": "iroh 1.0 release",
+    "events": [
+      {
+        "integration": "web",
+        "kind": "page",
+        "external_id": "github-n0-computer-iroh-v1-0-0",
+        "summary": "n0 shipped Iroh 1.0, a Rust networking library for peer-to-peer app connections. The repo is getting strong developer attention, with roughly 9k GitHub stars and a high-traction Hacker News launch thread.",
+        "refs": {
+          "url": "https://github.com/n0-computer/iroh/releases/tag/v1.0.0",
+          "repo": "https://github.com/n0-computer/iroh"
+        },
+        "data": {
+          "repo": "n0-computer/iroh",
+          "stars_approx": 9300
+        },
+        "high_priority": false
+      }
+    ]
+  }
+]

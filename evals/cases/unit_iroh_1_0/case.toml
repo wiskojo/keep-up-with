@@ -1,0 +1,5 @@
+name = "unit_iroh_1_0"
+description = "Single tool/repo event for Iroh 1.0. Regression case for keeping the only message high-level instead of dumping networking details."
+
+[workspace]
+preset = "ai"

@@ -1,0 +1,22 @@
+[
+  {
+    "name": "zvec v0.5.0 trending",
+    "events": [
+      {
+        "integration": "web",
+        "kind": "page",
+        "external_id": "github-alibaba-zvec-v0-5-0",
+        "summary": "Alibaba Zvec is back on GitHub daily trending after v0.5.0. It is an in-process vector database for local RAG/search components, with roughly 10k GitHub stars.",
+        "refs": {
+          "url": "https://github.com/alibaba/zvec/releases/tag/v0.5.0",
+          "repo": "https://github.com/alibaba/zvec"
+        },
+        "data": {
+          "repo": "alibaba/zvec",
+          "stars_approx": 10500
+        },
+        "high_priority": false
+      }
+    ]
+  }
+]

@@ -1,0 +1,5 @@
+name = "unit_zvec_trending"
+description = "Single tool/repo event for Alibaba Zvec v0.5.0 and GitHub trending. Regression case for avoiding dense release-note inventory."
+
+[workspace]
+preset = "ai"

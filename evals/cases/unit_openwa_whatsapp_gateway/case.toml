@@ -1,0 +1,5 @@
+name = "unit_openwa_whatsapp_gateway"
+description = "Single tool/repo event for OpenWA trending. Regression case for avoiding API/status/legal detail dumps in a compact tool update."
+
+[workspace]
+preset = "ai"

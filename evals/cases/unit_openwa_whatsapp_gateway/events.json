@@ -1,0 +1,21 @@
+[
+  {
+    "name": "openwa whatsapp gateway trending",
+    "events": [
+      {
+        "integration": "web",
+        "kind": "page",
+        "external_id": "github-rmyndharis-openwa",
+        "summary": "OpenWA, a self-hosted WhatsApp Web API gateway, hit GitHub Trending with roughly 9k stars and a new v0.2.8 release.",
+        "refs": {
+          "url": "https://github.com/rmyndharis/OpenWA"
+        },
+        "data": {
+          "repo": "rmyndharis/OpenWA",
+          "stars_approx": 9100
+        },
+        "high_priority": false
+      }
+    ]
+  }
+]
