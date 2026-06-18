@@ -49,6 +49,7 @@ def run_setup(paths: KeepUpWithPaths) -> None:
 @dataclass(frozen=True)
 class KeepUpWithPreset:
     name: str
+    description: str
     integrations: dict[str, dict[str, list[str]]]
     sections: list[SpaceSection]
     channels: list[SpaceChannel]
@@ -399,14 +400,15 @@ def setup_keep_up_with(paths: KeepUpWithPaths) -> list[str]:
     selected = selected_presets(config, parameterized, presets)
     choices = [
         *(
-            ui.Choice(preset_label(name), f"preset:{name}", "Add sources.")
-            for name in presets
+            ui.Choice(preset_label(name), f"preset:{name}", preset.description)
+            for name, preset in presets.items()
         ),
     ]
     selected_values = ui.multiselect(
         "Presets",
         choices,
         selected,
+        detail="Preconfigured subscriptions and channel layout.",
     )
     names = [name for name in presets if f"preset:{name}" in selected_values]
     if not names:
@@ -469,7 +471,7 @@ def keep_up_with_presets() -> dict[str, KeepUpWithPreset]:
         value = tomllib.loads(path.read_text())
         integrations: dict[str, dict[str, list[str]]] = {}
         for integration, parameters in value.items():
-            if integration == "space":
+            if integration in {"preset", "space"}:
                 continue
             if not isinstance(parameters, dict):
                 continue
@@ -481,8 +483,13 @@ def keep_up_with_presets() -> dict[str, KeepUpWithPreset]:
             if fields:
                 integrations[str(integration)] = fields
         name = path.name.removesuffix(".toml")
+        metadata = value.get("preset")
+        description = (
+            text_field(metadata, "description") if isinstance(metadata, dict) else ""
+        )
         loaded[name] = KeepUpWithPreset(
             name=name,
+            description=description,
             integrations=integrations,
             sections=space_sections(value),
             channels=space_channels(value),

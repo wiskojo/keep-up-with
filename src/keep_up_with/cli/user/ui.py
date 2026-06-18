@@ -11,6 +11,10 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+SELECT_HINT = "↑/↓ move · Enter confirm"
+MULTISELECT_HINT = "↑/↓ move · Space toggle · Enter confirm"
+NUMBERED_SELECT_HINT = "Type number · Enter confirm"
+NUMBERED_MULTISELECT_HINT = "Type numbers · comma separate · Enter confirm"
 
 
 @dataclass(frozen=True)
@@ -29,6 +33,10 @@ def header(title: str, detail: str = "") -> None:
 
 def info(message: str) -> None:
     print(f"{dim(_symbol('line'))} {message}")
+
+
+def hint(message: str) -> None:
+    print(f"{dim(_symbol('line'))} {dim(message)}")
 
 
 def success(message: str) -> None:
@@ -110,13 +118,14 @@ def multiselect[T](
     title: str,
     choices: Sequence[Choice[T]],
     selected: set[T] | None = None,
+    detail: str = "",
 ) -> set[T]:
     if not choices:
         return set()
     defaults = selected or set()
     if _interactive_enabled():
-        return _interactive_multiselect(title, choices, defaults)
-    return _numbered_multiselect(title, choices, defaults)
+        return _interactive_multiselect(title, choices, defaults, detail)
+    return _numbered_multiselect(title, choices, defaults, detail)
 
 
 def bold(text: str) -> str:
@@ -337,6 +346,7 @@ def _interactive_multiselect[T](
     title: str,
     choices: Sequence[Choice[T]],
     selected: set[T],
+    detail: str,
 ) -> set[T]:
     values = set(selected)
     index = 0
@@ -348,7 +358,14 @@ def _interactive_multiselect[T](
         _enter_raw_mode(fd, old)
         sys.stdout.write("\033[?25l")
         while True:
-            line_count = _render_multiselect(title, choices, values, index, line_count)
+            line_count = _render_multiselect(
+                title,
+                choices,
+                values,
+                index,
+                line_count,
+                detail,
+            )
             key = _read_key(fd)
             if key == "up":
                 index = (index - 1) % len(choices)
@@ -404,7 +421,7 @@ def _render_select[T](
 ) -> int:
     lines = [
         f"{accent(_header_icon(title) or _symbol('step'))} {bold(title)}",
-        f"{dim(_symbol('line'))} {dim('Use arrows, Enter, or number keys')}",
+        f"{dim(_symbol('line'))} {dim(SELECT_HINT)}",
     ]
     lines.extend(_choice_lines(choices, active))
     return _render_lines(lines, previous_lines)
@@ -416,15 +433,18 @@ def _render_multiselect[T](
     selected: set[T],
     active: int,
     previous_lines: int,
+    detail: str,
 ) -> int:
     lines = [
         f"{accent(_header_icon(title) or _symbol('step'))} {bold(title)}",
-        f"{dim(_symbol('line'))} {dim('Space toggles, Enter confirms, arrows move')}",
     ]
+    if detail:
+        lines.append(f"{dim(_symbol('line'))} {detail}")
+    lines.append(f"{dim(_symbol('line'))} {dim(MULTISELECT_HINT)}")
     for index, choice in enumerate(choices):
         pointer = accent("❯") if index == active else " "
         mark = green("●") if choice.value in selected else dim("○")
-        label = bold(choice.label) if index == active else choice.label
+        label = bold(choice.label)
         suffix = f" - {dim(choice.description)}" if choice.description else ""
         lines.append(f"{pointer} {mark} {label}{suffix}")
     return _render_lines(lines, previous_lines)
@@ -434,7 +454,7 @@ def _choice_lines[T](choices: Sequence[Choice[T]], active: int) -> list[str]:
     lines = []
     for index, choice in enumerate(choices):
         pointer = accent("❯") if index == active else " "
-        label = bold(choice.label) if index == active else choice.label
+        label = bold(choice.label)
         shortcut = dim(f"{index + 1}.")
         suffix = f" - {dim(choice.description)}" if choice.description else ""
         lines.append(f"{pointer} {shortcut} {label}{suffix}")
@@ -534,6 +554,7 @@ def _numbered_select[T](
     default: T | None,
 ) -> T:
     header(title)
+    hint(NUMBERED_SELECT_HINT)
     default_index = next(
         (i + 1 for i, item in enumerate(choices) if item.value == default),
         1,
@@ -542,34 +563,35 @@ def _numbered_select[T](
         suffix = f" - {choice.description}" if choice.description else ""
         print(
             f"{dim(_symbol('line'))} {accent(str(index) + '.')} "
-            f"{choice.label}{dim(suffix)}"
+            f"{bold(choice.label)}{dim(suffix)}"
         )
     while True:
         value = prompt("Choose", str(default_index))
         try:
             index = int(value)
         except ValueError:
-            warning("Enter a number from the list.")
+            warning("Choose a number from the list.")
             continue
         if 1 <= index <= len(choices):
             return choices[index - 1].value
-        warning("Enter a number from the list.")
+        warning("Choose a number from the list.")
 
 
 def _numbered_multiselect[T](
     title: str,
     choices: Sequence[Choice[T]],
     selected: set[T],
+    detail: str,
 ) -> set[T]:
-    header(title)
+    header(title, detail)
+    hint(NUMBERED_MULTISELECT_HINT)
     for index, choice in enumerate(choices, start=1):
         checked = _symbol("ok") if choice.value in selected else " "
         suffix = f" - {choice.description}" if choice.description else ""
         print(
             f"{dim(_symbol('line'))} [{green(checked)}] "
-            f"{accent(str(index) + '.')} {choice.label}{dim(suffix)}"
+            f"{accent(str(index) + '.')} {bold(choice.label)}{dim(suffix)}"
         )
-    info("Enter numbers separated by commas. Leave blank to keep current.")
     while True:
         value = prompt("Choose")
         if not value:
@@ -577,8 +599,8 @@ def _numbered_multiselect[T](
         try:
             indexes = {int(item.strip()) for item in value.split(",") if item.strip()}
         except ValueError:
-            warning("Enter numbers separated by commas.")
+            warning("Use comma-separated numbers.")
             continue
         if all(1 <= index <= len(choices) for index in indexes):
             return {choices[index - 1].value for index in indexes}
-        warning("Enter numbers from the list.")
+        warning("Choose numbers from the list.")

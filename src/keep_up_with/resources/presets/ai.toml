@@ -1,3 +1,6 @@
+[preset]
+description = "Keep up with AI news and technical developments (recommended)"
+
 [reddit]
 subreddits = [
   "OpenAI",
