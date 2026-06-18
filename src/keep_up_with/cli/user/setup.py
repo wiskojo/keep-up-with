@@ -402,7 +402,7 @@ def setup_keep_up_with(paths: KeepUpWithPaths) -> list[str]:
         ),
     ]
     selected_values = ui.multiselect(
-        "Topics",
+        "Presets",
         choices,
         selected,
     )
