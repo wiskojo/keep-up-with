@@ -14,9 +14,9 @@ uv tool install -e .
 ## Commands
 
 ```bash
-kuw setup
-kuw start
-kuw status
-kuw stop
-kuw reset
+kup setup
+kup start
+kup status
+kup stop
+kup reset
 ```

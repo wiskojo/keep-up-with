@@ -17,7 +17,7 @@ def tool_command(integration: DataIntegration, tool: Tool) -> Callable[..., None
         config = get_config()
         if not config.integration_enabled(integration.name):
             typer.echo(
-                f"{integration.name} is not enabled. Tell the user to enable it with `kuw setup`.",
+                f"{integration.name} is not enabled. Tell the user to enable it with `kup setup`.",
                 err=True,
             )
             raise typer.Exit(1)
@@ -84,7 +84,7 @@ def build_tools_app() -> typer.Typer:
     def main(ctx: typer.Context) -> None:
         if ctx.invoked_subcommand is None:
             if not configured_integrations:
-                typer.echo("No tools enabled. Enable integrations with `kuw setup`.")
+                typer.echo("No tools enabled. Enable integrations with `kup setup`.")
                 raise typer.Exit()
             typer.echo(ctx.get_help())
             raise typer.Exit()

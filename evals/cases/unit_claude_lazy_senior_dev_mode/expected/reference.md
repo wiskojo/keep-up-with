@@ -60,4 +60,4 @@ Sources:
 - Ponytail skill file: https://github.com/DietrichGebert/ponytail/blob/main/skills/ponytail/SKILL.md
 - Agent portability docs: https://github.com/DietrichGebert/ponytail/blob/main/docs/agent-portability.md
 - Comparable project, caveman: https://github.com/JuliusBrussee/caveman
-- Star-history chart: generated with `cli tools repo star-history DietrichGebert/ponytail,JuliusBrussee/caveman ...`, backed by `api.star-history.com`.
+- Star-history chart: generated with `kup-cli tools repo star-history DietrichGebert/ponytail,JuliusBrussee/caveman ...`, backed by `api.star-history.com`.

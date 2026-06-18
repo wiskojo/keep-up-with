@@ -349,9 +349,9 @@ def record_startup_event(config: KeepUpWithConfig, store: EventStore) -> Event |
             to use subagents.
 
             Send the user a short message that you're up and getting situated.
-            Then read `USER.md` and `MEMORY.md`, run `cli --help` to confirm the
-            command works, and check `cli subs list` and
-            `cli space channels list` to see what they keep up with.
+            Then read `USER.md` and `MEMORY.md`, run `kup-cli --help` to confirm
+            the command works, and check `kup-cli subs list` and
+            `kup-cli space channels list` to see what they keep up with.
 
             When situated, send one brief ready message. Based on what you just
             checked, briefly say what you understand, that you're ready to help

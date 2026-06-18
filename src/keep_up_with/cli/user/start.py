@@ -32,7 +32,7 @@ class ServiceResult:
 
 def start_services(config: KeepUpWithConfig) -> list[ServiceResult]:
     if not config.paths.config.exists() or not config.paths.workspace.exists():
-        raise RuntimeError("run kuw setup first")
+        raise RuntimeError("run kup setup first")
     require_codex_daemon()
     config.paths.run.mkdir(parents=True, exist_ok=True)
     config.paths.logs.mkdir(parents=True, exist_ok=True)
@@ -64,7 +64,7 @@ def require_codex_daemon() -> None:
         suffix = f": {probe.detail}" if probe.detail else ""
         raise RuntimeError(
             "Codex app-server daemon is not running. "
-            "Start it with `codex app-server daemon start`, then run `kuw start` again"
+            "Start it with `codex app-server daemon start`, then run `kup start` again"
             f"{suffix}"
         )
 

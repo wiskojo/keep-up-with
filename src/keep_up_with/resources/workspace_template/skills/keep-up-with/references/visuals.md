@@ -33,7 +33,7 @@ Use the best visual for each distinct claim you mention: mechanism, speed, laten
 Prefer the least lossy source path available:
 
 1. Download or save the original image, chart, video frame, table, or document asset when the page exposes it directly.
-2. For webpages, capture the page with `cli tools web screenshot` and crop to the chart, figure, table, or card; use element screenshots instead when browser automation is available.
+2. For webpages, capture the page with `kup-cli tools web screenshot` and crop to the chart, figure, table, or card; use element screenshots instead when browser automation is available.
 3. For videos, talks, or demos, capture the exact frame, GIF, or short clip that carries the point, with the timestamp in notes. For a thread about a talk, use a title/stage/speaker frame as the opener when available; it establishes context even when it is not technical evidence. Do not replace it with a technical slide unless the talk frame is unreadable. Then use substantive frames for the claims.
 4. For flat screenshots, crop from the screenshot with normalized coordinates.
 5. Use manual pixel offsets only as a fallback, and write the crop box down so it can be reproduced.
@@ -43,9 +43,9 @@ Prefer the least lossy source path available:
 For live pages, capture a full-page screenshot, run the image grid unless you are using an element screenshot, then crop:
 
 ```sh
-cli tools web screenshot "https://example.com/post" --output research/artifacts/page.png
-cli tools image grid research/artifacts/page.png research/artifacts/page-grid.png
-cli tools image crop research/artifacts/page.png outputs/assets/post-2-chart.png 0.18,0.33,0.67,0.44
+kup-cli tools web screenshot "https://example.com/post" --output research/artifacts/page.png
+kup-cli tools image grid research/artifacts/page.png research/artifacts/page-grid.png
+kup-cli tools image crop research/artifacts/page.png outputs/assets/post-2-chart.png 0.18,0.33,0.67,0.44
 ```
 
 If the screenshot is too tall to inspect accurately, do not guess from the thumbnail. Make a grid image, use browser automation for element screenshots, or crop section-by-section and inspect each crop before it becomes a final asset.
@@ -73,7 +73,7 @@ const boxes = await page.locator('figure, svg, img, canvas').evaluateAll(nodes =
 For screenshot-only inputs, use a crop helper when the same page may be captured at different resolutions:
 
 ```sh
-cli tools image crop \
+kup-cli tools image crop \
   research/artifacts/source-screenshot.png \
   outputs/assets/post-2.png \
   0.189,0.339,0.671,0.444
@@ -82,23 +82,23 @@ cli tools image crop \
 For coordinate crops, generate a guide image first unless the crop box is already obvious:
 
 ```sh
-cli tools image grid \
+kup-cli tools image grid \
   research/artifacts/source-screenshot.png \
   research/artifacts/source-screenshot-grid.png
 ```
 
-Use the percentage labels and guide lines to choose the normalized `x,y,w,h` values for `cli tools image crop`.
+Use the percentage labels and guide lines to choose the normalized `x,y,w,h` values for `kup-cli tools image crop`.
 
 ## Video Frames And Clips
 
 The `video` tools take any video URL (YouTube, X, Reddit, direct media links) or a local file. They extract without saving the raw video — only the frames, clips, and GIFs you request are written; never persist raw video files:
 
 ```sh
-cli tools video info "VIDEO_URL"
-cli tools video frames "VIDEO_URL" 00:01:23 00:02:10 --output-dir research/artifacts/video
-cli tools video clip "VIDEO_URL" 00:01:23 6 outputs/assets/post-2-clip.mp4
-cli tools video clip "VIDEO_URL" 00:01:23 6 outputs/assets/post-2-crop.mp4 --crop 960:540:160:90
-cli tools video gif "VIDEO_URL" 00:01:23 4 outputs/assets/post-2.gif
+kup-cli tools video info "VIDEO_URL"
+kup-cli tools video frames "VIDEO_URL" 00:01:23 00:02:10 --output-dir research/artifacts/video
+kup-cli tools video clip "VIDEO_URL" 00:01:23 6 outputs/assets/post-2-clip.mp4
+kup-cli tools video clip "VIDEO_URL" 00:01:23 6 outputs/assets/post-2-crop.mp4 --crop 960:540:160:90
+kup-cli tools video gif "VIDEO_URL" 00:01:23 4 outputs/assets/post-2.gif
 ```
 
 ## Final Assets
@@ -109,6 +109,6 @@ Final assets should be direct source extracts, crops, clips, or GIFs:
 - video frames, GIFs, clips, or demo recordings
 - paper figures, leaderboard crops, screenshots of comments, or social posts
 
-Before using a visual, inspect the final asset at full size and thumbnail size; never attach the first crop without checking it. A final asset should show one visual object: the whole figure, table, card, code block, frame, demo, or comment needed for the claim, including enough heading, title, axes, labels, legend, caption, or footnote to read it. Split multiple objects unless one post explains the combined view. Crop captions and footnotes fully in or fully out. Article prose, next-section headings, browser chrome, clipped edge text, tall page strips, unloaded embeds, loading spinners, large empty canvas, and off-center framing mean the crop is not final; use `cli tools image grid` and `cli tools image crop` to recrop before publishing. For reports, studies, dashboards, and long posts, extract high-value charts and tables separately instead of one overview image. If a visual is decorative, cut it.
+Before using a visual, inspect the final asset at full size and thumbnail size; never attach the first crop without checking it. A final asset should show one visual object: the whole figure, table, card, code block, frame, demo, or comment needed for the claim, including enough heading, title, axes, labels, legend, caption, or footnote to read it. Split multiple objects unless one post explains the combined view. Crop captions and footnotes fully in or fully out. Article prose, next-section headings, browser chrome, clipped edge text, tall page strips, unloaded embeds, loading spinners, large empty canvas, and off-center framing mean the crop is not final; use `kup-cli tools image grid` and `kup-cli tools image crop` to recrop before publishing. For reports, studies, dashboards, and long posts, extract high-value charts and tables separately instead of one overview image. If a visual is decorative, cut it.
 
 Attach each visual to the post whose claim it supports.

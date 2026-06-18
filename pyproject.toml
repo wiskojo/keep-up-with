@@ -20,8 +20,8 @@ dependencies = [
 ]
 
 [project.scripts]
-kuw = "keep_up_with.cli.user.main:app"
-cli = "keep_up_with.cli.agent.main:app"
+kup = "keep_up_with.cli.user.main:app"
+kup-cli = "keep_up_with.cli.agent.main:app"
 
 [build-system]
 requires = ["hatchling"]

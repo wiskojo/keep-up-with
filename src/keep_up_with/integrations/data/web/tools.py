@@ -102,7 +102,7 @@ def _capture_full_page(
             "Chrome or Chromium was not found. Set KUW_CHROME to a Chrome executable."
         )
 
-    with tempfile.TemporaryDirectory(prefix="kuw-chrome-") as profile:
+    with tempfile.TemporaryDirectory(prefix="kup-chrome-") as profile:
         process = subprocess.Popen(
             [
                 chrome,

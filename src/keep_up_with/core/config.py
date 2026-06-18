@@ -117,7 +117,7 @@ def write_config(paths: KeepUpWithPaths, settings: KeepUpWithSettings) -> None:
 
 def _read_toml(path: Path) -> dict[str, Any]:
     if not path.exists():
-        raise RuntimeError(f"missing config: {path}; run kuw setup first")
+        raise RuntimeError(f"missing config: {path}; run kup setup first")
     with path.open("rb") as file:
         data = tomllib.load(file)
     return data if isinstance(data, dict) else {}

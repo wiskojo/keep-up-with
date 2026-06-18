@@ -68,7 +68,7 @@ def reset(
     ui.success("Runtime state reset.")
     ui.info("config and env were preserved.")
     ui.info("workspace was recreated.")
-    ui.info("next `kuw start` will create a new Codex thread.")
+    ui.info("next `kup start` will create a new Codex thread.")
 
 
 @app.command(help="Show runtime status")
