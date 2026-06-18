@@ -16,5 +16,6 @@ def register(registry) -> None:
                 "since": "PT10M",
                 "limit": 200,
             },
+            setup_default_enabled=False,
         )
     )

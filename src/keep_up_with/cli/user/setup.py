@@ -78,7 +78,9 @@ def default_config(messaging: dict) -> dict:
         },
         "messaging": messaging,
         "integrations": {
-            integration.name: integration.default_config()
+            integration.name: integration.default_config(
+                enabled=integration.setup_default_enabled
+            )
             for integration in sorted(
                 available_data_integrations(),
                 key=lambda item: item.name,
@@ -758,5 +760,6 @@ def with_integration(
 def integration_hint(integration: DataIntegration) -> str:
     parts = [integration.description] if integration.description else []
     env = list(integration.required_env)
-    parts.append(f"(env: {', '.join(env) if env else 'none'})")
+    if env:
+        parts.append(f"(env: {', '.join(env)})")
     return " ".join(parts)

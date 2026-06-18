@@ -37,6 +37,7 @@ class DataIntegration:
     required_env: Sequence[str] = ()
     parameters: Sequence[IntegrationParameter] = ()
     default_settings: dict[str, Any] = field(default_factory=dict)
+    setup_default_enabled: bool = True
 
     def default_config(self, *, enabled: bool = False) -> dict[str, Any]:
         settings = {**self.default_settings, "enabled": enabled}

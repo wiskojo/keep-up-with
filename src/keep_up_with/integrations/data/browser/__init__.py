@@ -10,5 +10,6 @@ def register(registry) -> None:
             name="browser",
             description="Local browser history",
             tools=(history,),
+            setup_default_enabled=False,
         )
     )
