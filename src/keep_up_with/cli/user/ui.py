@@ -200,6 +200,7 @@ def _header_icon(title: str) -> str:
         "messaging": "💬",
         "workspace": "📁",
         "workflow": "🧠",
+        "next step": "🚀",
     }
     return icons.get(normalized, "")
 

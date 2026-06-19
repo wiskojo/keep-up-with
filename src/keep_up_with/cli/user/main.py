@@ -36,6 +36,9 @@ def setup() -> None:
             ("env", str(paths.env)),
         ]
     )
+    ui.header("Next step")
+    ui.info(f"Run {ui.bold('kup start')} to start keep-up-with.")
+    ui.info(f"Update subscriptions and settings in {paths.config}.")
 
 
 @app.command(help="Start the runtime")

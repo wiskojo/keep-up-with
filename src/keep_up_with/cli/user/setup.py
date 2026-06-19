@@ -385,6 +385,15 @@ def enable_integration(paths: KeepUpWithPaths, integration: DataIntegration) -> 
 
 def ensure_integration(paths: KeepUpWithPaths, integration: DataIntegration) -> None:
     config = load_config(paths)
+    current = config.integration(integration.name)
+    section = {
+        **integration.default_config(enabled=True),
+        **current,
+        "enabled": True,
+    }
+    if section != current:
+        write_config(paths, with_integration(config.settings, integration.name, section))
+        config = load_config(paths)
     configure_credentials(paths, integration.name, integration.required_env, config)
 
 
