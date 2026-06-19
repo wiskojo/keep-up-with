@@ -4,12 +4,12 @@ description = "Keep up with AI news and technical developments (recommended)"
 [reddit]
 subreddits = [
   "OpenAI",
-  "Anthropic",
-  "GeminiAI",
   "ChatGPT",
-  "ClaudeAI",
   "codex",
+  "Anthropic",
+  "ClaudeAI",
   "ClaudeCode",
+  "GeminiAI",
   "cursor",
   "vibecoding",
   "accelerate",
@@ -18,46 +18,55 @@ subreddits = [
 
 [youtube]
 channels = [
+  "https://www.youtube.com/@OpenAI",
   "https://www.youtube.com/@anthropic-ai",
   "https://www.youtube.com/@claude",
-  "https://www.youtube.com/@OpenAI",
-  "https://www.youtube.com/@googledevelopers",
   "https://www.youtube.com/@GoogleDeepMind",
-  "https://www.youtube.com/@aiDotEngineer",
-  "UCNJ1Ymd5yFuUPtn21xtRbbw",
-  "https://www.youtube.com/@t3dotgg",
-  "https://www.youtube.com/@Fireship",
-  "https://www.youtube.com/@AndrejKarpathy",
-  "https://www.youtube.com/@ThePrimeagen",
   "https://www.youtube.com/@LangChain",
-  "https://www.youtube.com/@DwarkeshPatel",
+  "https://www.youtube.com/@aiDotEngineer",
+  "https://www.youtube.com/@Fireship",
+  "https://www.youtube.com/@ThePrimeagen",
+  "UCNJ1Ymd5yFuUPtn21xtRbbw",
 ]
 
 [x]
 accounts = [
+  "@OpenAI",
+  "@OpenAIDevs",
+  "@sama",
+  "@thsottiaux",
+  "@AnthropicAI",
+  "@claudeai",
+  "@DarioAmodei",
+  "@bcherny",
+  "@GoogleDeepMind",
+  "@demishassabis",
+  "@AIatMeta",
+  "@huggingface",
+  "@arena",
+  "@karpathy",
+  "@emollick",
+  "@simonw",
+  "@steipete",
+  "@Teknium",
+  "@deedydas",
   "@omarsar0",
   "@dair_ai",
   "@arankomatsuzaki",
-  "@OpenAIDevs",
-  "@AnthropicAI",
-  "@GoogleDeepMind",
-  "@AIatMeta",
-  "@huggingface",
+  "@kimmonismus",
   "@latentspacepod",
   "@TheRundownAI",
-  "@simonw",
-  "@karpathy",
   "@trending_repos",
 ]
 
 [web]
 feeds = [
-  "https://mshibanami.github.io/GitHubTrendingRSS/weekly/all.xml",
   "https://openai.com/news/rss.xml",
   "https://developers.openai.com/rss.xml",
   "https://blog.google/innovation-and-ai/technology/ai/rss/",
   "https://research.google/blog/rss/",
   "https://www.langchain.com/blog/rss.xml",
+  "https://mshibanami.github.io/GitHubTrendingRSS/weekly/all.xml",
 ]
 pages = [
   "https://www.anthropic.com/engineering",
