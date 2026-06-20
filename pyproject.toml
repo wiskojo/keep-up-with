@@ -1,7 +1,7 @@
 [project]
 name = "keep-up-with"
 version = "0.1.0"
-description = "Codex runtime support for monitoring sources and keeping up with topics."
+description = "A live Codex runtime for watching sources, triaging events, and posting concise updates."
 requires-python = ">=3.13"
 dependencies = [
     "browser-history>=0.5.0",
