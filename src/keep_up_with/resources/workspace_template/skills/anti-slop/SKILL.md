@@ -42,6 +42,8 @@ One goal: text that reads like a person wrote it. Apply these rules silently —
 
 delve / delving, tapestry, landscape (figurative), testament ("a testament to"), vibrant, pivotal, crucial, intricate / intricacies, meticulous / meticulously, bolster, garner, underscore, interplay, multifaceted, nuanced (as filler), foster, leverage (verb), utilize (say "use"), commence (say "start"), facilitate, encompass, paramount, groundbreaking, cutting-edge, game-changing / game-changer, transformative, revolutionize, seamless / seamlessly, robust (outside engineering), comprehensive (describing own output), endeavor, harnessing, spearheading, navigating (figurative), unpack (figurative), lean into, double down, take a step back, on the same page, showcasing, highlighting, emphasizing, enhancing, unprecedented, remarkable, stunning, profound, epic (non-literal), in essence, thought leader, synergy, pain points, value add / value proposition, moving forward, touch base / circle back, rest assured, it goes without saying
 
+Avoid "amplify/amplified/amplifies" when you mean someone shared, reposted, retweeted, quoted, linked to, or drew attention to something. Use the plain action instead: "Hugging Face shared it," "Tibo reposted it," "OpenAI Developers quoted it."
+
 Empty intensifiers and hedge adverbs — cut when they add nothing: really, truly, genuinely, honestly, literally, actually, simply, deeply, fundamentally, inherently, incredibly. Natural chat words in moderation are fine; reflexive emphasis is not.
 
 ## Banned phrases and openers
