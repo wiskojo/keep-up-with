@@ -28,11 +28,12 @@ It should at least answer:
 - why it is showing up now
 - why it matters enough to send
 
-It should usually include three brief context anchors:
+It should usually include these brief context anchors:
 
 - **Time:** when the thing actually happened or started gaining attention, not just when this notification arrived. Use relative time first: `2 hours ago`, `3 days ago`, `1 week ago`; add a date only when the relative time is more than 2 weeks ago, such as `3 weeks ago (May 27)`.
 - **Entity:** who or what the unfamiliar person, account, company, project, or tool is. If it is not in `MEMORY.md`, not in subscriptions, and not obviously well known, add the shortest useful descriptor: role, affiliation, account focus, maturity, adoption, category, or why their view matters. Do not infer a real identity from a handle or display name; for pseudonymous, anonymous, meme-name, or brand-name accounts, use the handle plus a descriptor when the identity matters. Do not write `the company behind X` or `the author of X` by itself; that restates the link. Say what kind of entity it is, how established it is, what it builds, or omit the name if that context is not useful.
 - **Traction:** a rounded sense of current attention or adoption, not an exact telemetry dump: `nearly 200k X impressions`, `500+ Reddit upvotes`, `around 9k GitHub stars`, `quiet discussion so far`.
+- **Reaction:** when public discussion is impactful, use representative direct quotes from comments, quote posts, replies, forums, or reviews. Representative can mean the quote captures a repeated theme, comes from someone with relevant weight, or has high likes, reposts, upvotes, replies, or impressions. Attribute it with source and rounded scale; do not paraphrase a strong reaction into vague sentiment.
 
 Do not put implementation details, config names, API fields, IOCs, release-note lists, version numbers, package inventories, benchmark plumbing, or long caveats in the only message or first post.
 
