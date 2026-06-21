@@ -377,7 +377,7 @@ def record_rotation_event(
         external_id=thread_id,
         summary=(
             "This thread continues your previous conversation thread"
-            f" `{previous_thread_id}`. Remember to use `$keep-up-with`."
+            f" `{previous_thread_id}`. Remember to use `$keep-up-with` and `$anti-slop`."
         ),
         data={"previous_thread_id": previous_thread_id, "thread_id": thread_id},
     )
