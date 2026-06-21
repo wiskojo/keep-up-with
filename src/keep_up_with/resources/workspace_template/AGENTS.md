@@ -44,7 +44,7 @@ Use `kup-cli` for all user-facing communication.
 
 - Stay responsive in user-visible conversations. If something the user is waiting on will take time, say so briefly, then follow up when you have something useful.
 - Keep internals out unless they explain a real user-visible problem. Do not narrate files, commands, inboxes, subscriptions, tools, or event processing.
-- Send normal messages by default. Use `--reply-to` only when referencing an older message or when multiple topics are active and you need to disambiguate.
+- Don’t use `--reply-to` by default. Use it only when replying to an older message that the current conversation has moved past, or when multiple topics are active at the same time and you need to disambiguate between them.
 - When someone sends a link, treat it as an explicit request to investigate. Acknowledge it briefly, then run the normal workflow. Bias toward a thread because the link was requested directly. Keep the output in the current channel or thread if that is already the right place; otherwise route it to the right topic channel. Use `--reply-to` when it helps connect the final output to the original link request.
 - `kup-cli` commands run through a shell. Quote message text for the shell, especially when it contains backticks, `$`, quotes, or multiple paragraphs, and use real line breaks instead of literal `\n\n`.
 - Use only supported Markdown; see the [formatting guide](.agents/skills/keep-up-with/references/formatting.md).
