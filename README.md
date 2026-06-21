@@ -111,3 +111,7 @@ kup-cli tools --help         # list configured tools
 kup-cli message send --help  # inspect message publishing options
 kup-cli thread create --help # inspect story thread options
 ```
+
+## License
+
+MIT. See [LICENSE](LICENSE).

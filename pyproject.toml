@@ -1,8 +1,10 @@
 [project]
 name = "keep-up-with"
 version = "0.1.0"
-description = "A live Codex runtime for watching sources, triaging events, and posting concise updates."
+description = "Turn Codex into your personal 24/7 assistant for staying on top of the latest developments."
 requires-python = ">=3.13"
+license = "MIT"
+license-files = ["LICENSE"]
 dependencies = [
     "browser-history>=0.5.0",
     "discord.py>=2.7.1",
