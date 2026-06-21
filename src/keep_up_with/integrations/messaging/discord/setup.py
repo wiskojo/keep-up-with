@@ -83,11 +83,11 @@ def prompt_required(ui, message: str, default: str = "", *, secret: bool = False
 
 
 def choose_server(ui, token: str, bot: dict[str, str]) -> str:
-    ui.info("Create a new private server, invite keep-up-with, then continue.")
+    ui.info("Create a new private server, invite your bot, then continue.")
     bot = bot or (fetch_bot(token) if token else {})
     if bot:
         ui.info(invite_url(str(bot.get("application_id") or "")))
-    ui.pause("Press Enter after keep-up-with has joined the new server")
+    ui.pause("Press Enter after your bot has joined the new server")
     return choose_guild(ui, token) if token else ""
 
 
