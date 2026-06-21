@@ -155,6 +155,7 @@ class DiscordMessagingClient:
                 items=_space_delete_items(channels),
                 default_empty_server=await _default_empty_server(channels),
                 target=f"Discord server: {guild.name} ({guild.id})",
+                confirmation_phrase=guild.name,
             )
 
     async def rename_channel(self, *, channel: str, name: str) -> ChannelRef:

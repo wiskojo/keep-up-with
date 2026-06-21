@@ -170,6 +170,7 @@ class SpaceResetPreview:
     items: Sequence[SpaceDeleteItem] = ()
     default_empty_server: bool = False
     target: str = ""
+    confirmation_phrase: str = ""
 
 
 class IntegrationContext:

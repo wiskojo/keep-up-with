@@ -644,7 +644,22 @@ def confirm_space_reset(target: str, preview: SpaceResetPreview | None) -> bool:
         return True
     for line in space_delete_lines(preview):
         ui.info(ui.red(line))
-    return ui.confirm("Delete these items and reset server layout?", default=False)
+    phrase = preview.confirmation_phrase.strip()
+    if not phrase:
+        return ui.confirm("Delete these items and reset server layout?", default=False)
+    ui.danger_block(
+        "Confirm server reset",
+        [
+            "Type this server name to reset the layout:",
+            f"  {ui.bold(phrase)}",
+            "This cannot be automatically undone.",
+        ],
+    )
+    typed = ui.prompt_cancelable("Confirm server name")
+    if typed != phrase:
+        ui.warning("Cancelled.")
+        return False
+    return True
 
 
 def preview_space_reset(client) -> SpaceResetPreview | None:
