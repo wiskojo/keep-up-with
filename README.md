@@ -66,6 +66,9 @@ Importantly, **keep-up-with** connects follow-ups, reactions, and related storie
 
 A starter AI preset is included out of the box. It is tuned for AI news and technical updates, and it sets up both subscriptions and a Discord channel layout so you have a useful starting point instead of a blank config.
 
+> [!NOTE]
+> The default AI preset is tuned for ChatGPT Pro users on the 5x or 20x plan and can consume substantial usage.
+
 ## Quickstart
 
 Install **keep-up-with**:
