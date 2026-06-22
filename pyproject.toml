@@ -2,9 +2,11 @@
 name = "keep-up-with"
 version = "0.1.0"
 description = "Turn Codex into your personal 24/7 assistant for staying on top of the latest developments."
+readme = "README.md"
 requires-python = ">=3.13"
 license = "MIT"
 license-files = ["LICENSE"]
+authors = [{ name = "Wis Kojohnjaratkul" }]
 dependencies = [
     "browser-history>=0.5.0",
     "discord.py>=2.7.1",
@@ -24,6 +26,10 @@ dependencies = [
 [project.scripts]
 kup = "keep_up_with.cli.user.main:app"
 kup-cli = "keep_up_with.cli.agent.main:app"
+
+[project.urls]
+Homepage = "https://github.com/wiskojo/keep-up-with"
+Repository = "https://github.com/wiskojo/keep-up-with"
 
 [build-system]
 requires = ["hatchling"]
