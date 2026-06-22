@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" alt="keep-up-with logo" width="120" />
+  <img src="https://raw.githubusercontent.com/wiskojo/keep-up-with/main/assets/logo.png" alt="keep-up-with logo" width="120" />
 </p>
 
 <h1 align="center">keep-up-with</h1>
@@ -17,7 +17,7 @@ Everything moves so fast these days that it’s hard to keep up, especially in A
 
 If [last30days-skill](https://github.com/mvanhorn/last30days-skill) is what you run when you finally ask "what did I miss?", **keep-up-with** is the always-on version. It keeps tabs on everything and updates you so you never fall behind. You can use it with your existing OpenAI (ChatGPT/Codex) subscription (OAuth) to keep watch while you focus on other things.
 
-![How keep-up-with keeps watch](assets/overview.png)
+![How keep-up-with keeps watch](https://raw.githubusercontent.com/wiskojo/keep-up-with/main/assets/overview.png)
 
 Think of it like having a hard-working intern tracking noisy feeds all day, then sharing only the interesting and relevant updates.
 
@@ -41,7 +41,7 @@ The result should be a stream that is easier to follow: fewer items, more contex
 
 ## How It Works
 
-![keep-up-with workflow](assets/workflow.png)
+![keep-up-with workflow](https://raw.githubusercontent.com/wiskojo/keep-up-with/main/assets/workflow.png)
 
 The sources you configure are watched continuously. When something new appears, it becomes an event in the inbox. Codex investigates the event, checks the surrounding context, gathers useful artifacts, and decides what should happen next: skip it, share a quick update, open a new thread, or append to an existing story.
 
