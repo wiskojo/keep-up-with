@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import base64
 import hashlib
+from html.parser import HTMLParser
 import json
 import math
+import mimetypes
 import os
 import re
 import shutil
@@ -12,7 +14,7 @@ import tempfile
 import time
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote, urlparse
+from urllib.parse import quote, unquote, urljoin, urlparse
 
 import httpx
 from markitdown import MarkItDown
@@ -22,29 +24,36 @@ from keep_up_with.integrations.base import ToolContext, tool
 from keep_up_with.integrations.data.common import resolve_path
 
 
-@tool("Download a web page")
+@tool("Download a web page and page assets")
 def download(
     _ctx: ToolContext,
     url: str,
     output_dir: str,
 ) -> dict[str, Any]:
-    response = httpx.get(
-        url,
+    with httpx.Client(
         follow_redirects=True,
         timeout=30,
         headers={"user-agent": "keep-up-with/0.1"},
-    )
-    response.raise_for_status()
+    ) as client:
+        response = client.get(url)
+        response.raise_for_status()
 
-    target_dir = resolve_path(output_dir) / f"web-page-{safe_path_part(url)}"
-    target_dir.mkdir(parents=True, exist_ok=True)
-    html_path = target_dir / "page.html"
-    markdown_path = target_dir / "page.md"
-    metadata_path = target_dir / "metadata.json"
+        target_dir = resolve_path(output_dir) / f"web-page-{safe_path_part(url)}"
+        target_dir.mkdir(parents=True, exist_ok=True)
+        html_path = target_dir / "page.html"
+        markdown_path = target_dir / "page.md"
+        assets_path = target_dir / "assets.json"
+        assets_markdown_path = target_dir / "assets.md"
+        metadata_path = target_dir / "metadata.json"
 
-    html_path.write_text(response.text, encoding=response.encoding or "utf-8")
-    markdown = MarkItDown().convert(str(html_path)).text_content.strip()
-    markdown_path.write_text(markdown + "\n", encoding="utf-8")
+        html_path.write_text(response.text, encoding=response.encoding or "utf-8")
+        markdown = MarkItDown().convert(str(html_path)).text_content.strip()
+        markdown_path.write_text(markdown + "\n", encoding="utf-8")
+        candidates = _extract_asset_candidates(response.text, base_url=str(response.url))
+        assets = _download_assets(candidates, target_dir=target_dir, client=client)
+        assets_path.write_text(json.dumps(assets, indent=2, sort_keys=True) + "\n")
+        assets_markdown_path.write_text(_assets_markdown(assets), encoding="utf-8")
+
     metadata = {
         "type": "web_page",
         "url": url,
@@ -52,6 +61,10 @@ def download(
         "status_code": response.status_code,
         "html": str(html_path),
         "markdown": str(markdown_path),
+        "assets": str(assets_path),
+        "assets_markdown": str(assets_markdown_path),
+        "asset_count": len(assets),
+        "downloaded_asset_count": sum(1 for asset in assets if asset.get("ok")),
     }
     metadata_path.write_text(json.dumps(metadata, indent=2, sort_keys=True) + "\n")
     return {"ok": True, "output_dir": str(target_dir), **metadata}
@@ -196,6 +209,244 @@ def safe_path_part(value: str) -> str:
     base = re.sub(r"[^A-Za-z0-9._-]+", "-", base).strip("-._").lower()
     suffix = hashlib.sha1(value.encode("utf-8")).hexdigest()[:8]
     return f"{base[:70] or 'page'}-{suffix}"
+
+
+class _AssetParser(HTMLParser):
+    def __init__(self, *, base_url: str) -> None:
+        super().__init__(convert_charrefs=True)
+        self.base_url = base_url
+        self.assets: list[dict[str, Any]] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        values = {key.lower(): value or "" for key, value in attrs}
+        tag = tag.lower()
+        if tag == "img":
+            self._add_url(tag=tag, attr="src", values=values, kind="image")
+            self._add_srcset(tag=tag, attr="srcset", values=values, kind="image")
+        elif tag == "source":
+            kind = _asset_kind_from_content_type(values.get("type", ""))
+            self._add_url(tag=tag, attr="src", values=values, kind=kind)
+            self._add_srcset(tag=tag, attr="srcset", values=values, kind=kind)
+        elif tag == "video":
+            self._add_url(tag=tag, attr="src", values=values, kind="video")
+            self._add_url(tag=tag, attr="poster", values=values, kind="image")
+        elif tag == "meta":
+            key = (values.get("property") or values.get("name") or "").lower()
+            if key in {"og:image", "og:image:url", "twitter:image", "twitter:image:src"}:
+                self._add_url(tag=tag, attr="content", values=values, kind="image")
+            elif key in {
+                "og:video",
+                "og:video:url",
+                "og:video:secure_url",
+                "twitter:player:stream",
+            }:
+                self._add_url(tag=tag, attr="content", values=values, kind="video")
+        elif tag == "link":
+            rel = values.get("rel", "").lower()
+            if any(part in {"icon", "apple-touch-icon"} for part in rel.split()):
+                self._add_url(tag=tag, attr="href", values=values, kind="image")
+
+    def _add_url(
+        self,
+        *,
+        tag: str,
+        attr: str,
+        values: dict[str, str],
+        kind: str,
+        srcset_descriptor: str = "",
+    ) -> None:
+        raw_url = values.get(attr, "").strip()
+        if not raw_url:
+            return
+        url = _absolute_asset_url(raw_url, base_url=self.base_url)
+        if not url:
+            return
+        self.assets.append(
+            {
+                "kind": _asset_kind_from_url(url, fallback=kind),
+                "url": url,
+                "source": f"{tag}[{attr}]",
+                "alt": values.get("alt", ""),
+                "title": values.get("title", ""),
+                "type": values.get("type", ""),
+                "media": values.get("media", ""),
+                "rel": values.get("rel", ""),
+                "property": values.get("property", ""),
+                "name": values.get("name", ""),
+                "srcset_descriptor": srcset_descriptor,
+            }
+        )
+
+    def _add_srcset(
+        self,
+        *,
+        tag: str,
+        attr: str,
+        values: dict[str, str],
+        kind: str,
+    ) -> None:
+        for raw_url, descriptor in _parse_srcset(values.get(attr, "")):
+            merged = dict(values)
+            merged[attr] = raw_url
+            self._add_url(
+                tag=tag,
+                attr=attr,
+                values=merged,
+                kind=kind,
+                srcset_descriptor=descriptor,
+            )
+
+
+def _extract_asset_candidates(html: str, *, base_url: str) -> list[dict[str, Any]]:
+    parser = _AssetParser(base_url=base_url)
+    parser.feed(html)
+    seen: set[str] = set()
+    candidates: list[dict[str, Any]] = []
+    for asset in parser.assets:
+        url = str(asset.get("url") or "")
+        if not url or url in seen:
+            continue
+        seen.add(url)
+        asset["index"] = len(candidates) + 1
+        candidates.append(asset)
+    return candidates
+
+
+def _download_assets(
+    candidates: list[dict[str, Any]],
+    *,
+    target_dir: Path,
+    client: httpx.Client,
+) -> list[dict[str, Any]]:
+    assets_dir = target_dir / "assets"
+    if candidates:
+        assets_dir.mkdir(parents=True, exist_ok=True)
+
+    assets: list[dict[str, Any]] = []
+    for candidate in candidates:
+        asset = dict(candidate)
+        index = int(asset["index"])
+        url = str(asset["url"])
+        try:
+            with client.stream("GET", url) as response:
+                response.raise_for_status()
+                content_type = response.headers.get("content-type", "").split(";")[0]
+                filename = _asset_filename(
+                    index=index,
+                    url=url,
+                    content_type=content_type,
+                    kind=str(asset.get("kind") or "asset"),
+                )
+                path = assets_dir / filename
+                size = 0
+                with path.open("wb") as output:
+                    for chunk in response.iter_bytes():
+                        if not chunk:
+                            continue
+                        output.write(chunk)
+                        size += len(chunk)
+            asset.update(
+                {
+                    "ok": True,
+                    "path": str(path),
+                    "relative_path": str(path.relative_to(target_dir)),
+                    "content_type": content_type,
+                    "size_bytes": size,
+                }
+            )
+        except Exception as error:
+            asset.update({"ok": False, "error": str(error)})
+        assets.append(asset)
+    return assets
+
+
+def _assets_markdown(assets: list[dict[str, Any]]) -> str:
+    lines = ["# Assets", ""]
+    if not assets:
+        lines.extend(["No page assets found.", ""])
+        return "\n".join(lines)
+
+    for asset in assets:
+        index = int(asset.get("index") or 0)
+        kind = str(asset.get("kind") or "asset")
+        label = _asset_label(asset)
+        lines.append(f"## {index}. {kind}: {label}")
+        if asset.get("ok") and asset.get("relative_path"):
+            lines.append(f"- File: `{asset['relative_path']}`")
+        else:
+            lines.append("- File: not downloaded")
+        lines.append(f"- URL: {asset.get('url', '')}")
+        lines.append(f"- Source: `{asset.get('source', '')}`")
+        if asset.get("content_type"):
+            lines.append(f"- Content type: `{asset['content_type']}`")
+        if asset.get("size_bytes") is not None:
+            lines.append(f"- Size: {asset['size_bytes']} bytes")
+        if asset.get("error"):
+            lines.append(f"- Error: {asset['error']}")
+        lines.append("")
+    return "\n".join(lines)
+
+
+def _asset_label(asset: dict[str, Any]) -> str:
+    for key in ("alt", "title", "property", "name"):
+        value = str(asset.get(key) or "").strip()
+        if value:
+            return value
+    path = unquote(urlparse(str(asset.get("url") or "")).path)
+    return Path(path).name or str(asset.get("url") or "")
+
+
+def _absolute_asset_url(raw_url: str, *, base_url: str) -> str:
+    raw_url = raw_url.strip()
+    if not raw_url:
+        return ""
+    lowered = raw_url.lower()
+    if lowered.startswith(("data:", "blob:", "javascript:", "mailto:", "tel:")):
+        return ""
+    parsed = urlparse(urljoin(base_url, raw_url))
+    if parsed.scheme not in {"http", "https"}:
+        return ""
+    return parsed.geturl()
+
+
+def _parse_srcset(value: str) -> list[tuple[str, str]]:
+    entries: list[tuple[str, str]] = []
+    for item in value.split(","):
+        parts = item.strip().split()
+        if not parts:
+            continue
+        entries.append((parts[0], " ".join(parts[1:])))
+    return entries
+
+
+def _asset_kind_from_content_type(content_type: str) -> str:
+    content_type = content_type.lower()
+    if content_type.startswith("video/"):
+        return "video"
+    if content_type.startswith("image/"):
+        return "image"
+    return "asset"
+
+
+def _asset_kind_from_url(url: str, *, fallback: str) -> str:
+    suffix = Path(urlparse(url).path).suffix.lower()
+    if suffix in {".mp4", ".mov", ".m4v", ".webm"}:
+        return "video"
+    if suffix in {".avif", ".gif", ".jpeg", ".jpg", ".png", ".svg", ".webp"}:
+        return "image"
+    return fallback
+
+
+def _asset_filename(*, index: int, url: str, content_type: str, kind: str) -> str:
+    parsed = urlparse(url)
+    path = unquote(parsed.path)
+    source_name = Path(path).name
+    stem = Path(source_name).stem or kind or "asset"
+    stem = re.sub(r"[^A-Za-z0-9._-]+", "-", stem).strip("-._") or "asset"
+    suffix = Path(source_name).suffix.lower()
+    if not suffix or len(suffix) > 10:
+        suffix = mimetypes.guess_extension(content_type) or ".bin"
+    return f"asset-{index:02d}-{stem[:50]}{suffix}"
 
 
 def _wait_for_debug_port(

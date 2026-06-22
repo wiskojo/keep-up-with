@@ -32,7 +32,7 @@ Use the best visual for each distinct claim you mention: mechanism, speed, laten
 
 Prefer the least lossy source path available:
 
-1. Download or save the original image, chart, video frame, table, or document asset when the page exposes it directly.
+1. Download or save the original image, chart, video frame, table, or document asset when the page exposes it directly. For webpages, `kup-cli tools web download` writes `assets.md`; inspect it before taking screenshots so direct images, videos, posters, and preview assets are not missed.
 2. For webpages, capture the page with `kup-cli tools web screenshot` and crop to the chart, figure, table, or card; use element screenshots instead when browser automation is available.
 3. For videos, talks, or demos, capture the exact frame, GIF, or short clip that carries the point, with the timestamp in notes. For a thread about a talk, use a title/stage/speaker frame as the opener when available; it establishes context even when it is not technical evidence. Do not replace it with a technical slide unless the talk frame is unreadable. Then use substantive frames for the claims.
 4. For flat screenshots, crop from the screenshot with normalized coordinates.
