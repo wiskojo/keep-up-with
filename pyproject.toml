@@ -30,6 +30,7 @@ kup-cli = "keep_up_with.cli.agent.main:app"
 [project.urls]
 Homepage = "https://github.com/wiskojo/keep-up-with"
 Repository = "https://github.com/wiskojo/keep-up-with"
+Issues = "https://github.com/wiskojo/keep-up-with/issues"
 
 [build-system]
 requires = ["hatchling"]
